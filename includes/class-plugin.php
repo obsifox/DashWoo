@@ -109,6 +109,9 @@ final class Plugin {
 			'compiler'      => static function () {
 				return Compiler::instance();
 			},
+			'account'       => static function () {
+				return \DashWoo\Account\Account::instance();
+			},
 			'elementor'     => static function () {
 				return Tokens_Integration::instance();
 			},
@@ -188,6 +191,7 @@ final class Plugin {
 		$this->get( 'icons' )->boot();
 
 		// 5. Integrations.
+		$this->get( 'account' )->boot();
 		$this->get( 'elementor' )->boot();
 
 		// 6. Interfaces.

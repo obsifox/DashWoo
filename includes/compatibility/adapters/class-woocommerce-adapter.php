@@ -76,7 +76,7 @@ class WooCommerce_Adapter extends Abstract_Adapter {  // Not final: third partie
 	 * @return bool
 	 */
 	public function is_active() {
-		return class_exists( '\WooCommerce' );
+		return function_exists( 'dashwoo_has_woocommerce' ) ? dashwoo_has_woocommerce() : class_exists( '\WooCommerce' );
 	}
 
 	/**
@@ -85,7 +85,7 @@ class WooCommerce_Adapter extends Abstract_Adapter {  // Not final: third partie
 	 * @return string
 	 */
 	public function version() {
-		return defined( 'WC_VERSION' ) ? (string) WC_VERSION : '';
+		return function_exists( 'dashwoo_woocommerce_version' ) ? dashwoo_woocommerce_version() : ( defined( 'WC_VERSION' ) ? (string) WC_VERSION : '' );
 	}
 
 	/**

@@ -32,6 +32,47 @@ if ( ! function_exists( 'dashwoo_is_on' ) ) {
 	}
 }
 
+if ( ! function_exists( 'dashwoo_has_woocommerce' ) ) {
+	/**
+	 * Is WooCommerce present in this request?
+	 *
+	 * Every adapter asks this function instead of poking at `class_exists()` /
+	 * `WC_VERSION` directly, so the answer is testable, filterable and identical
+	 * everywhere in the platform (and a site that ships WooCommerce behind a
+	 * custom loader can still tell DashWoo the truth).
+	 *
+	 * @return bool
+	 */
+	function dashwoo_has_woocommerce() {
+		$active = class_exists( '\\WooCommerce' ) || defined( 'WC_VERSION' );
+
+		/**
+		 * Filter whether WooCommerce counts as active.
+		 *
+		 * @param bool $active Detected state.
+		 */
+		return (bool) apply_filters( 'dashwoo_has_woocommerce', $active );
+	}
+}
+
+if ( ! function_exists( 'dashwoo_woocommerce_version' ) ) {
+	/**
+	 * WooCommerce version ('' when WooCommerce is not loaded).
+	 *
+	 * @return string
+	 */
+	function dashwoo_woocommerce_version() {
+		$version = defined( 'WC_VERSION' ) ? (string) WC_VERSION : '';
+
+		/**
+		 * Filter the reported WooCommerce version.
+		 *
+		 * @param string $version Detected version.
+		 */
+		return (string) apply_filters( 'dashwoo_woocommerce_version', $version );
+	}
+}
+
 if ( ! function_exists( 'dashwoo_mode' ) ) {
 	/**
 	 * Current render mode: "full" | "compatibility".

@@ -1,18 +1,26 @@
-DashWoo 1.2.0
+DashWoo 1.3.0
 built: 2026-01-18T21:20:00+00:00
 php: 8.4.24
-files: 61
+files: 81
 
 sha256  size  path
 e943464ade6eb216a7cd67b9bd93c94aacb8356aece3f9a5d33edc0dd5e7f55d      1631  LICENSE
-4677939fd55934fcea675083a24adcfa67a09635780d251dd84d8b00352c4bb1      4269  README.md
+1de39ab7d34baf2a60e0c23fed5e7c641a6b34c166068018cff865de424de84d      6726  README.md
 16456503e9cbf97cb9c6e3c668b9dea63c3868293221ac02ee88cd1688888b50      4580  assets/css/admin.css
-04fd605a58dc0a701d60ab6b7ee270f51e64c934a89d72e05114d3367627e119      2271  assets/css/dashwoo.css
+c5ce8c7e621f1d2e8fe4b85cd1c3eac11b4c0ff24ba03286ca34d1ff4c0908d6     14196  assets/css/dashwoo.css
 3fdc7027b702e03c0732b755d1956e8e2c1a101e7ba1d17df4f3becc74f0b8b8      5476  assets/data/google-fonts.json
 35ad18ac0bf0f6f68182bc6b25dfa25c281236569b9747b5fc2bb5a926fa66af      1169  assets/js/admin.js
 59fb7a477b4f988c43d1db896eb330762a05e74b059bee6edc65c3459143e49a       440  assets/js/elementor.js
 754bbcbe9235cedf9c1bdcdb8a810c85198afab907150939ea99fcd31177b4d6       339  assets/js/token-picker.js
-37dba6d34f09c391ff9a04ab82f41811423c27b7c0031ae4b762cba9ca3c47e6      1354  dashwoo.php
+35c73ef32b56a797722c2b68b47a3a8fc435bcc773fd947e7a83991508fc494a      1354  dashwoo.php
+d3265fadd56d8958abf93595aae2640fb394611f6910e34e5552916e0f459526      6312  includes/account/class-account.php
+82da26c3054793a0b6d35532ba0b3ae5ba05871200717574543935c9cb3dac44     14927  includes/account/class-endpoints.php
+03b445cfdc67a89ce612c80356e56a7b1fab3026176210fd5848299eb5fb0b9a      5866  includes/account/class-form-adapter.php
+54ed95f630d07c3579535b0b49f2afc414863b123958daa446bfc4d60447221d      4171  includes/account/class-native-bridge.php
+9384402993d652c3707e52efd3d588fa0ae74871056a92f9ff6a638b43405b56      4278  includes/account/class-profile.php
+2ecacdb46ce6f283784abe065b89c6cf4c824e9da9a7aca5ea81c245d95774be     18750  includes/account/class-renderer.php
+d9d979e30b7fac927e88ebc103d4f1bb15a4c30a50a673aff40172fd78e5eefc     19647  includes/account/class-sections.php
+c002e74a9269d19cadeb4c6c51da30883ea8ca82ceee8fd897d4744931cb3a25      9252  includes/account/class-source-adapter.php
 096373730426bcf0c003d5915a152cfeb3bc73de81a29c21eecd89da71d87618     21260  includes/admin/class-admin.php
 4f5046536da015325a5485cc6d25e4d47dfa0d49f98af76b706df3659b4da406      6509  includes/admin/views/assets.php
 d5e29dcc9bb1b49d4e3f053d8f6599b7fd03494320558e1a1ddff2a37c5d0f99      8244  includes/admin/views/capabilities.php
@@ -37,31 +45,43 @@ ae49ea6b183694aa2d698295cd2177a77644e5aeb4ee6d7ffab734253afabc2b      4226  incl
 b7a877b5bc0caa660c36f001f6412ca8f299c9751711dd3d0c18918890319758      3460  includes/class-activator.php
 e351422566b02d6ece2357e695dacc914fb35b1084e90a29e03ebd694a070c54      3944  includes/class-autoloader.php
 c767002b7901f5ffdac77e63bb381c3a94f026c4497b9087fc4274586a490c2b       361  includes/class-deactivator.php
-4922474e49a902ed609d6f325a4fbfa6e62e9bd3c56128b8475b97ed7eff1be7      5332  includes/class-plugin.php
+d853cdc91f5f44f812de1bb975ec8ec5546f9308a7d16aa569333fa7714f9aab      5465  includes/class-plugin.php
 45fc0503754308495986158f482992a2a9e699c83456125f1263d2f53cfb0f61      5715  includes/compatibility/abstract-adapter.php
 99dea1667f074986c71bd2ede3bfa87dd6f53c59c19d6fde07fb16c328431f17      6166  includes/compatibility/adapters/class-asset-adapter.php
 f290df9f88fa60728589e7eca04784c681266ec1485a0497db6eeb9d2c04d6a9      3839  includes/compatibility/adapters/class-elementor-adapter.php
-b629242cd6bf407a6fba30c93275a42767f46bd9455810524cc377e799fc7c1b      6938  includes/compatibility/adapters/class-woocommerce-adapter.php
+14c9bdf24df3d52ada17182856cb3a4b81735b5782226561ed050a232c3c1f6c      7100  includes/compatibility/adapters/class-woocommerce-adapter.php
 9dd37700a6323412e91bc745345b4173ad8559bb5bf300b4044894954ec0b1ad      3856  includes/compatibility/adapters/class-wordpress-adapter.php
 33602762df7b3dac0b06dec04db7e570aa9ad9a6d23a9c0e069f1d81e5eb0cee      1923  includes/compatibility/adapters/woocommerce/class-v8-adapter.php
 c5a2dd32e91ff0f9d728e2cadb477cf48d41266af97aa0e1fb7ccdc7a420a07e      1326  includes/compatibility/adapters/woocommerce/class-v9-adapter.php
-871146e2d428f85b2cbbb4ad354795cbef5cba87639f54be3ff5fe8839614122      8883  includes/compatibility/class-compatibility.php
+fd1250eebbfd0b514c409d9c4adc665d87dd4a12376e88503361517c68766e64      8970  includes/compatibility/class-compatibility.php
 40ff5b09fdbc86f95c3e6a77b8fc2752f65fb58b5f4b9eb6706afd749ff4da44      4859  includes/compatibility/class-version-report.php
 178d6761ed9a1c3df7753e0c1e6583528ffd6eb3acfd5b46212f2839b63e5599     11740  includes/compatibility/class-woocommerce-features.php
 3a7c89b5cebdd798cf55f84cf155a8fae21c9db19460be04ae3ca6094bfe8ba7      1444  includes/compatibility/interface-adapter.php
 1d5dfa4cf906f82ba3eb36ff1a6a1e0b44440fe62b7c278b217d86a604884756      7395  includes/design-system/class-compiler.php
 f697175e77dfae36a68bc6148159e4d0c0f5f97d12c68e1900889e41d9f9fb63     10190  includes/design-system/class-tokens.php
 38e8ddc30687da1e75964f37f639722a54948afba5e752812864b3da4de138c2      1997  includes/design-system/elementor/class-token-picker-control.php
-92b33a9e3dd9c65c58974a4f9a457288b6839a00072ff0a2276a0406379643d4      9358  includes/design-system/elementor/class-tokens-integration.php
-ed6774c9d69921a4df6fdef3159f6b045e5764a826127ebd3568a8674b628272      2041  includes/functions.php
+e749a3bb129f22003a72a659e828cf845065415b073d1ddf8896da42c54920c2     10572  includes/design-system/elementor/class-tokens-integration.php
+a6d966e80704d81dc44f8f86826611532e3ed5e8a01a03007b883bca158de2c5      3207  includes/functions.php
 dc85166adcbd3023d2f67f4b19d949f6558bd13d9754736310a811fe87bcc247     22272  includes/rest/class-router.php
 c36d23780611f7f33ec07aa0032540465e57b69d535f84a92c77ebb1a8def6ad      6726  includes/settings/class-sanitizer.php
-f0d3d4d8008cbccffae178077f406ed2c900a9587cafcacb90c5d698bbbc7851     40835  includes/settings/class-sections.php
+9d4ec3cdd497b264c09164d88b7b14cbe84b5dc6c15561f8855a7f86f6d4852d     51643  includes/settings/class-sections.php
 d79aa8872e109066c342e2e730f96d34e0e16b285800c31339622f1448650371      9173  includes/settings/class-settings.php
 e2bf6062c7011117be7c5ea4d177eeb4e96fc6b349e2af81d8a8042be59013a2      4412  includes/support/class-filesystem.php
 d375a690b006ef8d645f2a2adf676c5bda50672ab2a0ff0b75f178079d9df2bd      5202  includes/support/class-http.php
 50c6f1177bf2b27044e3266a0e683bc8350a27657c0e6272477cf1c53b491b47      3683  includes/support/class-logger.php
+90603a9f3ce5ecd589a976b172dae5bd268727bc7188e662532ef08dc876f42f       973  includes/widgets/class-account-addresses-widget.php
+cf7a19e6cfdf0948b2e9728efc9fd9ef978d55c42d5275179f83ee5a201c2fcd      3561  includes/widgets/class-account-dashboard-widget.php
+c8aaab19e30980d80fafe1521451808b601c50402256cbd2ea65e6d410f9f6d7       958  includes/widgets/class-account-details-widget.php
+14cd53c1f4d0228ee494d437f29e67047625bd3551f4f628869e5c61040de4f8       975  includes/widgets/class-account-downloads-widget.php
+ad25589883b17580e3cabeb4bafd407221febb6f7ec2a2f8ff571f38d0e3ca06      3687  includes/widgets/class-account-endpoint-widget-base.php
+1bea69863360b0fe2a236b24db771b52cadf6049d7ec5d9f63f4518236e95c9f      3133  includes/widgets/class-account-forms-widget.php
+1dc7464498cea684e76b28d91818631b88975779f223e66940aa00030444a53c       962  includes/widgets/class-account-logout-widget.php
+40acb686c21f76375ed3017cbbc53636801d5afd4687bc786f61674cd7664dc0      2500  includes/widgets/class-account-nav-widget.php
+0fa7d85add1ce4122ff3277ffca6166ba509fb4cf84e4cd664d44f2a8529ee4d       962  includes/widgets/class-account-orders-widget.php
+0aeacb040152d945b2ce4e9e2c5a3d6a63035fcd9b652c82f886180798793b88       983  includes/widgets/class-account-payment-widget.php
+aef35b31465d6932b0c1cc0c330276636950248a375e0dc969ca6af14b51bdfa      3548  includes/widgets/class-account-profile-widget.php
+8e0eb3e9bcd3ced4f02a45415d7fe40057f278507e80a24b468076f99d110238      5719  includes/widgets/class-account-widget-base.php
 17b158d4430a29c04a114f77b6123425480ed3ec658ea7d9de5f28b941d1f214      8214  includes/widgets/class-icon-widget.php
-d3c859df0c40160d19a369d78d298078cc8a8b21d206b570868e162fd6b5742c       448  languages/dashwoo.pot
-779ba003313f954e36d50d5867fc5e3972015d9a2d1a539048c29cb753d3f255      2202  readme.txt
+4fed505e35ad8a8c7de9b4852c41a43d4c3ef9a74f025d704727d4a23ba6f6dd       448  languages/dashwoo.pot
+96460e9e560d597beb80f34a273115a71e256a8add8dac3a095912ea83e51e61      3355  readme.txt
 2705721fd175de9901540a6dfedfac90d221cf32b3f925e151594fe74468050d      1260  uninstall.php

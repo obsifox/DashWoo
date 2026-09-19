@@ -30,20 +30,62 @@ inside WordPress — **with zero dependency on any external CDN**.
   compatibility on `before_woocommerce_init`, so WooCommerce never lists it among the
   plugins that are incompatible with High-Performance Order Storage (or any other
   feature). The compatibility screen shows the declaration result.
-- **Settings Center** — 31 sections / 133 fields, schema-driven, exportable and
-  importable as JSON.
+- **Account kit (حساب کاربری)** — the My Account area is rebuilt with DashWoo
+  markup, tokens and RTL: sidebar/top/cards layouts, a dashboard hero, orders,
+  downloads, addresses, payment methods, account details, forms and logout. Ten
+  Elementor widgets in a dedicated *DashWoo — حساب کاربری* category plus the
+  `[dashwoo_account]` shortcode, and a native bridge that renames, reorders and
+  hides WooCommerce's own endpoints (third-party endpoints included) in place.
+- **Settings Center** — 36 sections / 184 fields in 7 groups, schema-driven,
+  exportable and importable as JSON.
 - **Version compatibility layer** — adapters per component, activation check,
   warning screen and automatic Compatibility Mode instead of a hard dependency.
   Optional host capabilities (no `php-gd`, no `php-zip`) are reported as neutral
   *informational* rows with a Persian explanation, and never turn the report yellow.
-- **REST API** `dashwoo/v1` — 32 routes for settings, fonts, icons, assets, tokens,
+- **REST API** `dashwoo/v1` — 33 routes for settings, fonts, icons, assets, tokens,
   plus `/system/diagnostics` with the raw server facts (extensions,
   `disable_functions`, ini limits) for support tickets.
 - **Full Persian / RTL** — the admin is Persian-first and `dir="rtl"` aware.
 
+## The My Account kit (حساب کاربری)
+
+The account area is the first stop of the "no more default WooCommerce look"
+roadmap, and it ships complete:
+
+| Widget (Elementor) | What it renders |
+| --- | --- |
+| `dashwoo_account_dashboard` | Hero: avatar/initials, name, counters and the shortcut cards |
+| `dashwoo_account_nav` | The account menu — sidebar, top tabs or shortcut cards |
+| `dashwoo_account_profile` | Profile card with editable fields |
+| `dashwoo_account_orders` / `downloads` / `addresses` / `payment` / `details` | One endpoint each, with WooCommerce's own handlers kept reachable |
+| `dashwoo_account_forms` | Profile, password, address and login forms |
+| `dashwoo_account_logout` | Logout button |
+
+`[dashwoo_account]` prints the whole area in one shortcode, for classic pages and
+block themes.
+
+**Settings — «حساب کاربری» group (5 sections)**
+
+- **چیدمان و بخش‌ها** — layout (`sidebar` / `top` / `cards` / `cards_with_menu`),
+  columns, icons, counters, sticky navigation, breadcrumb.
+- **بخش‌های حساب کاربری** — label, icon, order and visibility for every endpoint
+  WooCommerce reports, including tabs added by other plugins.
+- **ظاهر و رنگ‌ها** — accent colours, radius, avatar size, navigation width, stage
+  background.
+- **فرم‌ها و رفتار** — profile fields, inline validation, post-login redirect, guest
+  message, endpoint titles.
+- **منبع قالب‌ها** — `default` (WooCommerce keeps the page), `hybrid`, or
+  `elementor` (DashWoo removes the native navigation/content and hands the page to
+  the builder). If the page is not built with Elementor yet — or the platform runs
+  in Compatibility Mode — the native page stays intact, so the account area is never
+  blank.
+
+Styles ship as one local CSS pack that is only enqueued on the account page, inside
+the builder preview, or on a page that uses `[dashwoo_account]`.
+
 ## Installation
 
-1. Download `dashwoo-1.2.0.zip` from the [Releases](../../releases) page.
+1. Download `dashwoo-1.3.0.zip` from the [Releases](../../releases) page.
 2. WordPress → **Plugins → Add New → Upload Plugin** → choose the zip → **Install**.
 3. Activate, then open **DashWoo** in the admin menu.
 

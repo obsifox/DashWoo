@@ -284,7 +284,7 @@ final class Compatibility {
 				'multisite'  => function_exists( 'is_multisite' ) && is_multisite(),
 				'woocommerce' => array(
 					'active'  => class_exists( '\\WooCommerce' ),
-					'version' => defined( 'WC_VERSION' ) ? (string) WC_VERSION : '',
+					'version' => function_exists( 'dashwoo_woocommerce_version' ) ? dashwoo_woocommerce_version() : ( defined( 'WC_VERSION' ) ? (string) WC_VERSION : '' ),
 				),
 				'elementor'  => array(
 					'active'  => did_action( 'elementor/loaded' ) > 0 || defined( 'ELEMENTOR_VERSION' ),

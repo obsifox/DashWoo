@@ -92,6 +92,26 @@ final class Tokens_Integration {
 				'icon'  => 'eicon-nerd',
 			)
 		);
+
+		// The account pack gets its own panel group, so it is easy to find in a long
+		// widget list ("DashWoo — حساب کاربری" instead of a wall of widgets).
+		$manager->add_category(
+			'dashwoo-account',
+			array(
+				'title' => 'DashWoo — حساب کاربری',
+				'icon'  => 'eicon-user-circle-o',
+			)
+		);
+
+		// The account pack gets its own panel group so it is easy to find in a long
+		// widget list ("حساب کاربری" instead of a wall of widgets).
+		$manager->add_category(
+			'dashwoo-account',
+			array(
+				'title' => 'DashWoo — حساب کاربری',
+				'icon'  => 'eicon-user-circle-o',
+			)
+		);
 	}
 
 	/**
@@ -105,7 +125,21 @@ final class Tokens_Integration {
 			return;
 		}
 
-		$classes = array( '\DashWoo\Widgets\Icon_Widget' );
+		$classes = array(
+			// Design system.
+			'\\DashWoo\\Widgets\\Icon_Widget',
+			// Account pack (My Account): chrome, sections and forms.
+			'\\DashWoo\\Widgets\\Account_Dashboard_Widget',
+			'\\DashWoo\\Widgets\\Account_Nav_Widget',
+			'\\DashWoo\\Widgets\\Account_Profile_Widget',
+			'\\DashWoo\\Widgets\\Account_Orders_Widget',
+			'\\DashWoo\\Widgets\\Account_Downloads_Widget',
+			'\\DashWoo\\Widgets\\Account_Addresses_Widget',
+			'\\DashWoo\\Widgets\\Account_Payment_Widget',
+			'\\DashWoo\\Widgets\\Account_Details_Widget',
+			'\\DashWoo\\Widgets\\Account_Logout_Widget',
+			'\\DashWoo\\Widgets\\Account_Forms_Widget',
+		);
 
 		/**
 		 * Filter the widget classes DashWoo registers.

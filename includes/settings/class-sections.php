@@ -34,6 +34,11 @@ final class Sections {
 				'icon'  => 'palette',
 				'slug'  => 'colors',
 			),
+			'account'   => array(
+				'label' => 'حساب کاربری',
+				'icon'  => 'account_circle',
+				'slug'  => 'account_layout',
+			),
 			'fonts'     => array(
 				'label' => 'فونت و آیکون',
 				'icon'  => 'text_fields',
@@ -80,6 +85,11 @@ final class Sections {
 			'alerts',
 			'overlays',
 			'pagination',
+			'account_layout',
+			'account_endpoints',
+			'account_design',
+			'account_forms',
+			'account_source',
 			'fonts_google',
 			'fonts_custom',
 			'assets_fonts',
@@ -113,6 +123,10 @@ final class Sections {
 			'design'    => array(
 				'tokens'     => 'پایهٔ طراحی',
 				'components' => 'کامپوننت‌ها',
+			),
+			'account'   => array(
+				'layout'    => 'چیدمان حساب',
+				'forms'     => 'فرم‌ها و صفحه‌ها',
 			),
 			'fonts'     => array(
 				'families' => 'خانواده‌های فونت',
@@ -459,6 +473,245 @@ final class Sections {
 						'fallback' => 'fallback',
 						'optional' => 'optional',
 					),
+				),
+			),
+		);
+
+		// ------------------------------------------------------- Account (4).
+		$sections['account_layout'] = array(
+			'label'       => 'چیدمان و بخش‌ها',
+			'group'       => 'account',
+			'cluster'     => 'layout',
+			'description' => 'ساختار صفحهٔ حساب کاربری: چه بخش‌هایی دیده شوند، با چه ترتیبی و در چه چیدمانی.',
+			'fields'      => array(
+				array(
+					'key'     => 'enabled',
+					'label'   => 'فعال بودن پک حساب کاربری',
+					'type'    => 'toggle',
+					'default' => true,
+					'hint'    => 'با خاموش کردن این گزینه، سبک و ویجت‌های حساب کاربری DashWoo کنار می‌روند و ظاهر پیش‌فرض باقی می‌ماند.',
+				),
+				array(
+					'key'     => 'layout',
+					'label'   => 'چیدمان پیش‌فرض',
+					'type'    => 'select',
+					'default' => 'sidebar',
+					'options' => array(
+						'sidebar'          => 'منوی کنار (دو ستون)',
+						'top'              => 'منوی بالا (تمام‌عرض)',
+						'cards'            => 'کارت‌های میان‌بر',
+						'cards_with_menu'  => 'کارت‌ها + منوی کنار',
+					),
+					'hint'    => 'این مقدار در «قالب ساختهٔ DashWoo» و در میان‌بر [dashwoo_account] استفاده می‌شود؛ داخل المنتور هر ویجت مستقل است.',
+				),
+				array(
+					'key'     => 'cards_columns',
+					'label'   => 'تعداد ستون کارت‌های میان‌بر',
+					'type'    => 'number',
+					'default' => 3,
+					'min'     => 1,
+					'max'     => 4,
+					'step'    => 1,
+				),
+				array(
+					'key'     => 'show_icons',
+					'label'   => 'آیکون بخش‌ها',
+					'type'    => 'toggle',
+					'default' => true,
+				),
+				array(
+					'key'     => 'show_counts',
+					'label'   => 'شمارنده سفارش/دانلود',
+					'type'    => 'toggle',
+					'default' => false,
+					'hint'    => 'فقط برای سفارش‌ها و دانلودها که با API عمومی ووکامرس شمرده می‌شوند.',
+				),
+				array(
+					'key'     => 'sticky_nav',
+					'label'   => 'منوی چسبان در اسکرول',
+					'type'    => 'toggle',
+					'default' => true,
+				),
+				array(
+					'key'     => 'show_breadcrumb',
+					'label'   => 'مسیر راهنما (breadcrumb)',
+					'type'    => 'toggle',
+					'default' => true,
+					'hint'    => 'نمایش «حساب کاربری ← بخش» بالای محتوای بخش‌های داخلی.',
+				),
+			),
+		);
+
+		$sections['account_endpoints'] = array(
+			'label'       => 'بخش‌های حساب کاربری',
+			'group'       => 'account',
+			'cluster'     => 'layout',
+			'description' => 'برای هر بخش ووکامرس: نمایش/عدم نمایش، عنوان، آیکون و ترتیب. این فهرست از خود ووکامرس خوانده می‌شود، پس اگر افزونه‌ای بخشی اضافه کند، همین‌جا ظاهر می‌شود.',
+			'fields'      => array(),
+		);
+
+		$sections['account_design'] = array(
+			'label'       => 'ظاهر و رنگ‌ها',
+			'group'       => 'account',
+			'cluster'     => 'layout',
+			'description' => 'رنگ تأکید، گردی گوشه‌ها و ابعاد کارت‌های حساب کاربری. رنگ‌ها به‌صورت متغیر CSS تزریق می‌شوند، پس با توکن‌های DashWoo هم‌خوان‌اند.',
+			'fields'      => array(
+				array(
+					'key'     => 'enabled',
+					'label'   => 'اعمال سبک DashWoo روی صفحهٔ حساب',
+					'type'    => 'toggle',
+					'default' => true,
+				),
+				array(
+					'key'     => 'accent',
+					'label'   => 'رنگ تأکید',
+					'type'    => 'color',
+					'default' => '#2563eb',
+					'hint'    => 'لینک‌ها، کارت فعال و دکمه‌ها از این رنگ استفاده می‌کنند.',
+				),
+				array(
+					'key'     => 'accent_hover',
+					'label'   => 'رنگ تأکید (هاور)',
+					'type'    => 'color',
+					'default' => '#1d4ed8',
+				),
+				array(
+					'key'     => 'radius',
+					'label'   => 'گردی گوشه‌ها (px)',
+					'type'    => 'number',
+					'default' => 18,
+					'min'     => 0,
+					'max'     => 60,
+					'step'    => 1,
+				),
+				array(
+					'key'     => 'avatar_size',
+					'label'   => 'اندازه آواتار (px)',
+					'type'    => 'number',
+					'default' => 96,
+					'min'     => 32,
+					'max'     => 200,
+					'step'    => 4,
+				),
+				array(
+					'key'     => 'nav_width',
+					'label'   => 'عرض منوی کنار (px)',
+					'type'    => 'number',
+					'default' => 264,
+					'min'     => 160,
+					'max'     => 480,
+					'step'    => 8,
+				),
+				array(
+					'key'     => 'stage_background',
+					'label'   => 'پس‌زمینهٔ ناحیهٔ حساب',
+					'type'    => 'color',
+					'default' => '#f7f8fb',
+				),
+			),
+		);
+
+		$sections['account_forms'] = array(
+			'label'       => 'فرم‌ها و رفتار',
+			'group'       => 'account',
+			'cluster'     => 'forms',
+			'description' => 'رفتار فرم‌ها و اینکه چه چیزی جای قالب‌های پیش‌فرض ووکامرس را بگیرد.',
+			'fields'      => array(
+				array(
+					'key'     => 'profile_fields',
+					'label'   => 'فیلدهای فرم پروفایل',
+					'type'    => 'multi_select',
+					'default' => array( 'display_name' ),
+					'options' => array(
+						'display_name'  => 'نام نمایشی (قابل ذخیره)',
+						'first_name'    => 'نام',
+						'last_name'     => 'نام خانوادگی',
+						'billing_email' => 'ایمیل صورتحساب',
+						'billing_phone' => 'تلفن',
+					),
+					'hint'    => 'فقط «نام نمایشی» توسط DashWoo ذخیره می‌شود؛ بقیه فقط نمایشی‌اند و ویرایششان به فرم ووکامرس می‌رود.',
+				),
+				array(
+					'key'     => 'inline_validation',
+					'label'   => 'اعتبارسنجی درجا (HTML5)',
+					'type'    => 'toggle',
+					'default' => true,
+					'hint'    => 'فیلدهای لازم با required و نوع مناسب رندر می‌شوند تا مرورگر خودش بررسی کند.',
+				),
+				array(
+					'key'     => 'redirect_after_login',
+					'label'   => 'بازگشت به صفحهٔ حساب بعد از ورود',
+					'type'    => 'select',
+					'default' => 'account',
+					'options' => array(
+						'account' => 'صفحهٔ حساب کاربری',
+						'current' => 'همان صفحه‌ای که کاربر بود',
+						'default' => 'رفتار پیش‌فرض وردپرس/ووکامرس',
+					),
+				),
+				array(
+					'key'     => 'guest_message',
+					'label'   => 'پیام مهمان‌ها',
+					'type'    => 'textarea',
+					'default' => 'برای دیدن سفارش‌ها، دانلودها و جزئیات حساب وارد شوید.',
+					'hint'    => 'برای کاربران وارد‌نشده، به‌جای صفحهٔ خالی همین پیام و دکمهٔ ورود نمایش داده می‌شود.',
+				),
+				array(
+					'key'     => 'endpoint_titles',
+					'label'   => 'نمایش عنوان بالای هر بخش',
+					'type'    => 'toggle',
+					'default' => true,
+				),
+			),
+		);
+
+		$sections['account_source'] = array(
+			'label'       => 'منبع قالب‌ها',
+			'group'       => 'account',
+			'cluster'     => 'forms',
+			'description' => 'چه کسی صفحهٔ حساب را می‌سازد: قالب‌های ووکامرس، ویجت‌های DashWoo یا ترکیبی از هر دو. همهٔ حالت‌ها برگشت‌پذیرند و هیچ فایل قالبی بازنویسی نمی‌شود.',
+			'fields'      => array(
+				array(
+					'key'     => 'enabled',
+					'label'   => 'فعال بودن مدیر منبع',
+					'type'    => 'toggle',
+					'default' => true,
+				),
+				array(
+					'key'     => 'mode',
+					'label'   => 'حالت',
+					'type'    => 'select',
+					'default' => 'default',
+					'options' => array(
+						'default'   => 'ووکامرس (پیش‌فرض): همه‌چیز مثل خود ووکامرس',
+						'hybrid'    => 'ترکیبی: ناوبری DashWoo + محتوای ووکامرس',
+						'elementor' => 'کاملاً المنتور: ناوبری و محتوا از ویجت‌های DashWoo',
+					),
+					'hint'    => 'در حالت «کاملاً المنتور» فقط صفحه‌هایی که با المنتور ساخته شده‌اند قالب پیش‌فرض را کنار می‌گذارند؛ اگر صفحه هنوز المنتوری نباشد، DashWoo تخطی نمی‌کند و همان قالب ووکامرس می‌ماند.',
+				),
+				array(
+					'key'     => 'generated_layout',
+					'label'   => 'ساخت خودکار چیدمان DashWoo',
+					'type'    => 'toggle',
+					'default' => true,
+					'hint'    => 'اگر صفحه هنوز ویجت DashWoo نداشته باشد، چیدمان آماده (پیشخوان + منو + کارت‌ها) به محتوای صفحه اضافه می‌شود تا صفحه خالی نماند.',
+				),
+				array(
+					'key'     => 'shortcode',
+					'label'   => 'میان‌بر [dashwoo_account]',
+					'type'    => 'toggle',
+					'default' => true,
+					'hint'    => 'برای استفاده در هر برگه یا هر سازنده‌ای؛ همان چیدمان را داخل صفحه چاپ می‌کند.',
+				),
+				array(
+					'key'     => 'menu_priority',
+					'label'   => 'اولویت فیلتر منو',
+					'type'    => 'number',
+					'default' => 20,
+					'min'     => 1,
+					'max'     => 99,
+					'step'    => 1,
+					'hint'    => 'اولویت قلاب‌های DashWoo روی فهرست منوی حساب (کوچک‌تر = زودتر از ووکامرس، بزرگ‌تر = بعد از آن).',
 				),
 			),
 		);
@@ -1419,6 +1672,17 @@ final class Sections {
 				),
 			),
 		);
+
+		// The account endpoint fields are built from WooCommerce's live menu, so the
+		// section exists here and its fields are filled in from that source.
+		if ( isset( $sections['account_endpoints'] ) ) {
+			$sections['account_endpoints']['fields'] = \DashWoo\Account\Endpoints::instance()->fields();
+		}
+
+		// The `features` section is built from the capability gate (live state).
+		if ( isset( $sections['features'] ) ) {
+			$sections['features']['fields'] = \DashWoo\Capabilities\Capabilities::instance()->fields();
+		}
 
 		$sorted = array();
 
