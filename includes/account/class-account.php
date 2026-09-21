@@ -11,6 +11,7 @@
 namespace DashWoo\Account;
 
 use DashWoo\Assets\Asset_Manager;
+use DashWoo\Rest\Router;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -24,6 +25,18 @@ class Account {
 	 * inline, so no extra request is made).
 	 */
 	const STYLE_HANDLE = 'dashwoo-account';
+
+	/**
+	 * Handle of the account design pack (the only DashWoo file that paints the
+	 * account elements). Loaded only while `auto_css` is on - a shop owner who styles
+	 * everything in Elementor never downloads it.
+	 */
+	const PACK_HANDLE = 'dashwoo-account-pack';
+
+	/**
+	 * Handle of the panel script (progressive enhancement for the two-pane panel).
+	 */
+	const PANEL_HANDLE = 'dashwoo-account-panel';
 
 	/**
 	 * Singleton.
@@ -52,6 +65,7 @@ class Account {
 	 */
 	public function boot() {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue' ), 40 );
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_panel' ), 41 );
 		add_filter( 'body_class', array( $this, 'body_class' ) );
 		add_filter( 'dashwoo_capability_features', array( $this, 'capabilities' ) );
 
@@ -61,6 +75,9 @@ class Account {
 
 		Source_Adapter::instance()->boot();
 		Native_Bridge::instance()->boot();
+
+		// The two-pane panel (menu card + content card) and its templates.
+		Panel::instance()->boot();
 
 		// Elementor is the second front end of this pack: widgets, builder preview and
 		// the one-click layout all live in the bridge.
@@ -120,14 +137,26 @@ class Account {
 			return;
 		}
 
-		$css = Renderer::styles();
+		$auto     = dashwoo_is_on( 'account_design.auto_css' );
+		$reset    = dashwoo_is_on( 'account_design.css_reset' );
+		$inject   = dashwoo_is_on( 'account_design.inline_vars' );
+		$css      = $inject ? Renderer::styles() : '';
+
+		// 1. The design pack: a real file, only when DashWoo owns the styling.
+		if ( $auto && function_exists( 'wp_enqueue_style' ) ) {
+			wp_enqueue_style( self::PACK_HANDLE, DASHWOO_URL . 'assets/css/account.css', array( Asset_Manager::STYLE_HANDLE ), DASHWOO_VERSION );
+		} elseif ( ! $auto && $reset ) {
+			// 2. The shop owner took over: only a browser-default reset, nothing that
+			//    looks like DashWoo.
+			$css .= Renderer::reset_css();
+		}
 
 		if ( '' === $css ) {
 			return;
 		}
 
-		// A dependency-only stylesheet (src = false) is the WordPress way to hang
-		// inline CSS off a handle without shipping another file.
+		// 3. Variables (and the reset) ride on a dependency-only stylesheet: still one
+		//    request, and the handle is the one every DashWoo block depends on.
 		if ( function_exists( 'wp_register_style' ) ) {
 			wp_register_style( self::STYLE_HANDLE, false, array( Asset_Manager::STYLE_HANDLE ), DASHWOO_VERSION );
 			wp_enqueue_style( self::STYLE_HANDLE );
@@ -135,6 +164,47 @@ class Account {
 
 		if ( function_exists( 'wp_add_inline_style' ) ) {
 			wp_add_inline_style( self::STYLE_HANDLE, $css );
+		}
+	}
+
+	/**
+	 * The panel script: local, dependency-free, progressive enhancement only.
+	 *
+	 * @return void
+	 */
+	public function enqueue_panel() {
+		if ( ! dashwoo_is_on( 'general.enabled' ) ) {
+			return;
+		}
+
+		if ( ! dashwoo_is_on( Panel::SECTION . '.enabled' ) || ! dashwoo_is_on( Panel::SECTION . '.ajax' ) ) {
+			return;
+		}
+
+		if ( ! $this->is_account_context() ) {
+			return;
+		}
+
+		if ( ! function_exists( 'wp_enqueue_script' ) ) {
+			return;
+		}
+
+		wp_enqueue_script( self::PANEL_HANDLE, DASHWOO_URL . 'assets/js/account-panel.js', array(), DASHWOO_VERSION, true );
+
+		if ( function_exists( 'wp_localize_script' ) ) {
+			wp_localize_script(
+				self::PANEL_HANDLE,
+				'DashWooPanel',
+				array(
+					'rest'    => esc_url_raw( Panel::rest_url() ),
+					'nonce'   => Panel::nonce(),
+					'account' => esc_url_raw( Endpoints::instance()->account_url() ),
+					'strings' => array(
+						'loading' => (string) dashwoo_get_setting( 'account_panel.loading_text', 'در حال بارگذاری…' ),
+						'error'   => 'بارگذاری این بخش ممکن نشد. صفحه را دوباره باز کنید.',
+					),
+				)
+			);
 		}
 	}
 

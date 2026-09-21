@@ -1,0 +1,33 @@
+/**
+ * The DashWoo tab in Elementor's icon library.
+ *
+ * SVG marks, pulled straight out of the plugin - no icon font, no CDN, no build step.
+ * `em` sizing keeps them in step with whatever font-size the widget uses.
+ */
+.dw-brand-mark:before,
+.dw-brand-logo:before,
+.dw-brand-logo-dark:before {
+	content: "";
+	display: inline-block;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: contain;
+	width: 1em;
+	height: 1em;
+	vertical-align: -0.15em;
+}
+
+.dw-brand-mark:before { background-image: url(../brand/logo-mark.svg); }
+.dw-brand-logo:before { background-image: url(../brand/logo.svg); width: 4.2em; }
+.dw-brand-logo-dark:before { background-image: url(../brand/logo-dark.svg); width: 4.2em; }
+
+/* The same marks as standalone classes, for themes that prefer an element. */
+.dw-brand-inline {
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+	background: url(../brand/logo-mark.svg) center / contain no-repeat;
+	vertical-align: -0.15em;
+}
+.dw-brand-inline--logo { width: 4.2em; background-image: url(../brand/logo.svg); }
+.dw-brand-inline--logo-dark { width: 4.2em; background-image: url(../brand/logo-dark.svg); }

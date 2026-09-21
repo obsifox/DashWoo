@@ -152,6 +152,7 @@ class Elementor_Bridge {
 		return (array) apply_filters( 'dashwoo_elementor_widgets', array(
 			'\\DashWoo\\Widgets\\Icon_Widget',
 			'\\DashWoo\\Widgets\\Account_Dashboard_Widget',
+			'\\DashWoo\\Widgets\\Account_Panel_Widget',
 			'\\DashWoo\\Widgets\\Account_Nav_Widget',
 			'\\DashWoo\\Widgets\\Account_Profile_Widget',
 			'\\DashWoo\\Widgets\\Account_Orders_Widget',
@@ -161,6 +162,7 @@ class Elementor_Bridge {
 			'\\DashWoo\\Widgets\\Account_Details_Widget',
 			'\\DashWoo\\Widgets\\Account_Logout_Widget',
 			'\\DashWoo\\Widgets\\Account_Forms_Widget',
+			'\\DashWoo\\Widgets\\Account_Order_Widget',
 		) );
 	}
 
@@ -181,6 +183,8 @@ class Elementor_Bridge {
 			'dashwoo_account_details',
 			'dashwoo_account_logout',
 			'dashwoo_account_forms',
+			'dashwoo_account_panel',
+			'dashwoo_account_order',
 		);
 	}
 
@@ -339,8 +343,7 @@ class Elementor_Bridge {
 		 */
 		return (array) apply_filters( 'dashwoo_account_elementor_layout', array(
 			$section( array(
-				$column( 30, array( $widget( 'dashwoo_account_nav', array( 'dw_layout' => 'menu', 'dw_icons' => 'yes', 'dw_sticky' => 'yes' ) ) ) ),
-				$column( 70, array( $widget( 'dashwoo_account_dashboard', array( 'dw_greeting' => 'خوش آمدید', 'dw_cards' => 'yes' ) ) ) ),
+				$column( 100, array( $widget( 'dashwoo_account_panel', array( 'dw_mode' => 'swap', 'dw_ajax' => 'yes', 'dw_aside' => 'right' ) ) ) ),
 			) ),
 			$section( array(
 				$column( 50, array( $widget( 'dashwoo_account_profile', array() ) ) ),

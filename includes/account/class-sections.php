@@ -78,6 +78,15 @@ class Sections {
 	 * @param array<string,mixed> $args Args.
 	 * @return string
 	 */
+	/**
+	 * Orders list (CRUD read only).
+	 *
+	 * The shape is a template: `cards` (the default), `compact`, `table`, `timeline`
+	 * or `plain` for a shop that styles the rows itself.
+	 *
+	 * @param array<string,mixed> $args Args.
+	 * @return string
+	 */
 	public static function block_orders( array $args = array() ) {
 		$profile = new Profile();
 
@@ -89,8 +98,47 @@ class Sections {
 			return self::unavailable( 'برای دیدن سفارش‌ها ووکامرس باید فعال باشد.' );
 		}
 
-		$limit  = (int) ( $args['per_page'] ?? 0 );
-		$limit  = $limit > 0 ? $limit : 10;
+		$orders = self::orders_data( $args );
+
+		if ( ! $orders ) {
+			return self::empty_state( 'هنوز سفارشی ثبت نشده است.', 'خرید از فروشگاه', function_exists( 'wc_get_page_permalink' ) ? (string) wc_get_page_permalink( 'shop' ) : '' );
+		}
+
+		$title   = (string) ( $args['title'] ?? 'سفارش‌های من' );
+		$variant = self::variant( $args, 'cards' );
+
+		switch ( $variant ) {
+			case 'compact':
+				return self::orders_compact( $orders, $title, $args );
+
+			case 'table':
+				return self::orders_table( $orders, $title, $args );
+
+			case 'timeline':
+				return self::orders_timeline( $orders, $title, $args );
+
+			case 'plain':
+				return self::orders_plain( $orders, $title, $args );
+		}
+
+		return self::orders_cards( $orders, $title, $args );
+	}
+
+	/**
+	 * The order objects for this request (sample data in the builder).
+	 *
+	 * @param array<string,mixed> $args Args.
+	 * @return array<int,object>
+	 */
+	protected static function orders_data( array $args = array() ) {
+		$profile = new Profile();
+		$limit   = (int) ( $args['per_page'] ?? 0 );
+		$limit   = $limit > 0 ? $limit : 10;
+
+		if ( ! $profile->logged_in() || ! function_exists( 'wc_get_orders' ) ) {
+			return array();
+		}
+
 		$orders = wc_get_orders(
 			array(
 				'customer' => $profile->id(),
@@ -108,11 +156,38 @@ class Sections {
 			$orders = Preview::orders();
 		}
 
-		if ( ! $orders ) {
-			return self::empty_state( 'هنوز سفارشی ثبت نشده است.', 'خرید از فروشگاه', function_exists( 'wc_get_page_permalink' ) ? (string) wc_get_page_permalink( 'shop' ) : '' );
-		}
+		return $orders;
+	}
 
-		$html = self::heading( (string) ( $args['title'] ?? 'سفارش‌های من' ), $args, '<span class="dw-acc__section-meta">' . esc_html( sprintf( '%d سفارش', count( $orders ) ) ) . '</span>' );
+	/**
+	 * Normalise one order for the templates.
+	 *
+	 * @param object $order Order (WooCommerce or the preview double).
+	 * @return array<string,mixed>
+	 */
+	protected static function order_row( $order ) {
+		$date = method_exists( $order, 'get_date_created' ) ? $order->get_date_created() : null;
+
+		return array(
+			'order'  => $order,
+			'number' => method_exists( $order, 'get_order_number' ) ? (string) $order->get_order_number() : '',
+			'date'   => ( $date && is_object( $date ) && method_exists( $date, 'date_i18n' ) ) ? (string) $date->date_i18n( 'Y/m/d' ) : '',
+			'status' => method_exists( $order, 'get_status' ) ? (string) $order->get_status() : '',
+			'total'  => method_exists( $order, 'get_formatted_order_total' ) ? (string) $order->get_formatted_order_total() : '',
+			'url'    => method_exists( $order, 'get_view_order_url' ) ? (string) $order->get_view_order_url() : '',
+		);
+	}
+
+	/**
+	 * Default orders template: one card per order.
+	 *
+	 * @param array<int,object>   $orders Orders.
+	 * @param string              $title  Heading ('' = none).
+	 * @param array<string,mixed> $args   Args.
+	 * @return string
+	 */
+	protected static function orders_cards( array $orders, $title, array $args ) {
+		$html = self::heading( $title, $args, '<span class="dw-acc__section-meta">' . esc_html( sprintf( '%d سفارش', count( $orders ) ) ) . '</span>' );
 		$html .= '<div class="dw-acc__orders">';
 
 		foreach ( $orders as $order ) {
@@ -120,17 +195,10 @@ class Sections {
 				continue;
 			}
 
-			$number = method_exists( $order, 'get_order_number' ) ? (string) $order->get_order_number() : '';
-			$date   = method_exists( $order, 'get_date_created' ) ? $order->get_date_created() : null;
-			$status = method_exists( $order, 'get_status' ) ? (string) $order->get_status() : '';
-			$total  = method_exists( $order, 'get_formatted_order_total' ) ? (string) $order->get_formatted_order_total() : '';
-			$url    = method_exists( $order, 'get_view_order_url' ) ? (string) $order->get_view_order_url() : '';
+			$row = self::order_row( $order );
 
-			$html .= '<a class="dw-acc__order" href="' . esc_url( $url ) . '">';
-			$html .= '<span class="dw-acc__order-number">#' . esc_html( $number ) . '</span>';
-			$html .= '<span class="dw-acc__order-date">' . esc_html( $date && is_object( $date ) && method_exists( $date, 'date_i18n' ) ? (string) $date->date_i18n( 'Y/m/d' ) : '' ) . '</span>';
-			$html .= '<span class="dw-acc__order-status dw-acc__order-status--' . esc_attr( sanitize_html_class( $status ) ) . '">' . esc_html( self::status_label( $status ) ) . '</span>';
-			$html .= '<span class="dw-acc__order-total">' . wp_kses_post( $total ) . '</span>';
+			$html .= '<a class="dw-acc__order" href="' . esc_url( (string) $row['url'] ) . '" data-dw-order="' . esc_attr( (string) $row['number'] ) . '">';
+			$html .= self::order_cells( $row, true );
 			$html .= '<span class="dw-acc__order-go" aria-hidden="true">' . Icon_Renderer::render( array( 'icon' => 'arrow_back', 'size' => 20 ) ) . '</span>';
 			$html .= '</a>';
 		}
@@ -141,7 +209,511 @@ class Sections {
 	}
 
 	/**
+	 * Compact list: number, status and total on one line.
+	 *
+	 * @param array<int,object>   $orders Orders.
+	 * @param string              $title  Heading.
+	 * @param array<string,mixed> $args   Args.
+	 * @return string
+	 */
+	protected static function orders_compact( array $orders, $title, array $args ) {
+		$html = self::heading( $title, $args, '<span class="dw-acc__section-meta">' . esc_html( sprintf( '%d سفارش', count( $orders ) ) ) . '</span>' );
+		$html .= '<ul class="dw-acc__orders dw-acc__orders--compact">';
+
+		foreach ( $orders as $order ) {
+			if ( ! is_object( $order ) ) {
+				continue;
+			}
+
+			$row = self::order_row( $order );
+
+			$html .= '<li class="dw-acc__order-row">';
+			$html .= '<a class="dw-acc__order dw-acc__order--compact" href="' . esc_url( (string) $row['url'] ) . '" data-dw-order="' . esc_attr( (string) $row['number'] ) . '">';
+			$html .= '<span class="dw-acc__order-number">#' . esc_html( (string) $row['number'] ) . '</span>';
+			$html .= self::status_badge( (string) $row['status'] );
+			$html .= '<span class="dw-acc__order-date">' . esc_html( (string) $row['date'] ) . '</span>';
+			$html .= '<span class="dw-acc__order-total">' . wp_kses_post( (string) $row['total'] ) . '</span>';
+			$html .= '</a></li>';
+		}
+
+		$html .= '</ul>';
+
+		return $html;
+	}
+
+	/**
+	 * Table template: the classic shop table, scrollable on small screens.
+	 *
+	 * @param array<int,object>   $orders Orders.
+	 * @param string              $title  Heading.
+	 * @param array<string,mixed> $args   Args.
+	 * @return string
+	 */
+	protected static function orders_table( array $orders, $title, array $args ) {
+		$html = self::heading( $title, $args, '<span class="dw-acc__section-meta">' . esc_html( sprintf( '%d سفارش', count( $orders ) ) ) . '</span>' );
+		$html .= '<div class="dw-acc__table-wrap"><table class="dw-acc__table dw-acc__orders-table">';
+		$html .= '<thead><tr>'
+			. '<th>' . esc_html( 'شماره' ) . '</th>'
+			. '<th>' . esc_html( 'تاریخ' ) . '</th>'
+			. '<th>' . esc_html( 'وضعیت' ) . '</th>'
+			. '<th>' . esc_html( 'مبلغ' ) . '</th>'
+			. '<th><span class="screen-reader-text">' . esc_html( 'جزئیات' ) . '</span></th>'
+			. '</tr></thead><tbody>';
+
+		foreach ( $orders as $order ) {
+			if ( ! is_object( $order ) ) {
+				continue;
+			}
+
+			$row = self::order_row( $order );
+
+			$html .= '<tr>';
+			$html .= '<td data-title="' . esc_attr( 'شماره' ) . '"><a class="dw-acc__order-number" href="' . esc_url( (string) $row['url'] ) . '" data-dw-order="' . esc_attr( (string) $row['number'] ) . '">#' . esc_html( (string) $row['number'] ) . '</a></td>';
+			$html .= '<td data-title="' . esc_attr( 'تاریخ' ) . '">' . esc_html( (string) $row['date'] ) . '</td>';
+			$html .= '<td data-title="' . esc_attr( 'وضعیت' ) . '">' . self::status_badge( (string) $row['status'] ) . '</td>';
+			$html .= '<td data-title="' . esc_attr( 'مبلغ' ) . '">' . wp_kses_post( (string) $row['total'] ) . '</td>';
+			$html .= '<td class="dw-acc__table-action"><a class="dw-acc__button dw-acc__button--ghost" href="' . esc_url( (string) $row['url'] ) . '" data-dw-order="' . esc_attr( (string) $row['number'] ) . '">' . esc_html( 'مشاهده' ) . '</a></td>';
+			$html .= '</tr>';
+		}
+
+		$html .= '</tbody></table></div>';
+
+		return $html;
+	}
+
+	/**
+	 * Timeline template: a vertical history of the orders.
+	 *
+	 * @param array<int,object>   $orders Orders.
+	 * @param string              $title  Heading.
+	 * @param array<string,mixed> $args   Args.
+	 * @return string
+	 */
+	protected static function orders_timeline( array $orders, $title, array $args ) {
+		$html = self::heading( $title, $args, '<span class="dw-acc__section-meta">' . esc_html( sprintf( '%d سفارش', count( $orders ) ) ) . '</span>' );
+		$html .= '<ol class="dw-acc__orders dw-acc__orders--timeline">';
+
+		foreach ( $orders as $order ) {
+			if ( ! is_object( $order ) ) {
+				continue;
+			}
+
+			$row = self::order_row( $order );
+
+			$html .= '<li class="dw-acc__order-entry">';
+			$html .= '<span class="dw-acc__order-dot" aria-hidden="true"></span>';
+			$html .= '<div class="dw-acc__order-entry-body">';
+			$html .= '<a class="dw-acc__order" href="' . esc_url( (string) $row['url'] ) . '" data-dw-order="' . esc_attr( (string) $row['number'] ) . '">';
+			$html .= self::order_cells( $row, false );
+			$html .= '</a>';
+			$html .= '</div></li>';
+		}
+
+		$html .= '</ol>';
+
+		return $html;
+	}
+
+	/**
+	 * Plain template: only the semantics, for a shop that styles the rows itself.
+	 *
+	 * @param array<int,object>   $orders Orders.
+	 * @param string              $title  Heading.
+	 * @param array<string,mixed> $args   Args.
+	 * @return string
+	 */
+	protected static function orders_plain( array $orders, $title, array $args ) {
+		$html = self::heading( $title, $args );
+		$html .= '<ul class="dw-acc__orders--plain">';
+
+		foreach ( $orders as $order ) {
+			if ( ! is_object( $order ) ) {
+				continue;
+			}
+
+			$row = self::order_row( $order );
+
+			$html .= '<li><a href="' . esc_url( (string) $row['url'] ) . '" data-dw-order="' . esc_attr( (string) $row['number'] ) . '">'
+				. esc_html( sprintf( 'سفارش #%1$s — %2$s — %3$s', (string) $row['number'], (string) $row['date'], self::status_label( (string) $row['status'] ) ) )
+				. '</a></li>';
+		}
+
+		$html .= '</ul>';
+
+		return $html;
+	}
+
+	/**
+	 * The shared cells of an order row (cards + timeline).
+	 *
+	 * @param array<string,mixed> $row     Normalised order.
+	 * @param bool                $with_go Print the arrow cell.
+	 * @return string
+	 */
+	protected static function order_cells( array $row, $with_go = true ) {
+		$html  = '<span class="dw-acc__order-number">#' . esc_html( (string) $row['number'] ) . '</span>';
+		$html .= '<span class="dw-acc__order-date">' . esc_html( (string) $row['date'] ) . '</span>';
+		$html .= self::status_badge( (string) $row['status'] );
+		$html .= '<span class="dw-acc__order-total">' . wp_kses_post( (string) $row['total'] ) . '</span>';
+
+		if ( $with_go ) {
+			unset( $with_go );
+		}
+
+		return $html;
+	}
+
+	/**
+	 * A status badge.
+	 *
+	 * @param string $status Status slug.
+	 * @return string
+	 */
+	protected static function status_badge( $status ) {
+		$status = sanitize_html_class( (string) $status );
+
+		return '<span class="dw-acc__order-status dw-acc__order-status--' . esc_attr( $status ) . '">' . esc_html( self::status_label( (string) $status ) ) . '</span>';
+	}
+
+	/**
+	 * One order in full: number, date, items, totals and the payment method.
+	 *
+	 * @param array<string,mixed> $args Args (order_id, title, variant).
+	 * @return string
+	 */
+	public static function block_order( array $args = array() ) {
+		$order_id = (int) ( $args['order_id'] ?? 0 );
+		$order    = self::resolve_order( $order_id );
+
+		if ( is_string( $order ) ) {
+			return $order;
+		}
+
+		$row     = self::order_row( $order );
+		$variant = self::variant( $args, 'summary' );
+		$title   = (string) ( $args['title'] ?? sprintf( 'سفارش #%s', (string) $row['number'] ) );
+
+		switch ( $variant ) {
+			case 'items':
+				return self::order_items_html( $order, $args );
+
+			case 'table':
+				return self::order_items_table( $order, $title, $args );
+
+			case 'plain':
+				return self::order_plain( $order, $title, $args );
+		}
+
+		return self::order_summary( $order, $title, $args );
+	}
+
+	/**
+	 * Resolve an order and make sure the visitor may see it.
+	 *
+	 * @param int $order_id Order id.
+	 * @return object|string Order object, or the markup of the error state.
+	 */
+	protected static function resolve_order( $order_id ) {
+		$profile  = new Profile();
+		$order_id = max( 0, (int) $order_id );
+
+		if ( ! $profile->logged_in() ) {
+			return self::unavailable( 'برای دیدن جزئیات سفارش وارد حساب خود شوید.' );
+		}
+
+		if ( $order_id > 0 && function_exists( 'wc_get_order' ) ) {
+			$order = wc_get_order( $order_id );
+
+			if ( ! $order ) {
+				return self::unavailable( 'این سفارش پیدا نشد.' );
+			}
+
+			$owner = method_exists( $order, 'get_customer_id' ) ? (int) $order->get_customer_id() : 0;
+
+			// A customer only ever sees their own order; an administrator editing the
+			// account page keeps the sample data so the template stays visible.
+			if ( $owner > 0 && $owner !== (int) $profile->id() && ! Renderer::may_edit() ) {
+				return self::unavailable( 'این سفارش به حساب شما تعلق ندارد.' );
+			}
+
+			return $order;
+		}
+
+		// No id (or the widget's "0 = latest"): the customer's newest order.
+		if ( function_exists( 'wc_get_orders' ) ) {
+			$latest = wc_get_orders(
+				array(
+					'customer' => $profile->id(),
+					'limit'    => 1,
+					'orderby'  => 'date',
+					'order'    => 'DESC',
+				)
+			);
+
+			if ( is_array( $latest ) && $latest ) {
+				return $latest[0];
+			}
+		}
+
+		if ( Preview::active() ) {
+			return Preview::order( $order_id );
+		}
+
+		return self::unavailable( 'این سفارش پیدا نشد.' );
+	}
+
+	/**
+	 * The line items of an order, normalised for the templates.
+	 *
+	 * @param object $order Order.
+	 * @return array<int,array<string,mixed>>
+	 */
+	protected static function order_items( $order ) {
+		$rows = array();
+
+		if ( ! method_exists( $order, 'get_items' ) ) {
+			return $rows;
+		}
+
+		foreach ( (array) $order->get_items() as $item ) {
+			if ( is_object( $item ) ) {
+				$rows[] = array(
+					'name'     => method_exists( $item, 'get_name' ) ? (string) $item->get_name() : '',
+					'quantity' => method_exists( $item, 'get_quantity' ) ? (int) $item->get_quantity() : 1,
+					'total'    => method_exists( $item, 'get_total' ) ? (string) $item->get_total() : '',
+				);
+
+				continue;
+			}
+
+			$item   = (array) $item;
+			$rows[] = array(
+				'name'     => (string) ( $item['name'] ?? '' ),
+				'quantity' => (int) ( $item['quantity'] ?? 1 ),
+				'total'    => (string) ( $item['total'] ?? '' ),
+			);
+		}
+
+		return $rows;
+	}
+
+	/**
+	 * The order-summary meta block (status, date, total, payment method).
+	 *
+	 * @param object              $order Order.
+	 * @param array<string,mixed> $args  Args.
+	 * @return string
+	 */
+	protected static function order_meta( $order, array $args = array() ) {
+		$row    = self::order_row( $order );
+		$method = method_exists( $order, 'get_payment_method_title' ) ? (string) $order->get_payment_method_title() : '';
+
+		$html  = '<div class="dw-acc__order-detail-meta">';
+		$html .= '<span class="dw-acc__order-number">#' . esc_html( (string) $row['number'] ) . '</span>';
+		$html .= self::status_badge( (string) $row['status'] );
+		$html .= '<span class="dw-acc__order-date">' . esc_html( (string) $row['date'] ) . '</span>';
+
+		if ( '' !== $method ) {
+			$html .= '<span class="dw-acc__order-method">' . esc_html( $method ) . '</span>';
+		}
+
+		$html .= '<span class="dw-acc__order-total">' . wp_kses_post( (string) $row['total'] ) . '</span>';
+		$html .= '</div>';
+
+		unset( $args );
+
+		return $html;
+	}
+
+	/**
+	 * Order totals rows.
+	 *
+	 * @param object $order Order.
+	 * @return array<string,string>
+	 */
+	protected static function order_totals( $order ) {
+		if ( method_exists( $order, 'get_totals' ) ) {
+			$totals = (array) $order->get_totals();
+
+			return array_filter( array_map( 'strval', $totals ) );
+		}
+
+		return array();
+	}
+
+	/**
+	 * Default order template: summary + items + totals.
+	 *
+	 * @param object              $order Order.
+	 * @param string              $title Heading.
+	 * @param array<string,mixed> $args  Args.
+	 * @return string
+	 */
+	protected static function order_summary( $order, $title, array $args ) {
+		$items = self::order_items( $order );
+
+		$html  = self::heading( $title, $args );
+		$html .= self::order_meta( $order, $args );
+		$html .= self::order_items_table( $order, '', $args );
+		$html .= self::order_totals_html( $order );
+		$html .= '<div class="dw-acc__order-actions">';
+		$html .= '<a class="dw-acc__button dw-acc__button--ghost" href="' . esc_url( Endpoints::instance()->url( 'orders' ) ) . '" data-dw-panel-back data-dw-target="orders">' . esc_html( 'بازگشت به سفارش‌ها' ) . '</a>';
+
+		if ( $items && method_exists( $order, 'get_checkout_payment_url' ) ) {
+			$pay = (string) $order->get_checkout_payment_url();
+
+			if ( '' !== $pay && method_exists( $order, 'needs_payment' ) && $order->needs_payment() ) {
+				$html .= '<a class="dw-acc__button" href="' . esc_url( $pay ) . '">' . esc_html( 'پرداخت سفارش' ) . '</a>';
+			}
+		}
+
+		$html .= '</div>';
+
+		return $html;
+	}
+
+	/**
+	 * Items as a table (shared by the summary and the table template).
+	 *
+	 * @param object              $order Order.
+	 * @param string              $title Heading.
+	 * @param array<string,mixed> $args  Args.
+	 * @return string
+	 */
+	protected static function order_items_table( $order, $title, array $args ) {
+		$items = self::order_items( $order );
+
+		if ( ! $items ) {
+			return '';
+		}
+
+		$html = '' !== (string) $title ? self::heading( $title, $args ) : '';
+		$html .= '<div class="dw-acc__table-wrap"><table class="dw-acc__table dw-acc__order-items">';
+		$html .= '<thead><tr>'
+			. '<th>' . esc_html( 'کالا' ) . '</th>'
+			. '<th>' . esc_html( 'تعداد' ) . '</th>'
+			. '<th>' . esc_html( 'مبلغ' ) . '</th>'
+			. '</tr></thead><tbody>';
+
+		foreach ( $items as $item ) {
+			$html .= '<tr>';
+			$html .= '<td data-title="' . esc_attr( 'کالا' ) . '">' . esc_html( (string) ( $item['name'] ?? '' ) ) . '</td>';
+			$html .= '<td data-title="' . esc_attr( 'تعداد' ) . '">' . esc_html( (string) ( $item['quantity'] ?? 1 ) ) . '</td>';
+			$html .= '<td data-title="' . esc_attr( 'مبلغ' ) . '">' . esc_html( (string) ( $item['total'] ?? '' ) ) . '</td>';
+			$html .= '</tr>';
+		}
+
+		$html .= '</tbody></table></div>';
+
+		return $html;
+	}
+
+	/**
+	 * Items as a list (the `items` template).
+	 *
+	 * @param object              $order Order.
+	 * @param array<string,mixed> $args  Args.
+	 * @return string
+	 */
+	protected static function order_items_html( $order, array $args ) {
+		$items = self::order_items( $order );
+
+		if ( ! $items ) {
+			return self::empty_state( 'این سفارش کالایی ندارد.' );
+		}
+
+		$html = '';
+		$html .= '<ul class="dw-acc__order-items-list">';
+
+		foreach ( $items as $item ) {
+			$html .= '<li class="dw-acc__order-item">';
+			$html .= '<span class="dw-acc__order-item-name">' . esc_html( (string) ( $item['name'] ?? '' ) ) . '</span>';
+			$html .= '<span class="dw-acc__order-item-qty">×' . esc_html( (string) ( $item['quantity'] ?? 1 ) ) . '</span>';
+			$html .= '<span class="dw-acc__order-item-total">' . esc_html( (string) ( $item['total'] ?? '' ) ) . '</span>';
+			$html .= '</li>';
+		}
+
+		$html .= '</ul>';
+
+		unset( $args );
+
+		return $html;
+	}
+
+	/**
+	 * Totals block.
+	 *
+	 * @param object $order Order.
+	 * @return string
+	 */
+	protected static function order_totals_html( $order ) {
+		$totals = self::order_totals( $order );
+
+		if ( ! $totals ) {
+			return '';
+		}
+
+		$html = '<dl class="dw-acc__order-totals">';
+
+		foreach ( $totals as $label => $value ) {
+			$html .= '<div class="dw-acc__order-total-row"><dt>' . esc_html( (string) $label ) . '</dt><dd>' . esc_html( (string) $value ) . '</dd></div>';
+		}
+
+		$html .= '</dl>';
+
+		return $html;
+	}
+
+	/**
+	 * Plain order template: semantics only.
+	 *
+	 * @param object              $order Order.
+	 * @param string              $title Heading.
+	 * @param array<string,mixed> $args  Args.
+	 * @return string
+	 */
+	protected static function order_plain( $order, $title, array $args ) {
+		$row   = self::order_row( $order );
+		$items = self::order_items( $order );
+
+		$html  = self::heading( $title, $args );
+		$html .= '<p>' . esc_html( sprintf( 'وضعیت: %1$s — تاریخ: %2$s — مبلغ: %3$s', self::status_label( (string) $row['status'] ), (string) $row['date'], (string) $row['total'] ) ) . '</p>';
+		$html .= '<ul>';
+
+		foreach ( $items as $item ) {
+			$html .= '<li>' . esc_html( sprintf( '%1$s × %2$s — %3$s', (string) ( $item['name'] ?? '' ), (string) ( $item['quantity'] ?? 1 ), (string) ( $item['total'] ?? '' ) ) ) . '</li>';
+		}
+
+		$html .= '</ul>';
+
+		return $html;
+	}
+
+	/**
+	 * Which template variation the caller asked for.
+	 *
+	 * @param array<string,mixed> $args    Args.
+	 * @param string              $default Fallback.
+	 * @return string
+	 */
+	protected static function variant( array $args, $default ) {
+		foreach ( array( 'variant', 'template' ) as $key ) {
+			if ( isset( $args[ $key ] ) && '' !== (string) $args[ $key ] ) {
+				return sanitize_key( (string) $args[ $key ] );
+			}
+		}
+
+		return (string) $default;
+	}
+
+	/**
 	 * Downloads list.
+	 *
+	 * @param array<string,mixed> $args Args.
+	 * @return string
+	 */
+	/**
+	 * Downloads: `list` (default), `grid`, `table` or `plain`.
 	 *
 	 * @param array<string,mixed> $args Args.
 	 * @return string
@@ -163,24 +735,131 @@ class Sections {
 			$downloads = Preview::downloads();
 		}
 
+		$downloads = array_values( array_filter( $downloads, 'is_array' ) );
+
 		if ( ! $downloads ) {
 			return self::empty_state( 'فایلی برای دانلود وجود ندارد.', '', '' );
 		}
 
-		$html = self::heading( (string) ( $args['title'] ?? 'دانلودهای من' ), $args );
+		$title   = (string) ( $args['title'] ?? 'دانلودهای من' );
+		$variant = self::variant( $args, 'list' );
+
+		switch ( $variant ) {
+			case 'grid':
+				return self::downloads_grid( $downloads, $title, $args );
+
+			case 'table':
+				return self::downloads_table( $downloads, $title, $args );
+
+			case 'plain':
+				return self::downloads_plain( $downloads, $title, $args );
+		}
+
+		return self::downloads_list( $downloads, $title, $args );
+	}
+
+	/**
+	 * Default downloads template.
+	 *
+	 * @param array<int,array<string,mixed>> $downloads Downloads.
+	 * @param string                         $title     Heading.
+	 * @param array<string,mixed>            $args      Args.
+	 * @return string
+	 */
+	protected static function downloads_list( array $downloads, $title, array $args ) {
+		$html = self::heading( $title, $args );
+
+		if ( ! empty( $args['icons'] ) ) {
+			$html = self::heading( $title, $args, '<span class="dw-acc__section-meta">' . esc_html( sprintf( '%d فایل', count( $downloads ) ) ) . '</span>' );
+		}
+
 		$html .= '<ul class="dw-acc__downloads">';
 
 		foreach ( $downloads as $download ) {
-			if ( ! is_array( $download ) ) {
-				continue;
-			}
-
-			$link = isset( $download['download_url'] ) ? (string) $download['download_url'] : '';
-
 			$html .= '<li class="dw-acc__download">';
 			$html .= '<span class="dw-acc__download-icon" aria-hidden="true">' . Icon_Renderer::render( array( 'icon' => 'download', 'size' => 22 ) ) . '</span>';
-			$html .= '<a class="dw-acc__download-link" href="' . esc_url( $link ) . '">' . esc_html( (string) ( $download['product_name'] ?? '' ) ) . '</a>';
+			$html .= '<a class="dw-acc__download-link" href="' . esc_url( (string) ( $download['download_url'] ?? '' ) ) . '">' . esc_html( (string) ( $download['product_name'] ?? '' ) ) . '</a>';
 			$html .= '</li>';
+		}
+
+		$html .= '</ul>';
+
+		return $html;
+	}
+
+	/**
+	 * Card grid template.
+	 *
+	 * @param array<int,array<string,mixed>> $downloads Downloads.
+	 * @param string                         $title     Heading.
+	 * @param array<string,mixed>            $args      Args.
+	 * @return string
+	 */
+	protected static function downloads_grid( array $downloads, $title, array $args ) {
+		$html = self::heading( $title, $args );
+		$html .= '<div class="dw-acc__downloads-grid">';
+
+		foreach ( $downloads as $download ) {
+			$name = (string) ( $download['product_name'] ?? '' );
+			$url  = (string) ( $download['download_url'] ?? '' );
+
+			$html .= '<a class="dw-acc__download-card" href="' . esc_url( $url ) . '">';
+			$html .= '<span class="dw-acc__download-icon" aria-hidden="true">' . Icon_Renderer::render( array( 'icon' => 'download', 'size' => 26 ) ) . '</span>';
+			$html .= '<span class="dw-acc__download-name">' . esc_html( $name ) . '</span>';
+
+			if ( ! empty( $download['download_name'] ) ) {
+				$html .= '<span class="dw-acc__download-file">' . esc_html( (string) $download['download_name'] ) . '</span>';
+			}
+
+			$html .= '<span class="dw-acc__button dw-acc__button--ghost">' . esc_html( 'دانلود' ) . '</span>';
+			$html .= '</a>';
+		}
+
+		$html .= '</div>';
+
+		return $html;
+	}
+
+	/**
+	 * Table template.
+	 *
+	 * @param array<int,array<string,mixed>> $downloads Downloads.
+	 * @param string                         $title     Heading.
+	 * @param array<string,mixed>            $args      Args.
+	 * @return string
+	 */
+	protected static function downloads_table( array $downloads, $title, array $args ) {
+		$html = self::heading( $title, $args );
+		$html .= '<div class="dw-acc__table-wrap"><table class="dw-acc__table dw-acc__downloads-table">';
+		$html .= '<thead><tr><th>' . esc_html( 'فایل' ) . '</th><th>' . esc_html( 'محصول' ) . '</th><th></th></tr></thead><tbody>';
+
+		foreach ( $downloads as $download ) {
+			$html .= '<tr>';
+			$html .= '<td data-title="' . esc_attr( 'فایل' ) . '">' . esc_html( (string) ( $download['download_name'] ?? '' ) ) . '</td>';
+			$html .= '<td data-title="' . esc_attr( 'محصول' ) . '">' . esc_html( (string) ( $download['product_name'] ?? '' ) ) . '</td>';
+			$html .= '<td class="dw-acc__table-action"><a class="dw-acc__button dw-acc__button--ghost" href="' . esc_url( (string) ( $download['download_url'] ?? '' ) ) . '">' . esc_html( 'دانلود' ) . '</a></td>';
+			$html .= '</tr>';
+		}
+
+		$html .= '</tbody></table></div>';
+
+		return $html;
+	}
+
+	/**
+	 * Plain template.
+	 *
+	 * @param array<int,array<string,mixed>> $downloads Downloads.
+	 * @param string                         $title     Heading.
+	 * @param array<string,mixed>            $args      Args.
+	 * @return string
+	 */
+	protected static function downloads_plain( array $downloads, $title, array $args ) {
+		$html = self::heading( $title, $args );
+		$html .= '<ul class="dw-acc__downloads--plain">';
+
+		foreach ( $downloads as $download ) {
+			$html .= '<li><a href="' . esc_url( (string) ( $download['download_url'] ?? '' ) ) . '">' . esc_html( (string) ( $download['product_name'] ?? '' ) ) . '</a></li>';
 		}
 
 		$html .= '</ul>';
@@ -204,7 +883,9 @@ class Sections {
 			'shipping' => 'آدرس ارسال',
 		);
 
-		$html .= '<div class="dw-acc__addresses">';
+		$variant = self::variant( $args, 'cards' );
+		$classes = 'plain' === $variant ? 'dw-acc__addresses--plain' : 'dw-acc__addresses';
+		$html   .= '<div class="' . esc_attr( $classes ) . '">';
 
 		foreach ( $sections as $type => $label ) {
 			$values  = array();
@@ -222,10 +903,12 @@ class Sections {
 				? (string) wc_get_endpoint_url( 'edit-address', $type, Endpoints::instance()->account_url() )
 				: (string) ( $args['url'] ?? '' );
 
-			$html .= '<div class="dw-acc__address">';
+			$html .= '<div class="dw-acc__address' . ( 'list' === $variant ? ' dw-acc__address--row' : '' ) . '">';
 			$html .= '<h4 class="dw-acc__address-title">' . esc_html( $label ) . '</h4>';
 			$html .= '<p class="dw-acc__address-lines">' . ( $values ? esc_html( implode( '، ', $values ) ) : '<span class="dw-acc__muted">هنوز ثبت نشده است.</span>' ) . '</p>';
-			$html .= '<a class="dw-acc__button dw-acc__button--ghost" href="' . esc_url( $target ) . '">ویرایش ' . esc_html( $label ) . '</a>';
+			$html .= 'plain' === $variant
+				? '<a href="' . esc_url( $target ) . '">' . esc_html( 'ویرایش ' . $label ) . '</a>'
+				: '<a class="dw-acc__button dw-acc__button--ghost" href="' . esc_url( $target ) . '">ویرایش ' . esc_html( $label ) . '</a>';
 			$html .= '</div>';
 		}
 
@@ -300,6 +983,10 @@ class Sections {
 			$label = 'خروج از حساب';
 		}
 
+		if ( 'plain' === self::variant( $args, 'button' ) ) {
+			return '<div class="dw-acc__logout--plain"><a href="' . esc_url( $url ) . '">' . esc_html( $label ) . '</a></div>';
+		}
+
 		$html  = '<div class="dw-acc__logout">';
 		$html .= '<a class="dw-acc__button dw-acc__button--ghost dw-acc__logout-button" href="' . esc_url( $url ) . '">';
 		$html .= Icon_Renderer::render( array( 'icon' => 'logout', 'size' => 20 ) );
@@ -324,6 +1011,14 @@ class Sections {
 		$variant = (string) ( $args['variant'] ?? 'card' );
 		$avatar  = ! isset( $args['avatar'] ) || $args['avatar'];
 		$fields  = isset( $args['fields'] ) && is_array( $args['fields'] ) ? $args['fields'] : array( 'email' );
+
+		if ( 'plain' === $variant ) {
+			$html  = '<div class="dw-acc__profile--plain">';
+			$html .= '<p>' . esc_html( $profile->name() ) . '</p>';
+			$html .= '<p>' . esc_html( $profile->email() ) . '</p></div>';
+
+			return $html;
+		}
 
 		$html  = '<div class="dw-acc__profile dw-acc__profile--' . esc_attr( sanitize_html_class( $variant ) ) . '">';
 

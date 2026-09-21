@@ -236,7 +236,17 @@ class Source_Adapter {
 
 		$layout = (string) apply_filters( 'dashwoo_account_generated_layout', 'sidebar', $args );
 
-		$html  = Renderer::open( array_merge( array( 'layout' => 'generated' ), $args ) );
+		$html = Renderer::open( array_merge( array( 'layout' => 'generated' ), $args ) );
+
+		// The two-pane panel is the modern shell: menu card + content card, with the
+		// content swapped in place. Everything else stays as a fallback.
+		if ( dashwoo_is_on( Panel::SECTION . '.enabled' ) ) {
+			$html .= Panel::render( array( 'layout' => 'menu' ) );
+			$html .= Renderer::close();
+
+			return $html;
+		}
+
 		$html .= '<div class="dw-acc__shell dw-acc__shell--' . esc_attr( $layout ) . '">';
 		$html .= '<aside class="dw-acc__side">' . Renderer::dashboard( array( 'cards' => false ) ) . Renderer::nav( array( 'layout' => 'menu', 'icons' => true ) ) . '</aside>';
 		$html .= '<section class="dw-acc__main">';
@@ -278,6 +288,26 @@ class Source_Adapter {
 			}
 
 			return Renderer::notice( $state, array( 'editor' => true ) );
+		}
+
+		// `[dashwoo_account panel="0"]` keeps the classic two-block shell; by default the
+		// panel (with its in-place swapping) is what the shop owner sees.
+		$panel = dashwoo_is_on( Panel::SECTION . '.enabled' );
+
+		if ( isset( $atts['panel'] ) && in_array( strtolower( (string) $atts['panel'] ), array( '0', 'no', 'off', 'false' ), true ) ) {
+			$panel = false;
+		}
+
+		if ( $panel ) {
+			$panel_args = array( 'layout' => isset( $atts['nav_layout'] ) ? sanitize_key( (string) $atts['nav_layout'] ) : 'menu' );
+
+			foreach ( array( 'view', 'order_id', 'template', 'mode', 'aside', 'aside_width', 'gap' ) as $key ) {
+				if ( isset( $atts[ $key ] ) && '' !== (string) $atts[ $key ] ) {
+					$panel_args[ $key ] = $atts[ $key ];
+				}
+			}
+
+			return Renderer::open( array( 'layout' => 'boxed' ) ) . Panel::render( $panel_args ) . Renderer::close();
 		}
 
 		$public = '<div class="dw-acc__shell dw-acc__shell--' . esc_attr( isset( $atts['layout'] ) ? (string) $atts['layout'] : 'sidebar' ) . '">';

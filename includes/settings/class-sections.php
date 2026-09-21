@@ -10,6 +10,8 @@
 
 namespace DashWoo\Settings;
 
+use DashWoo\Account\Templates;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -87,6 +89,8 @@ final class Sections {
 			'pagination',
 			'account_layout',
 			'account_endpoints',
+			'account_templates',
+			'account_panel',
 			'account_design',
 			'account_forms',
 			'account_source',
@@ -550,6 +554,254 @@ final class Sections {
 			'fields'      => array(),
 		);
 
+		$sections['account_templates'] = array(
+			'label'       => 'قالب‌ها (Template)',
+			'group'       => 'account',
+			'cluster'     => 'layout',
+			'description' => 'برای هر بخش حساب کاربری یک قالب انتخاب کنید (فهرست، جدول، خط زمانی، کارتی…). هر قالبی را می‌توان با یک فایل در پوسته بازنویسی کرد: wp-content/themes/<پوسته>/dashwoo/account/orders--table.php',
+			'fields'      => array(
+				array(
+					'key'     => 'enabled',
+					'label'   => 'فعال‌سازی انتخاب قالب',
+					'type'    => 'toggle',
+					'default' => true,
+				),
+				array(
+					'key'     => 'theme_folder',
+					'label'   => 'پوشهٔ قالب در پوسته',
+					'type'    => 'text',
+					'default' => 'dashwoo/account',
+					'hint'    => 'قالب‌های سفارشی شما اینجا خوانده می‌شوند (نسبت به پوشهٔ پوسته).',
+				),
+				array(
+					'key'     => 'nav',
+					'label'   => 'قالب منوی حساب',
+					'type'    => 'select',
+					'default' => 'menu',
+					'options' => Templates::section_options( 'nav', true ),
+				),
+				array(
+					'key'     => 'dashboard',
+					'label'   => 'قالب پیشخوان',
+					'type'    => 'select',
+					'default' => 'hero-cards',
+					'options' => Templates::section_options( 'dashboard', true ),
+				),
+				array(
+					'key'     => 'orders',
+					'label'   => 'قالب فهرست سفارش‌ها',
+					'type'    => 'select',
+					'default' => 'cards',
+					'options' => Templates::section_options( 'orders', true ),
+				),
+				array(
+					'key'     => 'order',
+					'label'   => 'قالب جزئیات یک سفارش',
+					'type'    => 'select',
+					'default' => 'summary',
+					'options' => Templates::section_options( 'order', true ),
+				),
+				array(
+					'key'     => 'downloads',
+					'label'   => 'قالب دانلودها',
+					'type'    => 'select',
+					'default' => 'list',
+					'options' => Templates::section_options( 'downloads', true ),
+				),
+				array(
+					'key'     => 'addresses',
+					'label'   => 'قالب آدرس‌ها',
+					'type'    => 'select',
+					'default' => 'cards',
+					'options' => Templates::section_options( 'addresses', true ),
+				),
+				array(
+					'key'     => 'payment',
+					'label'   => 'قالب روش‌های پرداخت',
+					'type'    => 'select',
+					'default' => 'card',
+					'options' => Templates::section_options( 'payment', true ),
+				),
+				array(
+					'key'     => 'details',
+					'label'   => 'قالب جزئیات حساب',
+					'type'    => 'select',
+					'default' => 'card',
+					'options' => Templates::section_options( 'details', true ),
+				),
+				array(
+					'key'     => 'profile',
+					'label'   => 'قالب کارت پروفایل',
+					'type'    => 'select',
+					'default' => 'card',
+					'options' => Templates::section_options( 'profile', true ),
+				),
+				array(
+					'key'     => 'forms',
+					'label'   => 'قالب فرم‌ها',
+					'type'    => 'select',
+					'default' => 'grid',
+					'options' => Templates::section_options( 'forms', true ),
+				),
+				array(
+					'key'     => 'logout',
+					'label'   => 'قالب خروج',
+					'type'    => 'select',
+					'default' => 'button',
+					'options' => Templates::section_options( 'logout', true ),
+				),
+			),
+		);
+
+		$sections['account_panel'] = array(
+			'label'       => 'پنل دوستونه (منو + محتوا)',
+			'group'       => 'account',
+			'cluster'     => 'layout',
+			'description' => 'یک کارت منو کنار یک کارت محتوای بزرگ‌تر؛ با کلیک روی هر بخش (سفارش‌ها، دانلودها…) محتوای کارت دوم عوض می‌شود - بدون بارگذاری دوبارهٔ صفحه. جزئیات یک سفارش هم داخل همان کارت باز می‌شود.',
+			'fields'      => array(
+				array(
+					'key'     => 'enabled',
+					'label'   => 'نمایش پنل دوستونه در ناحیهٔ حساب',
+					'type'    => 'toggle',
+					'default' => true,
+				),
+				array(
+					'key'     => 'mode',
+					'label'   => 'حالت نمایش',
+					'type'    => 'select',
+					'default' => 'swap',
+					'options' => array(
+						'swap'    => 'جایگزینی محتوای کارت (پیشنهادی)',
+						'modal'   => 'پنجرهٔ شناور برای جزئیات',
+						'stacked' => 'هر دو کارت، بدون جابه‌جایی خودکار',
+					),
+					'hint'    => 'در حالت شناور، جزئیات سفارش در یک پنجرهٔ روی صفحه باز می‌شود.',
+				),
+				array(
+					'key'     => 'ajax',
+					'label'   => 'جابه‌جایی بدون بارگذاری صفحه (AJAX)',
+					'type'    => 'toggle',
+					'default' => true,
+					'hint'    => 'اگر خاموش باشد، لینک‌ها مثل قبل صفحه را باز می‌کنند (هنوز هم کار می‌کند).',
+				),
+				array(
+					'key'     => 'source',
+					'label'   => 'منبع محتوای بخش‌ها',
+					'type'    => 'select',
+					'default' => 'auto',
+					'options' => array(
+						'auto'    => 'خودکار (ووکامرس، و در نبودِ آن قالب DashWoo)',
+						'native'  => 'فقط ووکامرس',
+						'dashwoo' => 'فقط قالب‌های DashWoo',
+					),
+				),
+				array(
+					'key'     => 'default_view',
+					'label'   => 'بخش پیش‌فرض',
+					'type'    => 'select',
+					'default' => 'dashboard',
+					'options' => array(
+						'dashboard'       => 'پیشخوان',
+						'orders'          => 'سفارش‌ها',
+						'downloads'       => 'دانلودها',
+						'edit-address'    => 'آدرس‌ها',
+						'payment-methods' => 'روش‌های پرداخت',
+						'edit-account'    => 'جزئیات حساب',
+					),
+				),
+				array(
+					'key'     => 'aside',
+					'label'   => 'جای کارت منو',
+					'type'    => 'select',
+					'default' => 'right',
+					'options' => array(
+						'right' => 'راست (مناسب RTL)',
+						'left'  => 'چپ',
+					),
+				),
+				array(
+					'key'     => 'aside_width',
+					'label'   => 'عرض کارت منو (px)',
+					'type'    => 'number',
+					'default' => 300,
+					'min'     => 140,
+					'max'     => 520,
+					'step'    => 4,
+				),
+				array(
+					'key'     => 'gap',
+					'label'   => 'فاصلهٔ دو کارت (px)',
+					'type'    => 'number',
+					'default' => 24,
+					'min'     => 0,
+					'max'     => 80,
+					'step'    => 2,
+				),
+				array(
+					'key'     => 'sticky',
+					'label'   => 'چسبیدن کارت منو در اسکرول',
+					'type'    => 'toggle',
+					'default' => true,
+				),
+				array(
+					'key'     => 'titles',
+					'label'   => 'نمایش عنوان بخش بالای کارت محتوا',
+					'type'    => 'toggle',
+					'default' => true,
+				),
+				array(
+					'key'     => 'back_label',
+					'label'   => 'متن دکمهٔ بازگشت (از جزئیات سفارش)',
+					'type'    => 'text',
+					'default' => 'بازگشت به سفارش‌ها',
+				),
+				array(
+					'key'     => 'loading_text',
+					'label'   => 'متن حالت بارگذاری',
+					'type'    => 'text',
+					'default' => 'در حال بارگذاری…',
+				),
+				array(
+					'key'     => 'sync_url',
+					'label'   => 'تغییر نشانی مرورگر همراه با هر بخش',
+					'type'    => 'toggle',
+					'default' => true,
+					'hint'    => 'با این گزینه، دکمهٔ «بازگشت» مرورگر هم بین بخش‌ها کار می‌کند.',
+				),
+				array(
+					'key'     => 'mobile',
+					'label'   => 'رفتار در موبایل',
+					'type'    => 'select',
+					'default' => 'stack',
+					'options' => array(
+						'stack' => 'دو کارت روی هم',
+						'tabs'  => 'تب‌های افقی برای منو',
+					),
+				),
+				array(
+					'key'     => 'icons',
+					'label'   => 'آیکون در منو',
+					'type'    => 'toggle',
+					'default' => true,
+				),
+				array(
+					'key'     => 'counts',
+					'label'   => 'شمارنده در منو',
+					'type'    => 'toggle',
+					'default' => true,
+				),
+				array(
+					'key'     => 'per_page',
+					'label'   => 'تعداد آیتم در هر بخش',
+					'type'    => 'number',
+					'default' => 10,
+					'min'     => 1,
+					'max'     => 50,
+					'step'    => 1,
+				),
+			),
+		);
+
 		$sections['account_design'] = array(
 			'label'       => 'ظاهر و رنگ‌ها',
 			'group'       => 'account',
@@ -607,6 +859,53 @@ final class Sections {
 					'label'   => 'پس‌زمینهٔ ناحیهٔ حساب',
 					'type'    => 'color',
 					'default' => '#f7f8fb',
+				),
+				array(
+					'key'     => 'auto_css',
+					'label'   => 'CSS خودکار DashWoo',
+					'type'    => 'toggle',
+					'default' => true,
+					'hint'    => 'خاموش کنید تا DashWoo هیچ استایلی روی عناصر حساب کاربری نگذارد و طراحی کامل با خودتان (المنتور/پوسته) باشد.',
+				),
+				array(
+					'key'     => 'css_reset',
+					'label'   => 'ریست خنثی‌سازی (وقتی CSS خودکار خاموش است)',
+					'type'    => 'toggle',
+					'default' => true,
+					'hint'    => 'فقط پیش‌فرض‌های مرورگر را کنار می‌زند (لیست، حاشیه، اندازهٔ جعبه) تا از صفر تمیز شروع کنید؛ هیچ ظاهری از DashWoo اضافه نمی‌کند.',
+				),
+				array(
+					'key'     => 'inline_vars',
+					'label'   => 'تزریق متغیرهای رنگ و اندازه',
+					'type'    => 'toggle',
+					'default' => true,
+					'hint'    => 'متغیرهای CSS (رنگ تأکید، گردی، عرض منو) برای استفاده در استایل خودتان. اگر هیچ‌کدام را نمی‌خواهید این را هم خاموش کنید.',
+				),
+				array(
+					'key'     => 'gap',
+					'label'   => 'فاصلهٔ پیش‌فرض بلوک‌ها (px)',
+					'type'    => 'number',
+					'default' => 0,
+					'min'     => 0,
+					'max'     => 80,
+					'step'    => 2,
+					'hint'    => 'صفر = همان فاصلهٔ پیش‌فرض DashWoo.',
+				),
+				array(
+					'key'     => 'logo_in_hero',
+					'label'   => 'نمایش نشان DashWoo در کارت خوش‌آمد',
+					'type'    => 'toggle',
+					'default' => false,
+					'hint'    => 'متناسب با هویت برند DashWoo (فایل‌های SVG داخل افزونه).',
+				),
+				array(
+					'key'     => 'logo_size',
+					'label'   => 'اندازهٔ نشان (px)',
+					'type'    => 'number',
+					'default' => 28,
+					'min'     => 16,
+					'max'     => 96,
+					'step'    => 2,
 				),
 			),
 		);

@@ -376,12 +376,18 @@ class Endpoints {
 	 * @param string $id Endpoint id.
 	 * @return string
 	 */
-	public function url( $id ) {
+	public function url( $id, $value = '' ) {
+		$value = is_string( $value ) || is_int( $value ) ? (string) $value : '';
+
 		if ( function_exists( 'wc_get_endpoint_url' ) ) {
-			return (string) wc_get_endpoint_url( $id, '', $this->account_url() );
+			return (string) wc_get_endpoint_url( $id, $value, $this->account_url() );
 		}
 
-		return $this->account_url();
+		if ( '' === $value ) {
+			return $this->account_url();
+		}
+
+		return $this->account_url() . $id . '/' . $value . '/';
 	}
 
 	/**

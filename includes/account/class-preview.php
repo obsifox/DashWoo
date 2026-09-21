@@ -105,6 +105,24 @@ class Preview {
 	}
 
 	/**
+	 * One sample order, with the details the order view reads.
+	 *
+	 * @param int|string $id Order id ('' = the first sample order).
+	 * @return Preview_Order
+	 */
+	public static function order( $id = '' ) {
+		$orders = self::orders();
+
+		foreach ( $orders as $order ) {
+			if ( '' === (string) $id || (string) $order->get_id() === (string) $id ) {
+				return $order;
+			}
+		}
+
+		return $orders[0];
+	}
+
+	/**
 	 * Sample addresses (used by the addresses block when the customer has none).
 	 *
 	 * @return array<string,string>
@@ -222,6 +240,68 @@ class Preview_Order {
 	 */
 	public function get_view_order_url() {
 		return function_exists( 'wc_get_page_permalink' ) ? (string) wc_get_page_permalink( 'myaccount' ) : '#';
+	}
+
+	/**
+	 * Order id.
+	 *
+	 * @return string
+	 */
+	public function get_id() {
+		return $this->number;
+	}
+
+	/**
+	 * Customer the order belongs to (the preview has no real customer).
+	 *
+	 * @return int
+	 */
+	public function get_customer_id() {
+		$profile = new Profile();
+
+		return $profile->logged_in() ? (int) $profile->id() : 0;
+	}
+
+	/**
+	 * Line items.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	public function get_items() {
+		return array(
+			array(
+				'name'     => 'دورهٔ آموزشی نمونه',
+				'quantity' => 1,
+				'total'    => '۶۵۰٬۰۰۰ تومان',
+			),
+			array(
+				'name'     => 'قالب فروشگاهی نمونه',
+				'quantity' => 2,
+				'total'    => '۶۰۰٬۰۰۰ تومان',
+			),
+		);
+	}
+
+	/**
+	 * Totals rows.
+	 *
+	 * @return array<string,string> Label => formatted value.
+	 */
+	public function get_totals() {
+		return array(
+			'جمع اقلام'    => $this->total,
+			'هزینهٔ ارسال' => 'رایگان',
+			'مبلغ پرداختی' => $this->total,
+		);
+	}
+
+	/**
+	 * Payment method label.
+	 *
+	 * @return string
+	 */
+	public function get_payment_method_title() {
+		return 'پرداخت آنلاین (نمونه)';
 	}
 }
 

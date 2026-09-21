@@ -113,7 +113,29 @@ class Account_Forms_Widget extends Account_Widget_Base {
 
 		$this->end_controls_section();
 
+		$this->register_visibility_controls();
 		$this->register_style_controls();
+	}
+
+	/**
+	 * Style kit extras.
+	 *
+	 * @return array<int,string>
+	 */
+	protected function style_spec() {
+		return array();
+	}
+
+	/**
+	 * Parts the shop owner may switch off.
+	 *
+	 * @return array<string,mixed>
+	 */
+	protected function visibility_spec() {
+		return array(
+			'title'  => true,
+			'action' => true,
+		);
 	}
 
 	/**

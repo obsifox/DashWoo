@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 68" width="330" height="68" role="img" aria-label="DashWoo">
+  <defs>
+    <linearGradient id="dwPrimaryL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="dwAccentL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#0ea5e9"/>
+    </linearGradient>
+  </defs>
+  <g>
+    <rect x="4" y="16" width="22" height="36" rx="8" fill="url(#dwPrimaryL)"/>
+    <rect x="9.5" y="23" width="11" height="3.2" rx="1.6" fill="#ffffff"/>
+    <rect x="9.5" y="29.5" width="8" height="3.2" rx="1.6" fill="#ffffff" fill-opacity="0.78"/>
+    <rect x="9.5" y="36" width="11" height="3.2" rx="1.6" fill="#ffffff" fill-opacity="0.6"/>
+    <rect x="30" y="11" width="24" height="41" rx="9" fill="url(#dwAccentL)"/>
+    <rect x="35.5" y="18" width="13" height="3.2" rx="1.6" fill="#0f172a" fill-opacity="0.6"/>
+    <rect x="35.5" y="24.5" width="9" height="3.2" rx="1.6" fill="#0f172a" fill-opacity="0.35"/>
+    <rect x="35.5" y="31" width="13" height="9" rx="3.6" fill="#0f172a" fill-opacity="0.16"/>
+  </g>
+  <text x="70" y="45" font-family="Vazirmatn, 'Segoe UI', system-ui, -apple-system, Roboto, Arial, sans-serif"
+        font-size="33" font-weight="800" fill="#f8fafc">DashWoo</text>
+</svg>

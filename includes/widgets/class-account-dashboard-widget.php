@@ -129,7 +129,31 @@ class Account_Dashboard_Widget extends Account_Widget_Base {
 
 		$this->end_controls_section();
 
+		$this->register_visibility_controls();
 		$this->register_style_controls();
+	}
+
+	/**
+	 * Style kit extras for the dashboard (columns of the shortcut cards).
+	 *
+	 * @return array<int,string>
+	 */
+	protected function style_spec() {
+		return array( 'dashboard' );
+	}
+
+	/**
+	 * Parts the shop owner may switch off.
+	 *
+	 * @return array<string,mixed>
+	 */
+	protected function visibility_spec() {
+		return array(
+			'avatar' => true,
+			'title'  => true,
+			'meta'   => true,
+			'icon'   => true,
+		);
 	}
 
 	/**
@@ -148,16 +172,4 @@ class Account_Dashboard_Widget extends Account_Widget_Base {
 		);
 	}
 
-	/**
-	 * Read one setting with a default.
-	 *
-	 * @param string $key     Setting key.
-	 * @param mixed  $default Default.
-	 * @return mixed
-	 */
-	private function setting( $key, $default ) {
-		$settings = (array) $this->get_settings_for_display();
-
-		return array_key_exists( $key, $settings ) ? $settings[ $key ] : $default;
-	}
 }

@@ -13,7 +13,9 @@
 namespace DashWoo\Widgets;
 
 use DashWoo\Account\Endpoints;
+use DashWoo\Account\Panel;
 use DashWoo\Account\Renderer;
+use DashWoo\Account\Templates;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -50,6 +52,29 @@ abstract class Account_Endpoint_Widget_Base extends Account_Widget_Base {
 	}
 
 	/**
+	 * Template section of this widget (orders, downloads, addresses...).
+	 *
+	 * @return string
+	 */
+	protected function template_section() {
+		return Panel::section_of( $this->endpoint() );
+	}
+
+	/**
+	 * Parts the shop owner may switch off.
+	 *
+	 * @return array<string,mixed>
+	 */
+	protected function visibility_spec() {
+		return array(
+			'icon'   => true,
+			'title'  => true,
+			'meta'   => true,
+			'action' => true,
+		);
+	}
+
+	/**
 	 * The endpoint hook WooCommerce uses for this section.
 	 *
 	 * @return string
@@ -64,16 +89,46 @@ abstract class Account_Endpoint_Widget_Base extends Account_Widget_Base {
 	 * @return array<string,mixed>
 	 */
 	protected function view_args() {
-		return array(
+		$source = sanitize_key( (string) $this->setting( 'dw_source', '' ) );
+
+		if ( ! in_array( $source, array( 'auto', 'native', 'dashwoo' ), true ) ) {
+			// Backwards compatible with the old "content" switch.
+			$source = 'yes' === (string) $this->setting( 'dw_shortcut', 'yes' ) ? 'auto' : 'dashwoo';
+		}
+
+		$template = sanitize_key( (string) $this->setting( 'dw_template', '' ) );
+
+		$args = array(
 			'endpoint'   => $this->endpoint(),
 			'hook'       => $this->hook(),
-			'shortcut'   => (string) $this->setting( 'dw_shortcut', 'yes' ),
+			'source'     => $source,
 			'fallback'   => $this->fallback_view(),
-			'title'      => $this->title_text(),
+			'title'      => $this->shows( 'title' ) ? $this->title_text() : '',
+			'show_title' => $this->shows( 'title' ),
 			'url'        => Endpoints::instance()->url( $this->endpoint() ),
 			'per_page'   => (int) $this->setting( 'dw_per_page', 0 ),
-			'icons'      => 'yes' === $this->setting( 'dw_icons', 'yes' ),
+			'icons'      => 'yes' === (string) $this->setting( 'dw_icons', 'yes' ) && $this->shows( 'icon' ),
+			'order_id'   => $this->order_id(),
 		);
+
+		if ( '' !== $template ) {
+			$args['template'] = $template;
+		}
+
+		return $args;
+	}
+
+	/**
+	 * Order id for the order-detail widget (0 = the customer's latest order).
+	 *
+	 * @return int
+	 */
+	protected function order_id() {
+		if ( 'view-order' !== $this->endpoint() ) {
+			return 0;
+		}
+
+		return max( 0, (int) $this->setting( 'dw_order_id', 0 ) );
 	}
 
 	/**
@@ -123,12 +178,28 @@ abstract class Account_Endpoint_Widget_Base extends Account_Widget_Base {
 		);
 
 		$this->add_control(
-			'dw_shortcut',
+			'dw_source',
 			array(
-				'label'       => 'محتوای ووکامرس',
-				'type'        => 'switcher',
-				'default'     => $shortcut_default,
-				'description' => 'روشن = همان محتوایی که ووکامرس (یا افزونه‌های فروشگاه شما) برای این بخش می‌سازد اجرا می‌شود؛ خاموش = فقط قالب میان‌بر DashWoo.',
+				'label'       => 'منبع محتوا',
+				'type'        => 'select',
+				'default'     => 'yes' === $shortcut_default ? 'auto' : 'dashwoo',
+				'options'     => array(
+					'auto'    => 'خودکار: محتوای ووکامرس، و در نبودِ آن قالب DashWoo',
+					'native'  => 'فقط ووکامرس (قالب DashWoo استفاده نشود)',
+					'dashwoo' => 'فقط قالب DashWoo',
+				),
+				'description' => 'اگر افزونه‌ای برای این بخش محتوا می‌سازد، در حالت «خودکار» همان نمایش داده می‌شود و هیچ‌چیز دوباره پیاده‌سازی نمی‌شود.',
+			)
+		);
+
+		$this->add_control(
+			'dw_template',
+			array(
+				'label'       => 'قالب (Template)',
+				'type'        => 'select',
+				'default'     => '',
+				'options'     => array( '' => 'پیش‌فرض تنظیمات DashWoo' ) + Templates::section_options( $this->template_section() ),
+				'description' => '',
 			)
 		);
 
@@ -143,6 +214,7 @@ abstract class Account_Endpoint_Widget_Base extends Account_Widget_Base {
 
 		$this->end_controls_section();
 
+		$this->register_visibility_controls();
 		$this->register_style_controls();
 	}
 }

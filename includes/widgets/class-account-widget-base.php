@@ -6,11 +6,18 @@
  * otherwise), but all of the *logic* lives in DashWoo\Account\*, so the widgets
  * themselves stay thin: controls + a call to the renderer.
  *
+ * Two things every DashWoo widget has, by design:
+ *   - "چه چیزی نشان داده شود": a switch for the element itself, a switch per part of
+ *     it (icon, title, meta, badge, ...), role gating and device hiding;
+ *   - "بدون استایل": one switch that removes DashWoo's design from that single
+ *     element, for a shop owner who styles it in Elementor.
+ *
  * @package DashWoo
  */
 
 namespace DashWoo\Widgets;
 
+use DashWoo\Account\Endpoints;
 use DashWoo\Account\Renderer;
 use DashWoo\Account\Source_Adapter;
 
@@ -26,6 +33,11 @@ if ( ! class_exists( '\Elementor\Widget_Base' ) ) {
 abstract class Account_Widget_Base extends \Elementor\Widget_Base {
 
 	/**
+	 * Elementor category every DashWoo widget lives in (one group, one name).
+	 */
+	const CATEGORY = 'dashwoo';
+
+	/**
 	 * Which renderer method this widget calls.
 	 *
 	 * @return string
@@ -35,10 +47,18 @@ abstract class Account_Widget_Base extends \Elementor\Widget_Base {
 	/**
 	 * Elementor category.
 	 *
+	 * One category - «DashWoo» - so the panel never shows two DashWoo groups. A shop
+	 * that wants its own grouping can filter this.
+	 *
 	 * @return array<int,string>
 	 */
 	public function get_categories() {
-		return array( 'dashwoo', 'dashwoo-account' );
+		/**
+		 * Filter the Elementor category of a DashWoo widget.
+		 *
+		 * @param array<int,string> $categories Categories.
+		 */
+		return (array) apply_filters( 'dashwoo_widget_categories', array( self::CATEGORY ) );
 	}
 
 	/**
@@ -60,7 +80,25 @@ abstract class Account_Widget_Base extends \Elementor\Widget_Base {
 	}
 
 	/**
-	 * Shared style controls: every account widget can be themed per instance.
+	 * Which parts of this widget the shop owner may switch off.
+	 *
+	 * @return array<string,mixed> Part => default on/off.
+	 */
+	protected function visibility_spec() {
+		return array();
+	}
+
+	/**
+	 * Which style-kit extras this widget uses (nav, panel, dashboard...).
+	 *
+	 * @return array<int,string>
+	 */
+	protected function style_spec() {
+		return array();
+	}
+
+	/**
+	 * Register the shared style section.
 	 *
 	 * @return void
 	 */
@@ -69,50 +107,228 @@ abstract class Account_Widget_Base extends \Elementor\Widget_Base {
 			return;
 		}
 
+		Style_Controls::register( $this, $this->style_spec() );
+	}
+
+	/**
+	 * Register the "what shows" section.
+	 *
+	 * @param string $label Section label.
+	 * @return void
+	 */
+	protected function register_visibility_controls( $label = 'چه چیزی نمایش داده شود' ) {
+		if ( ! method_exists( $this, 'start_controls_section' ) ) {
+			return;
+		}
+
 		$this->start_controls_section(
-			'dw_account_style',
-			array(
-				'label' => 'سبک DashWoo',
-				'tab'   => 'style',
-			)
+			'dw_visibility',
+			array( 'label' => $label )
 		);
 
 		$this->add_control(
-			'dw_accent',
+			'dw_visible',
 			array(
-				'label'       => 'رنگ تأکید',
-				'type'        => 'color',
-				'default'     => '',
-				'description' => 'خالی بگذارید تا رنگ تأکید سراسری DashWoo (توکن primary) استفاده شود.',
+				'label'   => 'نمایش این المان',
+				'type'    => 'switcher',
+				'default' => 'yes',
 			)
 		);
 
-		$this->add_control(
-			'dw_radius',
-			array(
-				'label'   => 'گردی گوشه‌ها (px)',
-				'type'    => 'number',
-				'default' => (int) dashwoo_get_setting( 'account_design.radius', 18 ),
-				'min'     => 0,
-				'max'     => 60,
-			)
+		$parts = array(
+			'icon'   => 'آیکون‌ها',
+			'title'  => 'عنوان',
+			'meta'   => 'اطلاعات کنار عنوان (تعداد، تاریخ…)',
+			'badge'  => 'شمارنده',
+			'desc'   => 'توضیح کوتاه',
+			'avatar' => 'آواتار',
+			'arrow'  => 'فلش‌ها',
+			'action' => 'دکمهٔ اقدام',
 		);
 
+		foreach ( $this->visibility_spec() as $part => $default ) {
+			if ( ! isset( $parts[ $part ] ) ) {
+				continue;
+			}
+
+			$this->add_control(
+				'dw_show_' . $part,
+				array(
+					'label'   => $parts[ $part ],
+					'type'    => 'switcher',
+					'default' => ! empty( $default ) ? 'yes' : '',
+				)
+			);
+		}
+
 		$this->add_control(
-			'dw_tone',
+			'dw_roles',
 			array(
-				'label'   => 'حالت رنگی',
+				'label'   => 'برای چه کسانی',
 				'type'    => 'select',
-				'default' => 'auto',
+				'default' => 'all',
 				'options' => array(
-					'auto'  => 'خودکار با توکن‌های DashWoo',
-					'light' => 'روشن',
-					'dark'  => 'تیره',
+					'all'           => 'همهٔ بازدیدکنندگان',
+					'logged_in'     => 'فقط کاربران واردشده',
+					'administrator' => 'فقط مدیران سایت',
 				),
 			)
 		);
 
+		$this->add_control(
+			'dw_hide_on',
+			array(
+				'label'       => 'پنهان در',
+				'type'        => 'select',
+				'default'     => '',
+				'options'     => array(
+					''        => 'همه‌جا نمایش بده',
+					'desktop' => 'فقط دسکتاپ (پنهان در تبلت و موبایل)',
+					'tablet'  => 'پنهان در تبلت',
+					'mobile'  => 'پنهان در موبایل',
+				),
+				'description' => 'این گزینه کمی CSS لازم دارد؛ اگر «CSS خودکار DashWoo» را خاموش کنید، خودتان با کلاس‌های dw-hide-* می‌سازید.',
+			)
+		);
+
+		$this->add_control(
+			'dw_bare',
+			array(
+				'label'       => 'بدون استایل DashWoo (فقط همین المان)',
+				'type'        => 'switcher',
+				'default'     => '',
+				'description' => 'روشن کنید تا فقط این المان هیچ استایلی از DashWoo نگیرد و همهٔ طراحی را خودتان انجام دهید.',
+			)
+		);
+
 		$this->end_controls_section();
+	}
+
+	/**
+	 * A repeater for a list widget (menu items, tabs, shortcuts...).
+	 *
+	 * @param string              $id          Control id.
+	 * @param string              $label       Label.
+	 * @param string              $description Description.
+	 * @return void
+	 */
+	protected function register_items_control( $id = 'dw_items', $label = 'آیتم‌ها (ترتیب، عنوان، آیکون، نمایش)', $description = '' ) {
+		if ( ! method_exists( $this, 'add_control' ) || ! class_exists( '\Elementor\Repeater' ) ) {
+			return;
+		}
+
+		$repeater = new \Elementor\Repeater();
+
+		$repeater->add_control(
+			'id',
+			array(
+				'label'   => 'بخش',
+				'type'    => 'select',
+				'options' => $this->item_options(),
+			)
+		);
+
+		$repeater->add_control(
+			'label',
+			array(
+				'label'       => 'عنوان دلخواه',
+				'type'        => 'text',
+				'description' => 'خالی بگذارید تا عنوان خود ووکامرس/تنظیمات استفاده شود.',
+			)
+		);
+
+		$repeater->add_control(
+			'icon',
+			array(
+				'label'       => 'آیکون (نام آیکون)',
+				'type'        => 'text',
+				'description' => 'مثلاً: receipt_long — خالی = آیکون پیش‌فرض بخش.',
+			)
+		);
+
+		$repeater->add_control(
+			'visible',
+			array(
+				'label'   => 'نمایش این آیتم',
+				'type'    => 'switcher',
+				'default' => 'yes',
+			)
+		);
+
+		$repeater->add_control(
+			'badge',
+			array(
+				'label'       => 'شمارنده دستی',
+				'type'        => 'number',
+				'default'     => '',
+				'description' => 'خالی = شمارندهٔ واقعی (سفارش‌ها/دانلودها).',
+			)
+		);
+
+		$repeater->add_control(
+			'url',
+			array(
+				'label'       => 'لینک دلخواه',
+				'type'        => 'url',
+				'description' => 'برای آیتم‌های خارج از حساب کاربری (مثلاً «پشتیبانی»).',
+			)
+		);
+
+		$this->add_control(
+			$id,
+			array(
+				'label'       => $label,
+				'type'        => 'repeater',
+				'fields'      => $repeater->get_controls(),
+				'title_field' => '{{{ label }}}',
+				'description' => $description,
+			)
+		);
+	}
+
+	/**
+	 * Options of the item repeater: every account section WooCommerce knows.
+	 *
+	 * @return array<string,string>
+	 */
+	protected function item_options() {
+		$options = array( '' => '— انتخاب کنید —' );
+
+		foreach ( Endpoints::instance()->wire() as $id => $item ) {
+			$options[ (string) $id ] = (string) $item['label'];
+		}
+
+		return $options;
+	}
+
+	/**
+	 * Read one setting with a default.
+	 *
+	 * @param string $key     Setting key.
+	 * @param mixed  $default Default.
+	 * @return mixed
+	 */
+	protected function setting( $key, $default ) {
+		$settings = method_exists( $this, 'get_settings_for_display' ) ? (array) $this->get_settings_for_display() : array();
+
+		return array_key_exists( $key, $settings ) ? $settings[ $key ] : $default;
+	}
+
+	/**
+	 * Is a part switched on? (used by the widgets' view args)
+	 *
+	 * @param string $part    Part key (icon, title, meta, badge...).
+	 * @param bool   $default Default when the control is absent.
+	 * @return bool
+	 */
+	protected function shows( $part, $default = true ) {
+		$spec = $this->visibility_spec();
+
+		if ( ! isset( $spec[ $part ] ) ) {
+			return (bool) $default;
+		}
+
+		return 'yes' === (string) $this->setting( 'dw_show_' . $part, ! empty( $spec[ $part ] ) ? 'yes' : '' );
 	}
 
 	/**
@@ -122,17 +338,34 @@ abstract class Account_Widget_Base extends \Elementor\Widget_Base {
 	 */
 	protected function style_args() {
 		$settings = method_exists( $this, 'get_settings_for_display' ) ? (array) $this->get_settings_for_display() : array();
-		$args     = array();
 
-		if ( ! empty( $settings['dw_accent'] ) ) {
-			$args['accent'] = (string) $settings['dw_accent'];
+		$args = Style_Controls::args( $settings, array_merge( array( 'all' ), $this->style_spec() ) );
+
+		if ( ! empty( $args['vars'] ) ) {
+			// Only the overrides travel to the markup; the base values keep coming from
+			// the settings screen / design tokens.
+			$args['css'] = Renderer::styles( array( 'vars' => $args['vars'] ) );
 		}
 
-		if ( ! empty( $settings['dw_radius'] ) ) {
-			$args['radius'] = (int) $settings['dw_radius'];
+		$classes = array();
+
+		if ( ! empty( $args['class'] ) ) {
+			$classes[] = (string) $args['class'];
 		}
 
-		$args['class'] = 'dw-acc--tone-' . ( isset( $settings['dw_tone'] ) ? sanitize_key( (string) $settings['dw_tone'] ) : 'auto' );
+		$hide = sanitize_key( (string) $this->setting( 'dw_hide_on', '' ) );
+
+		if ( '' !== $hide && in_array( $hide, array( 'desktop', 'tablet', 'mobile' ), true ) ) {
+			$classes[] = 'dw-hide-' . $hide;
+		}
+
+		if ( 'yes' === (string) $this->setting( 'dw_bare', '' ) ) {
+			$classes[] = 'dw-acc--bare';
+		}
+
+		if ( $classes ) {
+			$args['class'] = implode( ' ', $classes );
+		}
 
 		return $args;
 	}
@@ -157,11 +390,38 @@ abstract class Account_Widget_Base extends \Elementor\Widget_Base {
 	}
 
 	/**
+	 * Role / visibility gate.
+	 *
+	 * @return bool
+	 */
+	protected function is_visible() {
+		if ( 'yes' !== (string) $this->setting( 'dw_visible', 'yes' ) ) {
+			return false;
+		}
+
+		$role = sanitize_key( (string) $this->setting( 'dw_roles', 'all' ) );
+
+		if ( 'logged_in' === $role ) {
+			return function_exists( 'is_user_logged_in' ) && is_user_logged_in();
+		}
+
+		if ( 'administrator' === $role ) {
+			return function_exists( 'current_user_can' ) && current_user_can( 'manage_options' );
+		}
+
+		return true;
+	}
+
+	/**
 	 * Render through the shared renderer, with the availability guard in front.
 	 *
 	 * @return void
 	 */
 	protected function render() {
+		if ( ! $this->is_visible() ) {
+			return;
+		}
+
 		$state = Renderer::availability();
 
 		if ( ! $state['ready'] ) {
@@ -218,5 +478,14 @@ abstract class Account_Widget_Base extends \Elementor\Widget_Base {
 		}
 
 		return false;
+	}
+
+	/**
+	 * The account source adapter (kept for subclasses that need it).
+	 *
+	 * @return Source_Adapter
+	 */
+	protected function source() {
+		return Source_Adapter::instance();
 	}
 }

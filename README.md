@@ -98,7 +98,7 @@ the builder preview, or on a page that uses `[dashwoo_account]`.
 
 ## Installation
 
-1. Download `dashwoo-1.3.1.zip` from the [Releases](../../releases) page.
+1. Download `dashwoo-1.4.0.zip` from the [Releases](../../releases) page.
 2. WordPress → **Plugins → Add New → Upload Plugin** → choose the zip → **Install**.
 3. Activate, then open **DashWoo** in the admin menu.
 

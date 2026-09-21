@@ -55,6 +55,11 @@ final class Tokens_Integration {
 			return;
 		}
 
+		// The DashWoo brand tab (marks) inside Elementor's icon library.
+		if ( class_exists( __NAMESPACE__ . '\\Brand_Icons' ) ) {
+			Brand_Icons::instance()->boot();
+		}
+
 		add_action( 'elementor/init', array( $this, 'register_category' ) );
 		add_action( 'elementor/widgets/register', array( $this, 'register_widgets' ) );
 		add_action( 'elementor/elements/categories_registered', array( $this, 'register_category' ) );
@@ -93,25 +98,19 @@ final class Tokens_Integration {
 			)
 		);
 
-		// The account pack gets its own panel group, so it is easy to find in a long
-		// widget list ("DashWoo — حساب کاربری" instead of a wall of widgets).
-		$manager->add_category(
-			'dashwoo-account',
-			array(
-				'title' => 'DashWoo — حساب کاربری',
-				'icon'  => 'eicon-user-circle-o',
-			)
-		);
+		// Only ONE category is registered: the panel used to show "DashWoo" and a
+		// second "DashWoo — حساب کاربری" group (the slug was added twice), which made
+		// the widget list look like two products. A shop that wants the account widgets
+		// in their own group can still ask for it - it is opt-in now.
+		$extra = (array) apply_filters( 'dashwoo_elementor_extra_categories', array() );
 
-		// The account pack gets its own panel group so it is easy to find in a long
-		// widget list ("حساب کاربری" instead of a wall of widgets).
-		$manager->add_category(
-			'dashwoo-account',
-			array(
-				'title' => 'DashWoo — حساب کاربری',
-				'icon'  => 'eicon-user-circle-o',
-			)
-		);
+		foreach ( $extra as $slug => $args ) {
+			if ( ! is_array( $args ) ) {
+				continue;
+			}
+
+			$manager->add_category( (string) $slug, $args );
+		}
 	}
 
 	/**
@@ -125,28 +124,16 @@ final class Tokens_Integration {
 			return;
 		}
 
-		$classes = array(
-			// Design system.
-			'\\DashWoo\\Widgets\\Icon_Widget',
-			// Account pack (My Account): chrome, sections and forms.
-			'\\DashWoo\\Widgets\\Account_Dashboard_Widget',
-			'\\DashWoo\\Widgets\\Account_Nav_Widget',
-			'\\DashWoo\\Widgets\\Account_Profile_Widget',
-			'\\DashWoo\\Widgets\\Account_Orders_Widget',
-			'\\DashWoo\\Widgets\\Account_Downloads_Widget',
-			'\\DashWoo\\Widgets\\Account_Addresses_Widget',
-			'\\DashWoo\\Widgets\\Account_Payment_Widget',
-			'\\DashWoo\\Widgets\\Account_Details_Widget',
-			'\\DashWoo\\Widgets\\Account_Logout_Widget',
-			'\\DashWoo\\Widgets\\Account_Forms_Widget',
-		);
+		// ONE list, in ONE place. This method used to carry a copy of the class list,
+		// which is how the panel ended up able to disagree with itself (and why the
+		// module registered a different set of widgets than the bridge did).
+		$classes = class_exists( '\\DashWoo\\Account\\Elementor_Bridge' )
+			? \DashWoo\Account\Elementor_Bridge::widget_classes()
+			: array( '\\DashWoo\\Widgets\\Icon_Widget' );
 
-		/**
-		 * Filter the widget classes DashWoo registers.
-		 *
-		 * @param array<int,string> $classes Widget classes.
-		 */
-		foreach ( (array) apply_filters( 'dashwoo_elementor_widgets', $classes ) as $class ) {
+		// The list is already filtered inside widget_classes() - filtering here again
+		// would run every shop callback twice.
+		foreach ( (array) $classes as $class ) {
 			if ( class_exists( $class ) ) {
 				$widgets_manager->register( new $class() );
 			}

@@ -7,6 +7,7 @@
 
 namespace DashWoo\Rest;
 
+use DashWoo\Account\Panel;
 use DashWoo\Assets\Asset_Manager;
 use DashWoo\Assets\Fonts\Font_Manager;
 use DashWoo\Assets\Fonts\Google_Fonts_Provider;
@@ -87,6 +88,24 @@ final class Router {
 	}
 
 	/**
+	 * Read permission for the account panel: any logged-in customer, because the
+	 * panel draws *their own* account content. The REST cookie nonce (`X-WP-Nonce`)
+	 * is what proves the request came from their browser session.
+	 *
+	 * A visitor who is not logged in gets the login prompt instead of data, so a
+	 * guest can never read another customer's orders.
+	 *
+	 * @return bool
+	 */
+	public function can_read_account() {
+		if ( ! function_exists( 'is_user_logged_in' ) || ! is_user_logged_in() ) {
+			return false;
+		}
+
+		return (bool) current_user_can( 'read' );
+	}
+
+	/**
 	 * Write permission (settings can lock it down).
 	 *
 	 * @return bool
@@ -145,6 +164,7 @@ final class Router {
 		$this->route( $ns, '/cache/flush', 'POST', 'cache-flush', array( $this, 'post_cache_flush' ) );
 		$this->route( $ns, '/kit/sync', 'POST', 'kit-sync', array( $this, 'post_kit_sync' ) );
 		$this->route( $ns, '/kit/revert', 'POST', 'kit-revert', array( $this, 'post_kit_revert' ) );
+		$this->route( $ns, '/account/panel', 'GET', 'account-panel', array( $this, 'get_account_panel' ), array( $this, 'can_read_account' ) );
 		$this->route( $ns, '/logs', 'GET', 'logs', array( $this, 'get_logs' ) );
 		$this->route( $ns, '/logs', 'DELETE', 'logs-clear', array( $this, 'delete_logs' ) );
 
@@ -169,8 +189,10 @@ final class Router {
 	 * @param callable $callback  Handler.
 	 * @return void
 	 */
-	public function route( $namespace, $path, $method, $id, $callback ) {
-		$permission = ( 'GET' === $method ) ? array( $this, 'can_read' ) : array( $this, 'can_write' );
+	public function route( $namespace, $path, $method, $id, $callback, $permission = null ) {
+		if ( ! is_array( $permission ) && ! is_string( $permission ) ) {
+			$permission = ( 'GET' === $method ) ? array( $this, 'can_read' ) : array( $this, 'can_write' );
+		}
 
 		$this->routes[] = array(
 			'id'     => $id,
@@ -751,6 +773,30 @@ final class Router {
 	/* ---------------------------------------------------------------------
 	 * Helpers
 	 * ------------------------------------------------------------------ */
+
+	/**
+	 * One account-panel view (menu card + content card, swapped over AJAX).
+	 *
+	 * @param mixed $request Request.
+	 * @return array<string,mixed>|\WP_Error
+	 */
+	public function get_account_panel( $request = null ) {
+		$view     = sanitize_key( (string) $this->param( $request, 'view', '' ) );
+		$order_id = max( 0, (int) $this->param( $request, 'order_id', 0 ) );
+
+		if ( '' === $view ) {
+			return new \WP_Error( 'dashwoo_panel_view', 'Unknown view.', array( 'status' => 404 ) );
+		}
+
+		$data = Panel::instance()->payload(
+			$view,
+			array(
+				'order_id' => $order_id,
+			)
+		);
+
+		return $data;
+	}
 
 	/**
 	 * Read a route parameter.
