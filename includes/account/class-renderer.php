@@ -64,7 +64,7 @@ class Renderer {
 			return array(
 				'state'    => 'no_woocommerce',
 				'ready'    => false,
-				'reason'   => 'ووکامرس فعال نیست، پس حساب کاربری ووکامرس هم وجود ندارد. تا زمانی که ووکامرس فعال شود، این بخش نمایش داده نمی‌شود.',
+				'reason'   => __( 'WooCommerce is not active, so there is no WooCommerce account area either. This part stays hidden until WooCommerce is active.', 'dashwoo' ),
 				'url'      => '',
 			);
 		}
@@ -75,7 +75,7 @@ class Renderer {
 			return array(
 				'state'  => 'no_account_page',
 				'ready'  => false,
-				'reason' => 'صفحهٔ «حساب کاربری» ووکامرس ساخته یا منتشر نشده است؛ در تنظیمات ووکامرس → پیشرفته یک برگه به حساب کاربری اختصاص دهید.',
+				'reason' => __( 'The WooCommerce My Account page is not created or not published; assign a page to My Account in WooCommerce → Settings → Advanced.', 'dashwoo' ),
 				'url'    => '',
 			);
 		}
@@ -92,7 +92,7 @@ class Renderer {
 			return array(
 				'state'  => 'guest',
 				'ready'  => false,
-				'reason' => 'حساب کاربری نیاز به ورود دارد. این بخش فقط برای کاربران وارد‌شده نمایش داده می‌شود و بقیه به شکل ورود هدایت می‌شوند.',
+				'reason' => __( 'The account area requires signing in. This part is only shown to signed-in customers and everybody else is sent to the login form.', 'dashwoo' ),
 				'url'    => $account_url,
 			);
 		}
@@ -143,10 +143,10 @@ class Renderer {
 		$html .= '<p class="' . self::CSS . '__notice-text">' . esc_html( (string) $availability['reason'] ) . '</p>';
 
 		if ( 'guest' === $availability['state'] && ! empty( $availability['url'] ) ) {
-			$html .= '<a class="' . self::CSS . '__notice-link" href="' . esc_url( (string) $availability['url'] ) . '">ورود به حساب</a>';
+			$html .= '<a class="' . self::CSS . '__notice-link" href="' . esc_url( (string) $availability['url'] ) . '">' . esc_html__( 'Sign in', 'dashwoo' ) . '</a>';
 		}
 
-		$html .= '<p class="' . self::CSS . '__notice-hint">این پیام فقط برای مدیران نمایش داده می‌شود.</p>';
+		$html .= '<p class="' . self::CSS . '__notice-hint">' . esc_html__( 'This message is only shown to administrators.', 'dashwoo' ) . '</p>';
 		$html .= '</div>';
 
 		return $html;
@@ -265,7 +265,7 @@ class Renderer {
 			$classes[] = self::CSS . '__nav--panel';
 		}
 
-		$html  = '<nav class="' . esc_attr( implode( ' ', $classes ) ) . '" aria-label="منوی حساب کاربری" data-dw-nav-list="1">';
+		$html  = '<nav class="' . esc_attr( implode( ' ', $classes ) ) . __( '" aria-label="Account menu" data-dw-nav-list="1">', 'dashwoo' );
 		$html .= '<ul class="' . self::CSS . '__nav-list">';
 
 		foreach ( $items as $id => $item ) {
@@ -499,7 +499,7 @@ class Renderer {
 			$html .= '<span class="' . self::CSS . '__card-title">' . esc_html( (string) $item['label'] ) . '</span>';
 
 			if ( $count > 0 ) {
-				$html .= '<span class="' . self::CSS . '__card-meta">' . esc_html( sprintf( '%d مورد', $count ) ) . '</span>';
+				$html .= '<span class="' . self::CSS . '__card-meta">' . esc_html( sprintf( __( 'Items: %d', 'dashwoo' ), $count ) ) . '</span>';
 			}
 
 			$html .= '<span class="' . self::CSS . '__card-arrow" aria-hidden="true">' . Icon_Renderer::render( array( 'icon' => 'arrow_back', 'size' => 20 ) ) . '</span>';
@@ -524,7 +524,7 @@ class Renderer {
 		$greeting = 'plain' === $parts ? (bool) self::option( $args, 'greeting', true ) : ( 'cards' === $parts ? false : (bool) self::option( $args, 'greeting', true ) );
 		$avatar   = (bool) self::option( $args, 'avatar', true );
 		$cards    = 'hero' === $parts ? false : (bool) self::option( $args, 'cards', true );
-		$text     = (string) self::option( $args, 'greeting_text', 'خوش آمدید' );
+		$text     = (string) self::option( $args, 'greeting_text', __( 'Welcome', 'dashwoo' ) );
 		$logo     = ! empty( $args['logo'] ) && class_exists( __NAMESPACE__ . '\\Brand' ) ? Brand::mark( array( 'size' => max( 16, (int) ( $args['logo_size'] ?? 28 ) ) ) ) : '';
 
 		if ( 'cards' === $parts ) {
@@ -559,7 +559,7 @@ class Renderer {
 				$name = $profile->first_name();
 
 				$html .= '<div class="' . self::CSS . '__hero-text">';
-				$html .= '<p class="' . self::CSS . '__hero-greeting">' . esc_html( $text ) . ( '' !== $name ? '، ' . esc_html( $name ) : '' ) . '</p>';
+				$html .= '<p class="' . self::CSS . '__hero-greeting">' . esc_html( $text ) . ( '' !== $name ? __( ', ', 'dashwoo' ) . esc_html( $name ) : '' ) . '</p>';
 
 				// The summary (e-mail + order count) stays on by default: a widget that
 				// only wants the greeting turns it off explicitly.
@@ -593,13 +593,13 @@ class Renderer {
 
 			return self::open( $args ) . self::dashboard( array(
 				'greeting_text' => $customer['name'],
-				'summary'       => 'پیش‌نمایش چیدمان در ویرایشگر المنتور',
+				'summary'       => __( 'Layout preview in the Elementor editor', 'dashwoo' ),
 			) ) . self::close();
 		}
 
 		$url  = Endpoints::instance()->login_url();
-		$text = (string) self::option( $args, 'text', 'برای دیدن سفارش‌ها، دانلودها و جزئیات حساب وارد شوید.' );
-		$cta  = (string) self::option( $args, 'button', 'ورود به حساب' );
+		$text = (string) self::option( $args, 'text', __( 'Sign in to see your orders, downloads and account details.', 'dashwoo' ) );
+		$cta  = (string) self::option( $args, 'button', __( 'Sign in', 'dashwoo' ) );
 
 		$html  = '<div class="' . self::CSS . '__login">';
 		$html .= '<span class="' . self::CSS . '__login-icon" aria-hidden="true">' . Icon_Renderer::render( array( 'icon' => 'lock', 'size' => 28 ) ) . '</span>';
@@ -659,7 +659,7 @@ class Renderer {
 		}
 
 		if ( 'native' === $source ) {
-			return Sections::unavailable( 'این بخش روی این فروشگاه محتوایی ندارد.' );
+			return Sections::unavailable( __( 'This section has no content on this store.', 'dashwoo' ) );
 		}
 
 		// The template *section* is what the shop owner picks (orders, downloads,

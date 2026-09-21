@@ -38,43 +38,43 @@ class Style_Controls {
 	public static function kit() {
 		$kit = array(
 			'dw_accent'    => array(
-				'label' => 'رنگ تأکید',
+				'label' => __( 'Accent colour', 'dashwoo' ),
 				'type'  => 'color',
 				'var'   => 'accent',
-				'hint'  => 'لینک‌ها، آیتم فعال و دکمه‌ها.',
+				'hint'  => __( 'Links, the active item and the buttons.', 'dashwoo' ),
 			),
 			'dw_accent_hover' => array(
-				'label' => 'رنگ تأکید (هاور)',
+				'label' => __( 'Accent colour (hover)', 'dashwoo' ),
 				'type'  => 'color',
 				'var'   => 'accent-hover',
 			),
 			'dw_text'      => array(
-				'label' => 'رنگ متن',
+				'label' => __( 'Text color', 'dashwoo' ),
 				'type'  => 'color',
 				'var'   => 'text',
 			),
 			'dw_muted'     => array(
-				'label' => 'رنگ متن کم‌رنگ',
+				'label' => __( 'Muted text color', 'dashwoo' ),
 				'type'  => 'color',
 				'var'   => 'muted',
 			),
 			'dw_surface'   => array(
-				'label' => 'رنگ سطح کارت',
+				'label' => __( 'Card surface color', 'dashwoo' ),
 				'type'  => 'color',
 				'var'   => 'surface',
 			),
 			'dw_stage'     => array(
-				'label' => 'رنگ پس‌زمینهٔ ناحیه',
+				'label' => __( 'Area background color', 'dashwoo' ),
 				'type'  => 'color',
 				'var'   => 'stage',
 			),
 			'dw_border'    => array(
-				'label' => 'رنگ حاشیه',
+				'label' => __( 'Border color', 'dashwoo' ),
 				'type'  => 'color',
 				'var'   => 'border',
 			),
 			'dw_radius'    => array(
-				'label'   => 'گردی گوشه‌ها',
+				'label'   => __( 'Corner radius', 'dashwoo' ),
 				'type'    => 'number',
 				'var'     => 'radius',
 				'unit'    => 'px',
@@ -83,7 +83,7 @@ class Style_Controls {
 				'default' => (int) dashwoo_get_setting( 'account_design.radius', 18 ),
 			),
 			'dw_pad'       => array(
-				'label'   => 'فاصلهٔ داخلی کارت‌ها',
+				'label'   => __( 'Card padding', 'dashwoo' ),
 				'type'    => 'number',
 				'var'     => 'pad',
 				'unit'    => 'px',
@@ -92,7 +92,7 @@ class Style_Controls {
 				'default' => 0,
 			),
 			'dw_gap'       => array(
-				'label'   => 'فاصلهٔ بین اجزا',
+				'label'   => __( 'Gap between the parts', 'dashwoo' ),
 				'type'    => 'number',
 				'var'     => 'space',
 				'unit'    => 'px',
@@ -101,7 +101,7 @@ class Style_Controls {
 				'default' => 0,
 			),
 			'dw_font_size' => array(
-				'label'   => 'اندازهٔ قلم',
+				'label'   => __( 'Font size', 'dashwoo' ),
 				'type'    => 'number',
 				'var'     => 'font-size',
 				'unit'    => 'px',
@@ -110,7 +110,7 @@ class Style_Controls {
 				'default' => 0,
 			),
 			'dw_icon_size' => array(
-				'label'   => 'اندازهٔ آیکون',
+				'label'   => __( 'Icon size', 'dashwoo' ),
 				'type'    => 'number',
 				'var'     => 'icon',
 				'unit'    => 'px',
@@ -119,37 +119,37 @@ class Style_Controls {
 				'default' => 0,
 			),
 			'dw_weight'    => array(
-				'label'   => 'ضخامت قلم',
+				'label'   => __( 'Font weight', 'dashwoo' ),
 				'type'    => 'select',
 				'var'     => 'weight',
 				'options' => array(
-					''    => 'پیش‌فرض',
-					'400' => 'معمولی',
-					'500' => 'نیمه‌ضخیم',
-					'600' => 'نیمه‌بولد',
-					'700' => 'بولد',
-					'800' => 'خیلی بولد',
+					''    => __( 'Default', 'dashwoo' ),
+					'400' => __( 'Regular', 'dashwoo' ),
+					'500' => __( 'Medium', 'dashwoo' ),
+					'600' => __( 'Semi Bold', 'dashwoo' ),
+					'700' => __( 'Bold', 'dashwoo' ),
+					'800' => __( 'Extra Bold', 'dashwoo' ),
 				),
 			),
 			'dw_align'     => array(
-				'label'   => 'ترازبندی',
+				'label'   => __( 'Alignment', 'dashwoo' ),
 				'type'    => 'select',
 				'var'     => 'align',
 				'options' => array(
-					''       => 'پیش‌فرض',
-					'start'  => 'شروع',
-					'center' => 'وسط',
-					'end'    => 'پایان',
+					''       => __( 'Default', 'dashwoo' ),
+					'start'  => __( 'Getting started', 'dashwoo' ),
+					'center' => __( 'Center', 'dashwoo' ),
+					'end'    => __( 'End', 'dashwoo' ),
 				),
 			),
 			'dw_tone'      => array(
-				'label'   => 'حالت رنگی',
+				'label'   => __( 'Color mode', 'dashwoo' ),
 				'type'    => 'select',
 				'class'   => 'dw-acc--tone-',
 				'options' => array(
-					'auto'  => 'خودکار با توکن‌های DashWoo',
-					'light' => 'روشن',
-					'dark'  => 'تیره',
+					'auto'  => __( 'Automatic with the DashWoo tokens', 'dashwoo' ),
+					'light' => __( 'On', 'dashwoo' ),
+					'dark'  => __( 'Dark', 'dashwoo' ),
 				),
 				'default' => 'auto',
 			),
@@ -171,7 +171,7 @@ class Style_Controls {
 	public static function extras() {
 		return array(
 			'dw_nav_width'   => array(
-				'label'   => 'عرض ستون منو (چیدمان دوستونه)',
+				'label'   => __( 'Menu column width (two-column layout)', 'dashwoo' ),
 				'type'    => 'number',
 				'var'     => 'nav-width',
 				'unit'    => 'px',
@@ -181,7 +181,7 @@ class Style_Controls {
 				'widgets' => array( 'nav', 'panel' ),
 			),
 			'dw_cols'        => array(
-				'label'   => 'تعداد ستون‌ها',
+				'label'   => __( 'Number of columns', 'dashwoo' ),
 				'type'    => 'number',
 				'var'     => 'cols',
 				'min'     => 1,
@@ -190,7 +190,7 @@ class Style_Controls {
 				'widgets' => array( 'dashboard', 'nav' ),
 			),
 			'dw_item_pad'    => array(
-				'label'   => 'فاصلهٔ داخلی هر آیتم منو',
+				'label'   => __( 'Padding of every menu item', 'dashwoo' ),
 				'type'    => 'number',
 				'var'     => 'item-pad',
 				'unit'    => 'px',
@@ -200,7 +200,7 @@ class Style_Controls {
 				'widgets' => array( 'nav', 'panel' ),
 			),
 			'dw_item_gap'    => array(
-				'label'   => 'فاصلهٔ بین آیتم‌های منو',
+				'label'   => __( 'Gap between the menu items', 'dashwoo' ),
 				'type'    => 'number',
 				'var'     => 'item-gap',
 				'unit'    => 'px',
@@ -210,19 +210,19 @@ class Style_Controls {
 				'widgets' => array( 'nav', 'panel' ),
 			),
 			'dw_active_bg'   => array(
-				'label'   => 'رنگ پس‌زمینهٔ آیتم فعال',
+				'label'   => __( 'Active item background', 'dashwoo' ),
 				'type'    => 'color',
 				'var'     => 'active-bg',
 				'widgets' => array( 'nav', 'panel' ),
 			),
 			'dw_hover_bg'    => array(
-				'label'   => 'رنگ پس‌زمینهٔ هاور',
+				'label'   => __( 'Hover background', 'dashwoo' ),
 				'type'    => 'color',
 				'var'     => 'hover-bg',
 				'widgets' => array( 'nav', 'panel' ),
 			),
 			'dw_card_min_h'  => array(
-				'label'   => 'کمترین ارتفاع کارت محتوا',
+				'label'   => __( 'Minimum height of the content card', 'dashwoo' ),
 				'type'    => 'number',
 				'var'     => 'panel-min-h',
 				'unit'    => 'px',
@@ -246,10 +246,10 @@ class Style_Controls {
 			return;
 		}
 
-		self::section( $widget, 'dw_style_colors', 'رنگ‌ها', array( 'dw_accent', 'dw_accent_hover', 'dw_text', 'dw_muted', 'dw_surface', 'dw_stage', 'dw_border' ), $include );
-		self::section( $widget, 'dw_style_size', 'اندازه‌ها', array( 'dw_radius', 'dw_pad', 'dw_gap', 'dw_font_size', 'dw_icon_size', 'dw_card_min_h' ), $include );
-		self::section( $widget, 'dw_style_type', 'تایپوگرافی و تراز', array( 'dw_weight', 'dw_align', 'dw_tone' ), $include );
-		self::section( $widget, 'dw_style_menu', 'منو', array( 'dw_nav_width', 'dw_item_pad', 'dw_item_gap', 'dw_active_bg', 'dw_hover_bg', 'dw_cols' ), $include );
+		self::section( $widget, 'dw_style_colors', __( 'Colors', 'dashwoo' ), array( 'dw_accent', 'dw_accent_hover', 'dw_text', 'dw_muted', 'dw_surface', 'dw_stage', 'dw_border' ), $include );
+		self::section( $widget, 'dw_style_size', __( 'Sizes', 'dashwoo' ), array( 'dw_radius', 'dw_pad', 'dw_gap', 'dw_font_size', 'dw_icon_size', 'dw_card_min_h' ), $include );
+		self::section( $widget, 'dw_style_type', __( 'Typography and alignment', 'dashwoo' ), array( 'dw_weight', 'dw_align', 'dw_tone' ), $include );
+		self::section( $widget, 'dw_style_menu', __( 'Menu', 'dashwoo' ), array( 'dw_nav_width', 'dw_item_pad', 'dw_item_gap', 'dw_active_bg', 'dw_hover_bg', 'dw_cols' ), $include );
 	}
 
 	/**
@@ -321,7 +321,7 @@ class Style_Controls {
 	/**
 	 * Settings => style args for the renderer (`vars` + modifier classes).
 	 *
-	 * Empty values are dropped, so "پیش‌فرض" really means "DashWoo's own default" and
+	 * Empty values are dropped, so "Default" really means "DashWoo's own default" and
 	 * never a hard-coded zero.
 	 *
 	 * @param array<string,mixed> $settings Widget settings.

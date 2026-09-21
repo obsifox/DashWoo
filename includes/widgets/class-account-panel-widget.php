@@ -1,11 +1,11 @@
 <?php
 /**
- * Elementor widget: پنل دوستونهٔ حساب کاربری.
+ * Elementor widget: the two-column account panel (menu card + content card).
  *
  * The WooCommerce account page is a single column: the menu and the section content
  * are stacked. This widget builds what a shop actually wants - a smaller menu card
  * next to a bigger content card - and makes the second card swap its content when the
- * customer clicks a menu item (including "سفارش‌ها → یک سفارش"), with a real link
+ * customer clicks a menu item (including "Orders → a single order"), with a real link
  * behind every item so the page still works without JavaScript.
  *
  * @package DashWoo
@@ -37,7 +37,7 @@ class Account_Panel_Widget extends Account_Widget_Base {
 	 * @return string
 	 */
 	public function get_title() {
-		return 'DashWoo — پنل دوستونهٔ حساب کاربری';
+		return __( 'DashWoo — Two-column account panel', 'dashwoo' );
 	}
 
 	/**
@@ -55,7 +55,7 @@ class Account_Panel_Widget extends Account_Widget_Base {
 	 * @return array<int,string>
 	 */
 	public function get_keywords() {
-		return array_merge( parent::get_keywords(), array( 'panel', 'پنل', 'دوستونه', 'داشبورد', 'dashboard' ) );
+		return array_merge( parent::get_keywords(), array( 'panel', __( 'Panel', 'dashwoo' ), __( 'Two columns', 'dashwoo' ), __( 'Dashboard', 'dashwoo' ), 'dashboard' ) );
 	}
 
 	/**
@@ -97,19 +97,19 @@ class Account_Panel_Widget extends Account_Widget_Base {
 	protected function register_controls() {
 		$this->start_controls_section(
 			'dw_panel_behaviour',
-			array( 'label' => 'رفتار پنل' )
+			array( 'label' => __( 'Panel behaviour', 'dashwoo' ) )
 		);
 
 		$this->add_control(
 			'dw_mode',
 			array(
-				'label'   => 'حالت باز شدن بخش‌ها',
+				'label'   => __( 'How sections open', 'dashwoo' ),
 				'type'    => 'select',
 				'default' => 'swap',
 				'options' => array(
-					'swap'    => 'جایگزینی محتوای کارت بزرگ',
-					'modal'   => 'پنجرهٔ شناور (برای جزئیات سفارش)',
-					'stacked' => 'هر دو کارت بدون جابه‌جایی خودکار',
+					'swap'    => __( 'Swap the content of the big card', 'dashwoo' ),
+					'modal'   => __( 'Floating window (for order details)', 'dashwoo' ),
+					'stacked' => __( 'Both cards, no automatic swapping', 'dashwoo' ),
 				),
 			)
 		);
@@ -117,7 +117,7 @@ class Account_Panel_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_ajax',
 			array(
-				'label'   => 'جابه‌جایی بدون بارگذاری صفحه',
+				'label'   => __( 'Swap without reloading the page', 'dashwoo' ),
 				'type'    => 'switcher',
 				'default' => 'yes',
 			)
@@ -126,13 +126,13 @@ class Account_Panel_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_source',
 			array(
-				'label'   => 'منبع محتوا',
+				'label'   => __( 'Content source', 'dashwoo' ),
 				'type'    => 'select',
 				'default' => 'auto',
 				'options' => array(
-					'auto'    => 'خودکار (ووکامرس، در نبودِ آن قالب DashWoo)',
-					'native'  => 'فقط ووکامرس',
-					'dashwoo' => 'فقط قالب‌های DashWoo',
+					'auto'    => __( 'Automatic (WooCommerce, and the DashWoo template when it has none)', 'dashwoo' ),
+					'native'  => __( 'WooCommerce only', 'dashwoo' ),
+					'dashwoo' => __( 'DashWoo templates only', 'dashwoo' ),
 				),
 			)
 		);
@@ -140,7 +140,7 @@ class Account_Panel_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_default_view',
 			array(
-				'label'   => 'بخش پیش‌فرض',
+				'label'   => __( 'Default section', 'dashwoo' ),
 				'type'    => 'select',
 				'default' => 'dashboard',
 				'options' => $this->view_options(),
@@ -150,7 +150,7 @@ class Account_Panel_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_per_page',
 			array(
-				'label'   => 'تعداد آیتم در هر بخش',
+				'label'   => __( 'Items per section', 'dashwoo' ),
 				'type'    => 'number',
 				'default' => (int) dashwoo_get_setting( 'account_panel.per_page', 10 ),
 				'min'     => 1,
@@ -162,18 +162,18 @@ class Account_Panel_Widget extends Account_Widget_Base {
 
 		$this->start_controls_section(
 			'dw_panel_layout',
-			array( 'label' => 'چیدمان دو کارت' )
+			array( 'label' => __( 'Layout of the two cards', 'dashwoo' ) )
 		);
 
 		$this->add_control(
 			'dw_aside',
 			array(
-				'label'   => 'جای کارت منو',
+				'label'   => __( 'Menu card position', 'dashwoo' ),
 				'type'    => 'select',
 				'default' => 'right',
 				'options' => array(
-					'right' => 'راست (مناسب RTL)',
-					'left'  => 'چپ',
+					'right' => __( 'Right (natural for RTL)', 'dashwoo' ),
+					'left'  => __( 'Left', 'dashwoo' ),
 				),
 			)
 		);
@@ -181,7 +181,7 @@ class Account_Panel_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_aside_width',
 			array(
-				'label'   => 'عرض کارت منو (px)',
+				'label'   => __( 'Menu card width (px)', 'dashwoo' ),
 				'type'    => 'number',
 				'default' => 300,
 				'min'     => 140,
@@ -192,7 +192,7 @@ class Account_Panel_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_gap',
 			array(
-				'label'   => 'فاصلهٔ دو کارت (px)',
+				'label'   => __( 'Gap between the cards (px)', 'dashwoo' ),
 				'type'    => 'number',
 				'default' => 24,
 				'min'     => 0,
@@ -203,12 +203,12 @@ class Account_Panel_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_mobile',
 			array(
-				'label'   => 'رفتار در موبایل',
+				'label'   => __( 'Mobile behaviour', 'dashwoo' ),
 				'type'    => 'select',
 				'default' => 'stack',
 				'options' => array(
-					'stack' => 'دو کارت روی هم',
-					'tabs'  => 'تب‌های افقی منو',
+					'stack' => __( 'Stack the two cards', 'dashwoo' ),
+					'tabs'  => __( 'Horizontal menu tabs', 'dashwoo' ),
 				),
 			)
 		);
@@ -216,7 +216,7 @@ class Account_Panel_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_sticky',
 			array(
-				'label'   => 'چسبیدن کارت منو در اسکرول',
+				'label'   => __( 'Sticky menu card while scrolling', 'dashwoo' ),
 				'type'    => 'switcher',
 				'default' => 'yes',
 			)
@@ -225,7 +225,7 @@ class Account_Panel_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_titles',
 			array(
-				'label'   => 'نمایش عنوان بخش بالای کارت محتوا',
+				'label'   => __( 'Show the section title above the content card', 'dashwoo' ),
 				'type'    => 'switcher',
 				'default' => 'yes',
 			)
@@ -234,9 +234,9 @@ class Account_Panel_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_back_label',
 			array(
-				'label'   => 'متن دکمهٔ بازگشت',
+				'label'   => __( 'Back button label', 'dashwoo' ),
 				'type'    => 'text',
-				'default' => (string) dashwoo_get_setting( 'account_panel.back_label', 'بازگشت به سفارش‌ها' ),
+				'default' => (string) dashwoo_get_setting( 'account_panel.back_label', __( 'Back to orders', 'dashwoo' ) ),
 			)
 		);
 
@@ -244,18 +244,18 @@ class Account_Panel_Widget extends Account_Widget_Base {
 
 		$this->start_controls_section(
 			'dw_panel_items',
-			array( 'label' => 'آیتم‌های کارت منو' )
+			array( 'label' => __( 'Menu card items', 'dashwoo' ) )
 		);
 
 		$this->register_items_control(
 			'dw_items',
-			'آیتم‌ها',
-			'خالی بگذارید تا همهٔ بخش‌های فعال حساب کاربری نمایش داده شود. با افزودن آیتم، ترتیب/عنوان/آیکون/نمایش هر آیتم را خودتان تعیین می‌کنید.'
+			__( 'Items', 'dashwoo' ),
+			__( 'Leave it empty to show every active account section. As soon as you add an item you decide its order, label, icon and visibility yourself.', 'dashwoo' )
 		);
 
 		$this->end_controls_section();
 
-		$this->register_visibility_controls( 'چه چیزی در پنل نمایش داده شود' );
+		$this->register_visibility_controls( __( 'What the panel shows', 'dashwoo' ) );
 		$this->register_style_controls();
 	}
 
@@ -272,7 +272,7 @@ class Account_Panel_Widget extends Account_Widget_Base {
 		}
 
 		if ( ! isset( $options['dashboard'] ) ) {
-			$options = array_merge( array( 'dashboard' => 'پیشخوان' ), $options );
+			$options = array_merge( array( 'dashboard' => __( 'Dashboard', 'dashwoo' ) ), $options );
 		}
 
 		return $options;

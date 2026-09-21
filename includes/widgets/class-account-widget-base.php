@@ -7,9 +7,9 @@
  * themselves stay thin: controls + a call to the renderer.
  *
  * Two things every DashWoo widget has, by design:
- *   - "چه چیزی نشان داده شود": a switch for the element itself, a switch per part of
+ *   - "What is shown": a switch for the element itself, a switch per part of
  *     it (icon, title, meta, badge, ...), role gating and device hiding;
- *   - "بدون استایل": one switch that removes DashWoo's design from that single
+ *   - "Unstyled": one switch that removes DashWoo's design from that single
  *     element, for a shop owner who styles it in Elementor.
  *
  * @package DashWoo
@@ -67,7 +67,7 @@ abstract class Account_Widget_Base extends \Elementor\Widget_Base {
 	 * @return array<int,string>
 	 */
 	public function get_keywords() {
-		return array( 'dashwoo', 'woocommerce', 'account', 'حساب', 'کاربری', 'ووکامرس' );
+		return array( 'dashwoo', 'woocommerce', 'account', __( 'Account', 'dashwoo' ), __( 'user', 'dashwoo' ), __( 'WooCommerce', 'dashwoo' ) );
 	}
 
 	/**
@@ -116,10 +116,12 @@ abstract class Account_Widget_Base extends \Elementor\Widget_Base {
 	 * @param string $label Section label.
 	 * @return void
 	 */
-	protected function register_visibility_controls( $label = 'چه چیزی نمایش داده شود' ) {
+	protected function register_visibility_controls( $label = '' ) {
 		if ( ! method_exists( $this, 'start_controls_section' ) ) {
 			return;
 		}
+
+		$label = '' !== $label ? $label : __( 'What to display', 'dashwoo' );
 
 		$this->start_controls_section(
 			'dw_visibility',
@@ -129,21 +131,21 @@ abstract class Account_Widget_Base extends \Elementor\Widget_Base {
 		$this->add_control(
 			'dw_visible',
 			array(
-				'label'   => 'نمایش این المان',
+				'label'   => __( 'Show this element', 'dashwoo' ),
 				'type'    => 'switcher',
 				'default' => 'yes',
 			)
 		);
 
 		$parts = array(
-			'icon'   => 'آیکون‌ها',
-			'title'  => 'عنوان',
-			'meta'   => 'اطلاعات کنار عنوان (تعداد، تاریخ…)',
-			'badge'  => 'شمارنده',
-			'desc'   => 'توضیح کوتاه',
-			'avatar' => 'آواتار',
-			'arrow'  => 'فلش‌ها',
-			'action' => 'دکمهٔ اقدام',
+			'icon'   => __( 'Icons', 'dashwoo' ),
+			'title'  => __( 'Title', 'dashwoo' ),
+			'meta'   => __( 'Meta next to the title (count, date…)', 'dashwoo' ),
+			'badge'  => __( 'Counter', 'dashwoo' ),
+			'desc'   => __( 'Short description', 'dashwoo' ),
+			'avatar' => __( 'Avatar', 'dashwoo' ),
+			'arrow'  => __( 'Arrows', 'dashwoo' ),
+			'action' => __( 'Action button', 'dashwoo' ),
 		);
 
 		foreach ( $this->visibility_spec() as $part => $default ) {
@@ -164,13 +166,13 @@ abstract class Account_Widget_Base extends \Elementor\Widget_Base {
 		$this->add_control(
 			'dw_roles',
 			array(
-				'label'   => 'برای چه کسانی',
+				'label'   => __( 'For whom', 'dashwoo' ),
 				'type'    => 'select',
 				'default' => 'all',
 				'options' => array(
-					'all'           => 'همهٔ بازدیدکنندگان',
-					'logged_in'     => 'فقط کاربران واردشده',
-					'administrator' => 'فقط مدیران سایت',
+					'all'           => __( 'Everybody', 'dashwoo' ),
+					'logged_in'     => __( 'Signed-in customers only', 'dashwoo' ),
+					'administrator' => __( 'Site administrators only', 'dashwoo' ),
 				),
 			)
 		);
@@ -178,26 +180,26 @@ abstract class Account_Widget_Base extends \Elementor\Widget_Base {
 		$this->add_control(
 			'dw_hide_on',
 			array(
-				'label'       => 'پنهان در',
+				'label'       => __( 'Hide on', 'dashwoo' ),
 				'type'        => 'select',
 				'default'     => '',
 				'options'     => array(
-					''        => 'همه‌جا نمایش بده',
-					'desktop' => 'فقط دسکتاپ (پنهان در تبلت و موبایل)',
-					'tablet'  => 'پنهان در تبلت',
-					'mobile'  => 'پنهان در موبایل',
+					''        => __( 'Show everywhere', 'dashwoo' ),
+					'desktop' => __( 'Desktop only (hidden on tablet and mobile)', 'dashwoo' ),
+					'tablet'  => __( 'Hidden on tablet', 'dashwoo' ),
+					'mobile'  => __( 'Hidden on mobile', 'dashwoo' ),
 				),
-				'description' => 'این گزینه کمی CSS لازم دارد؛ اگر «CSS خودکار DashWoo» را خاموش کنید، خودتان با کلاس‌های dw-hide-* می‌سازید.',
+				'description' => __( 'This option needs a little CSS; with “Automatic DashWoo CSS” switched off you write it yourself with the dw-hide-* classes.', 'dashwoo' ),
 			)
 		);
 
 		$this->add_control(
 			'dw_bare',
 			array(
-				'label'       => 'بدون استایل DashWoo (فقط همین المان)',
+				'label'       => __( 'No DashWoo styling (this element only)', 'dashwoo' ),
 				'type'        => 'switcher',
 				'default'     => '',
-				'description' => 'روشن کنید تا فقط این المان هیچ استایلی از DashWoo نگیرد و همهٔ طراحی را خودتان انجام دهید.',
+				'description' => __( 'Turn it on and this element alone takes no DashWoo styling: the whole design is yours.', 'dashwoo' ),
 			)
 		);
 
@@ -212,7 +214,7 @@ abstract class Account_Widget_Base extends \Elementor\Widget_Base {
 	 * @param string              $description Description.
 	 * @return void
 	 */
-	protected function register_items_control( $id = 'dw_items', $label = 'آیتم‌ها (ترتیب، عنوان، آیکون، نمایش)', $description = '' ) {
+	protected function register_items_control( $id = 'dw_items', $label = '', $description = '' ) {
 		if ( ! method_exists( $this, 'add_control' ) || ! class_exists( '\Elementor\Repeater' ) ) {
 			return;
 		}
@@ -222,7 +224,7 @@ abstract class Account_Widget_Base extends \Elementor\Widget_Base {
 		$repeater->add_control(
 			'id',
 			array(
-				'label'   => 'بخش',
+				'label'   => __( 'Section', 'dashwoo' ),
 				'type'    => 'select',
 				'options' => $this->item_options(),
 			)
@@ -231,25 +233,25 @@ abstract class Account_Widget_Base extends \Elementor\Widget_Base {
 		$repeater->add_control(
 			'label',
 			array(
-				'label'       => 'عنوان دلخواه',
+				'label'       => __( 'Custom label', 'dashwoo' ),
 				'type'        => 'text',
-				'description' => 'خالی بگذارید تا عنوان خود ووکامرس/تنظیمات استفاده شود.',
+				'description' => __( 'Leave it empty to use the label from WooCommerce or from the settings.', 'dashwoo' ),
 			)
 		);
 
 		$repeater->add_control(
 			'icon',
 			array(
-				'label'       => 'آیکون (نام آیکون)',
+				'label'       => __( 'Icon (icon name)', 'dashwoo' ),
 				'type'        => 'text',
-				'description' => 'مثلاً: receipt_long — خالی = آیکون پیش‌فرض بخش.',
+				'description' => __( 'For example: receipt_long — empty = the section\'s default icon.', 'dashwoo' ),
 			)
 		);
 
 		$repeater->add_control(
 			'visible',
 			array(
-				'label'   => 'نمایش این آیتم',
+				'label'   => __( 'Show this item', 'dashwoo' ),
 				'type'    => 'switcher',
 				'default' => 'yes',
 			)
@@ -258,19 +260,19 @@ abstract class Account_Widget_Base extends \Elementor\Widget_Base {
 		$repeater->add_control(
 			'badge',
 			array(
-				'label'       => 'شمارنده دستی',
+				'label'       => __( 'Manual counter', 'dashwoo' ),
 				'type'        => 'number',
 				'default'     => '',
-				'description' => 'خالی = شمارندهٔ واقعی (سفارش‌ها/دانلودها).',
+				'description' => __( 'Empty = the real counter (orders/downloads).', 'dashwoo' ),
 			)
 		);
 
 		$repeater->add_control(
 			'url',
 			array(
-				'label'       => 'لینک دلخواه',
+				'label'       => __( 'Custom link', 'dashwoo' ),
 				'type'        => 'url',
-				'description' => 'برای آیتم‌های خارج از حساب کاربری (مثلاً «پشتیبانی»).',
+				'description' => __( 'For items outside the account area (such as “Support”).', 'dashwoo' ),
 			)
 		);
 
@@ -292,7 +294,7 @@ abstract class Account_Widget_Base extends \Elementor\Widget_Base {
 	 * @return array<string,string>
 	 */
 	protected function item_options() {
-		$options = array( '' => '— انتخاب کنید —' );
+		$options = array( '' => __( '— Select —', 'dashwoo' ) );
 
 		foreach ( Endpoints::instance()->wire() as $id => $item ) {
 			$options[ (string) $id ] = (string) $item['label'];

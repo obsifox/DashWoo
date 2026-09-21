@@ -1,6 +1,6 @@
 <?php
 /**
- * Elementor widget: حساب کاربری DashWoo (dashboard hero + cards).
+ * Elementor widget: the DashWoo account dashboard (welcome card + shortcuts).
  *
  * @package DashWoo
  */
@@ -29,7 +29,7 @@ class Account_Dashboard_Widget extends Account_Widget_Base {
 	 * @return string
 	 */
 	public function get_title() {
-		return 'DashWoo — پیشخوان حساب';
+		return __( 'DashWoo — Account dashboard', 'dashwoo' );
 	}
 
 	/**
@@ -58,23 +58,23 @@ class Account_Dashboard_Widget extends Account_Widget_Base {
 	protected function register_controls() {
 		$this->start_controls_section(
 			'dw_account_dashboard',
-			array( 'label' => 'محتوای کارت خوش‌آمد' )
+			array( 'label' => __( 'Welcome card content', 'dashwoo' ) )
 		);
 
 		$this->add_control(
 			'dw_greeting',
 			array(
-				'label'        => 'متن خوش‌آمد',
+				'label'        => __( 'Welcome text', 'dashwoo' ),
 				'type'         => 'text',
-				'default'      => 'خوش آمدید',
-				'description'  => 'نام کاربر به‌صورت خودکار بعد از این متن می‌آید.',
+				'default'      => __( 'Welcome', 'dashwoo' ),
+				'description'  => __( 'The customer\'s name is appended automatically after this text.', 'dashwoo' ),
 			)
 		);
 
 		$this->add_control(
 			'dw_avatar',
 			array(
-				'label'   => 'نمایش آواتار',
+				'label'   => __( 'Show the avatar', 'dashwoo' ),
 				'type'    => 'switcher',
 				'default' => 'yes',
 			)
@@ -83,7 +83,7 @@ class Account_Dashboard_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_summary',
 			array(
-				'label'   => 'نمایش خلاصه (ایمیل و تعداد سفارش)',
+				'label'   => __( 'Show the summary (email and order count)', 'dashwoo' ),
 				'type'    => 'switcher',
 				'default' => 'yes',
 			)
@@ -92,7 +92,7 @@ class Account_Dashboard_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_cards',
 			array(
-				'label'   => 'نمایش کارت‌های میان‌بر',
+				'label'   => __( 'Show the shortcut cards', 'dashwoo' ),
 				'type'    => 'switcher',
 				'default' => 'yes',
 			)
@@ -101,14 +101,14 @@ class Account_Dashboard_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_columns',
 			array(
-				'label'     => 'تعداد ستون کارت‌ها',
+				'label'     => __( 'Number of card columns', 'dashwoo' ),
 				'type'      => 'select',
 				'default'   => (string) (int) dashwoo_get_setting( 'account_layout.cards_columns', 3 ),
 				'options'   => array(
-					'1' => 'یک ستون',
-					'2' => 'دو ستون',
-					'3' => 'سه ستون',
-					'4' => 'چهار ستون',
+					'1' => __( 'One column', 'dashwoo' ),
+					'2' => __( 'Two columns', 'dashwoo' ),
+					'3' => __( 'Three columns', 'dashwoo' ),
+					'4' => __( 'Four columns', 'dashwoo' ),
 				),
 				'condition' => array( 'dw_cards' => 'yes' ),
 			)
@@ -117,12 +117,12 @@ class Account_Dashboard_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_hero_align',
 			array(
-				'label'   => 'چیدمان کارت',
+				'label'   => __( 'Card layout', 'dashwoo' ),
 				'type'    => 'select',
 				'default' => 'row',
 				'options' => array(
-					'row'    => 'افقی (آواتار کنار متن)',
-					'column' => 'عمودی',
+					'row'    => __( 'Horizontal (avatar next to the text)', 'dashwoo' ),
+					'column' => __( 'Stacked', 'dashwoo' ),
 				),
 			)
 		);
@@ -163,7 +163,7 @@ class Account_Dashboard_Widget extends Account_Widget_Base {
 	 */
 	protected function view_args() {
 		return array(
-			'greeting_text' => isset( $this->get_settings_for_display()['dw_greeting'] ) ? (string) $this->get_settings_for_display()['dw_greeting'] : 'خوش آمدید',
+			'greeting_text' => isset( $this->get_settings_for_display()['dw_greeting'] ) ? (string) $this->get_settings_for_display()['dw_greeting'] : __( 'Welcome', 'dashwoo' ),
 			'avatar'        => 'yes' === $this->setting( 'dw_avatar', 'yes' ),
 			'greeting'      => 'yes' === $this->setting( 'dw_summary', 'yes' ),
 			'cards'         => 'yes' === $this->setting( 'dw_cards', 'yes' ),

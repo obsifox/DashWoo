@@ -212,13 +212,13 @@ class Profile {
 	 */
 	public function summary() {
 		if ( ! $this->logged_in() ) {
-			return 'مهمان — برای دیدن سفارش‌ها و دانلودها وارد شوید.';
+			return __( 'Guest — sign in to see your orders and downloads.', 'dashwoo' );
 		}
 
 		$orders = $this->order_count();
 
 		return sprintf(
-			'%s · %d سفارش',
+			__( '%s · Orders: %d', 'dashwoo' ),
 			$this->email() ? $this->email() : $this->name(),
 			$orders
 		);

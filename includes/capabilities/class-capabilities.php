@@ -82,82 +82,82 @@ class Capabilities {
 		$checks = array();
 
 		$checks['gd'] = array(
-			'label'     => 'کتابخانهٔ تصویر GD (php-gd)',
+			'label'     => __( 'GD image library (php-gd)', 'dashwoo' ),
 			'available' => extension_loaded( 'gd' ) && function_exists( 'imagecreatetruecolor' ),
 			'detail'    => extension_loaded( 'gd' )
 				? ( function_exists( 'imagecreatetruecolor' )
-					? 'وارد شده و قابل استفاده'
-					: 'نصب است اما توابع تصویری‌اش با disable_functions بسته شده' )
-				: 'افزونهٔ php-gd روی این هاست نصب نیست',
-			'hint'      => 'اختیاری. DashWoo برای تبدیل خودکار تصاویر (WebP/AVIF) از آن استفاده می‌کند؛ بقیهٔ کارها بدون آن هم انجام می‌شود.',
+					? __( 'loaded and usable', 'dashwoo' )
+					: __( 'installed, but its image functions are blocked by disable_functions', 'dashwoo' ) )
+				: __( 'the php-gd extension is not installed on this host', 'dashwoo' ),
+			'hint'      => __( 'Optional. DashWoo uses it to convert images automatically (WebP/AVIF); everything else works without it.', 'dashwoo' ),
 			'required'  => false,
 		);
 
 		$checks['imagick'] = array(
-			'label'     => 'Imagick (php-imagick)',
+			'label'     => __('Imagick (php-imagick)', 'dashwoo'),
 			'available' => extension_loaded( 'imagick' ),
-			'detail'    => extension_loaded( 'imagick' ) ? 'وارد شده' : 'روی این هاست نصب نیست',
-			'hint'      => 'اختیاری. جایگزین GD برای پردازش تصویر؛ اگر یکی از این دو باشد کافی است.',
+			'detail'    => extension_loaded( 'imagick' ) ? __( 'loaded', 'dashwoo' ) : __( 'not installed on this host', 'dashwoo' ),
+			'hint'      => __( 'Optional. The GD alternative for image processing; either one of the two is enough.', 'dashwoo' ),
 			'required'  => false,
 		);
 
 		$checks['zip'] = array(
-			'label'     => 'ZipArchive (php-zip)',
+			'label'     => __('ZipArchive (php-zip)', 'dashwoo'),
 			'available' => class_exists( 'ZipArchive' ) && function_exists( 'gzopen' ),
-			'detail'    => class_exists( 'ZipArchive' ) ? 'آماده' : 'افزونهٔ php-zip روی این هاست نصب نیست',
-			'hint'      => 'اختیاری. فقط برای بستهٔ پشتیبان فشرده لازم است؛ برون‌ریزی JSON همیشه کار می‌کند.',
+			'detail'    => class_exists( 'ZipArchive' ) ? __( 'Ready', 'dashwoo' ) : __( 'the php-zip extension is not installed on this host', 'dashwoo' ),
+			'hint'      => __( 'Optional. Only needed for the compressed backup bundle; the JSON export always works.', 'dashwoo' ),
 			'required'  => false,
 		);
 
 		$checks['multisite'] = array(
-			'label'     => 'شبکهٔ چندسایتی وردپرس',
+			'label'     => __( 'WordPress multisite', 'dashwoo' ),
 			'available' => is_multisite(),
-			'detail'    => is_multisite() ? 'این سایت روی شبکه اجرا می‌شود' : 'این نصب تک‌سایتی است',
-			'hint'      => 'اختیاری. ویژگی‌های شبکه‌ای DashWoo فقط وقتی این نصب چندسایتی باشد فعال می‌شوند.',
+			'detail'    => is_multisite() ? __( 'this site runs in a network', 'dashwoo' ) : __( 'this is a single-site install', 'dashwoo' ),
+			'hint'      => __( 'Optional. DashWoo\'s network features are only available on a multisite install.', 'dashwoo' ),
 			'required'  => false,
 		);
 
 		$checks['dom'] = array(
-			'label'     => 'DOM (php-xml)',
+			'label'     => __('DOM (php-xml)', 'dashwoo'),
 			'available' => class_exists( 'DOMDocument' ),
-			'detail'    => class_exists( 'DOMDocument' ) ? 'آماده' : 'افزونهٔ php-xml روی این هاست نصب نیست',
-			'hint'      => 'برای پاکسازی دقیق SVG استفاده می‌شود؛ در نبودش DashWoo به پاکسازی WordPress محدود می‌ماند.',
+			'detail'    => class_exists( 'DOMDocument' ) ? __( 'Ready', 'dashwoo' ) : __( 'the php-xml extension is not installed on this host', 'dashwoo' ),
+			'hint'      => __( 'Used for strict SVG sanitising; without it DashWoo falls back to WordPress\' own sanitiser.', 'dashwoo' ),
 			'required'  => false,
 		);
 
 		$checks['mbstring'] = array(
 			'label'     => 'mbstring',
 			'available' => function_exists( 'mb_strlen' ),
-			'detail'    => function_exists( 'mb_strlen' ) ? 'آماده' : 'نصب نیست',
-			'hint'      => 'برای برش صحیح متن فارسی در پیشخوان استفاده می‌شود.',
+			'detail'    => function_exists( 'mb_strlen' ) ? __( 'Ready', 'dashwoo' ) : __( 'not installed', 'dashwoo' ),
+			'hint'      => __( 'Used to cut multibyte text correctly in the admin.', 'dashwoo' ),
 			'required'  => false,
 		);
 
 		$checks['webp'] = array(
-			'label'     => 'پشتیبانی WebP',
+			'label'     => __( 'WebP support', 'dashwoo' ),
 			'available' => $this->gd_supports( 'imagewebp' ),
-			'detail'    => $this->gd_supports( 'imagewebp' ) ? 'GD از WebP پشتیبانی می‌کند' : 'در GD این هاست فعال نیست',
-			'hint'      => 'اختیاری. کیفیت/حجم تصاویر فشرده را بهتر می‌کند.',
+			'detail'    => $this->gd_supports( 'imagewebp' ) ? __( 'GD supports WebP', 'dashwoo' ) : __( 'not enabled in this host\'s GD', 'dashwoo' ),
+			'hint'      => __( 'Optional. Improves the quality and the file size of compressed images.', 'dashwoo' ),
 			'required'  => false,
 		);
 
 		$checks['avif'] = array(
-			'label'     => 'پشتیبانی AVIF',
+			'label'     => __( 'AVIF support', 'dashwoo' ),
 			'available' => $this->gd_supports( 'imageavif' ),
-			'detail'    => $this->gd_supports( 'imageavif' ) ? 'GD از AVIF پشتیبانی می‌کند' : 'در GD این هاست فعال نیست',
-			'hint'      => 'اختیاری و کاملاً جدید؛ اگر نبود هیچ چیز از کار نمی‌افتد.',
+			'detail'    => $this->gd_supports( 'imageavif' ) ? __( 'GD supports AVIF', 'dashwoo' ) : __( 'not enabled in this host\'s GD', 'dashwoo' ),
+			'hint'      => __( 'Optional and very new; nothing breaks without it.', 'dashwoo' ),
 			'required'  => false,
 		);
 
 		$basedir = \DashWoo\Assets\Storage::instance()->basedir();
 
 		$checks['uploads_writable'] = array(
-			'label'     => 'قابل‌نوشتن بودن پوشهٔ دارایی‌ها',
+			'label'     => __( 'Asset folder is writable', 'dashwoo' ),
 			'available' => wp_is_writable( $basedir ),
 			'detail'    => wp_is_writable( $basedir )
-				? 'uploads/dashwoo قابل‌نوشتن است'
-				: 'پوشهٔ uploads/dashwoo قابل‌نوشتن نیست',
-			'hint'      => 'برای ذخیرهٔ فونت‌ها، آیکون‌ها و تصاویر لازم است.',
+				? __( 'uploads/dashwoo is writable', 'dashwoo' )
+				: __( 'the uploads/dashwoo folder is not writable', 'dashwoo' ),
+			'hint'      => __( 'Required to store fonts, icons and images.', 'dashwoo' ),
 			'required'  => true,
 		);
 
@@ -183,32 +183,32 @@ class Capabilities {
 	public function features() {
 		$features = array(
 			'image_processing' => array(
-				'label'    => 'پردازش و بهینه‌سازی تصاویر',
+				'label'    => __( 'Image processing and optimisation', 'dashwoo' ),
 				'requires' => array( 'gd', 'imagick' ),
-				'effect'   => 'تبدیل خودکار تصاویر بارگذاری‌شده به WebP/AVIF و ساخت نسخهٔ کم‌حجم',
-				'when_off' => 'تصاویر بدون تغییر ذخیره می‌شوند (همهٔ فرمت‌های اصلی پشتیبانی می‌شوند)',
-				'hint'     => 'برای فعال شدن، از هاست بخواهید افزونهٔ php-gd یا php-imagick را نصب کند.',
+				'effect'   => __( 'Convert uploaded images to WebP/AVIF automatically and build a lighter version', 'dashwoo' ),
+				'when_off' => __( 'Images are stored untouched (every common format is supported)', 'dashwoo' ),
+				'hint'     => __( 'Ask your host to install the php-gd or php-imagick extension to enable this.', 'dashwoo' ),
 			),
 			'archives'         => array(
-				'label'    => 'بستهٔ فشرده (zip)',
+				'label'    => __( 'Compressed bundle (zip)', 'dashwoo' ),
 				'requires' => array( 'zip' ),
-				'effect'   => 'برون‌ریزی بستهٔ پشتیبان شامل تنظیمات + دارایی‌ها در یک فایل zip',
-				'when_off' => 'برون‌ریزی به‌صورت فایل JSON انجام می‌شود (کار می‌کند، فقط دارایی‌ها همراه آن نیستند)',
-				'hint'     => 'برای فعال شدن، از هاست بخواهید افزونهٔ php-zip را نصب کند.',
+				'effect'   => __( 'Export a backup bundle with settings + assets in a single zip file', 'dashwoo' ),
+				'when_off' => __( 'The export runs as a JSON file (it works, the assets are simply not included)', 'dashwoo' ),
+				'hint'     => __( 'Ask your host to install the php-zip extension to enable this.', 'dashwoo' ),
 			),
 			'multisite'        => array(
-				'label'    => 'پیش‌فرض‌های شبکه',
+				'label'    => __( 'Network defaults', 'dashwoo' ),
 				'requires' => array( 'multisite' ),
-				'effect'   => 'اعمال توکن‌ها و تنظیمات پیش‌فرض روی همهٔ سایت‌های شبکه',
-				'when_off' => 'تنظیمات فقط روی همین سایت اعمال می‌شود',
-				'hint'     => 'فقط روی نصب‌های چندسایتی معنا دارد.',
+				'effect'   => __( 'Apply the tokens and the default settings to every site in the network', 'dashwoo' ),
+				'when_off' => __( 'Settings apply to this site only', 'dashwoo' ),
+				'hint'     => __( 'Only meaningful on multisite installs.', 'dashwoo' ),
 			),
 			'svg_sanitizer'    => array(
-				'label'    => 'پاکسازی دقیق SVG',
+				'label'    => __( 'Strict SVG sanitising', 'dashwoo' ),
 				'requires' => array( 'dom' ),
-				'effect'   => 'بازرسی ساختاری SVG با DOMDocument هنگام بارگذاری',
-				'when_off' => 'پاکسازی با فهرست سفید WordPress (kses) انجام می‌شود',
-				'hint'     => 'برای فعال شدن، افزونهٔ php-xml لازم است.',
+				'effect'   => __( 'Structural SVG inspection with DOMDocument on upload', 'dashwoo' ),
+				'when_off' => __( 'Sanitising falls back to WordPress\' allow-list (kses)', 'dashwoo' ),
+				'hint'     => __( 'The php-xml extension is required to enable this.', 'dashwoo' ),
 			),
 		);
 
@@ -276,7 +276,7 @@ class Capabilities {
 		}
 
 		if ( $changed ) {
-			dashwoo_log( 'info', 'Capabilities re-checked: features changed automatically.', array( 'changed' => $changed ) );
+			dashwoo_log( 'info', __('Capabilities re-checked: features changed automatically.', 'dashwoo'), array( 'changed' => $changed ) );
 
 			/**
 			 * Fires when a feature was switched automatically.
@@ -502,28 +502,28 @@ class Capabilities {
 	}
 
 	/**
-	 * "۳ دقیقه پیش" style label without pulling in the whole WP l10n stack.
+	 * "3 minutes ago" style label without pulling in the whole WP l10n stack.
 	 *
 	 * @param int $timestamp Timestamp.
 	 * @return string
 	 */
 	private function human_time( $timestamp ) {
 		if ( $timestamp <= 0 ) {
-			return 'هنوز بررسی نشده';
+			return __( 'not checked yet', 'dashwoo' );
 		}
 
 		$diff = max( 0, time() - $timestamp );
 
 		if ( $diff < 60 ) {
-			return 'همین حالا';
+			return __( 'just now', 'dashwoo' );
 		}
 		if ( $diff < 3600 ) {
-			return sprintf( '%d دقیقه پیش', (int) floor( $diff / 60 ) );
+			return sprintf( __( '%d minutes ago', 'dashwoo' ), (int) floor( $diff / 60 ) );
 		}
 		if ( $diff < 86400 ) {
-			return sprintf( '%d ساعت پیش', (int) floor( $diff / 3600 ) );
+			return sprintf( __( '%d hours ago', 'dashwoo' ), (int) floor( $diff / 3600 ) );
 		}
 
-		return sprintf( '%d روز پیش', (int) floor( $diff / 86400 ) );
+		return sprintf( __( '%d days ago', 'dashwoo' ), (int) floor( $diff / 86400 ) );
 	}
 }

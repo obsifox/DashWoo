@@ -235,12 +235,12 @@ final class Google_Fonts_Provider {
 	 */
 	public function install( $family, $weights = array( '400' ), $subsets = array() ) {
 		if ( ! dashwoo_is_on( 'fonts_google.allow_download' ) ) {
-			return new \WP_Error( 'dashwoo_download_disabled', 'Downloading Google Fonts is disabled in the settings.' );
+			return new \WP_Error( 'dashwoo_download_disabled', __('Downloading Google Fonts is disabled in the settings.', 'dashwoo') );
 		}
 
 		$entry = $this->find( $family );
 		if ( ! $entry ) {
-			return new \WP_Error( 'dashwoo_font_unknown', sprintf( 'Font "%s" is not in the DashWoo catalogue.', (string) $family ) );
+			return new \WP_Error( 'dashwoo_font_unknown', sprintf( __('Font "%s" is not in the DashWoo catalogue.', 'dashwoo'), (string) $family ) );
 		}
 
 		$requested = array_values( array_intersect( (array) $weights, (array) $entry['weights'] ) );
@@ -259,7 +259,7 @@ final class Google_Fonts_Provider {
 			return $css;
 		}
 		if ( 200 !== (int) $css['code'] ) {
-			return new \WP_Error( 'dashwoo_css_status', sprintf( 'CSS2 responded with %d.', (int) $css['code'] ) );
+			return new \WP_Error( 'dashwoo_css_status', sprintf( __('CSS2 responded with %d.', 'dashwoo'), (int) $css['code'] ) );
 		}
 
 		$faces = $this->parse_css( $css['body'] );
@@ -330,7 +330,7 @@ final class Google_Fonts_Provider {
 		}
 
 		if ( ! $files ) {
-			return new \WP_Error( 'dashwoo_download_failed', 'No font file could be downloaded.' );
+			return new \WP_Error( 'dashwoo_download_failed', __('No font file could be downloaded.', 'dashwoo') );
 		}
 
 		$all_faces = array_values( $known );
@@ -412,7 +412,7 @@ final class Google_Fonts_Provider {
 		$row = Registry::instance()->find_by_slug( 'font', $slug );
 
 		if ( ! $row ) {
-			return new \WP_Error( 'dashwoo_font_missing', sprintf( 'Font "%s" is not installed.', (string) $slug ) );
+			return new \WP_Error( 'dashwoo_font_missing', sprintf( __('Font "%s" is not installed.', 'dashwoo'), (string) $slug ) );
 		}
 
 		// Local integrity first: missing/renamed files force a re-install.

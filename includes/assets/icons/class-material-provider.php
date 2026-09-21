@@ -138,12 +138,12 @@ final class Material_Provider {
 	 */
 	public function install( $style, $force = false ) {
 		if ( ! dashwoo_is_on( 'general.enabled' ) ) {
-			return new \WP_Error( 'dashwoo_disabled', 'DashWoo is disabled.' );
+			return new \WP_Error( 'dashwoo_disabled', __('DashWoo is disabled.', 'dashwoo') );
 		}
 
 		$styles = $this->styles();
 		if ( ! isset( $styles[ $style ] ) ) {
-			return new \WP_Error( 'dashwoo_icon_style', sprintf( 'Unknown icon style "%s".', (string) $style ) );
+			return new \WP_Error( 'dashwoo_icon_style', sprintf( __('Unknown icon style "%s".', 'dashwoo'), (string) $style ) );
 		}
 
 		$registry = Registry::instance();
@@ -165,16 +165,16 @@ final class Material_Provider {
 			return $css;
 		}
 		if ( 200 !== (int) $css['code'] ) {
-			return new \WP_Error( 'dashwoo_icon_css_status', sprintf( 'CSS2 responded with %d.', (int) $css['code'] ) );
+			return new \WP_Error( 'dashwoo_icon_css_status', sprintf( __('CSS2 responded with %d.', 'dashwoo'), (int) $css['code'] ) );
 		}
 
 		$url = $this->extract_woff2( $css['body'] );
 
 		if ( '' === $url ) {
-			return new \WP_Error( 'dashwoo_icon_css_parse', 'No woff2 source found in the icon CSS.' );
+			return new \WP_Error( 'dashwoo_icon_css_parse', __('No woff2 source found in the icon CSS.', 'dashwoo') );
 		}
 		if ( ! Http::is_allowed_url( $url ) ) {
-			return new \WP_Error( 'dashwoo_icon_host', sprintf( 'Blocked non allow-listed icon host: %s', $url ) );
+			return new \WP_Error( 'dashwoo_icon_host', sprintf( __('Blocked non allow-listed icon host: %s', 'dashwoo'), $url ) );
 		}
 
 		$storage = Storage::instance();

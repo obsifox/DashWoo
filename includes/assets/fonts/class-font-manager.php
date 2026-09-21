@@ -126,7 +126,7 @@ final class Font_Manager {
 		$slug   = isset( $args['slug'] ) ? $args['slug'] : $family;
 
 		if ( '' === $family ) {
-			return new \WP_Error( 'dashwoo_font_family_required', 'A font family name is required.' );
+			return new \WP_Error( 'dashwoo_font_family_required', __('A font family name is required.', 'dashwoo') );
 		}
 
 		$registry = Registry::instance();
@@ -134,10 +134,10 @@ final class Font_Manager {
 		$slug     = $registry->slug( $slug );
 
 		if ( '' === $slug || '' === $storage->clean_type( 'fonts' ) ) {
-			return new \WP_Error( 'dashwoo_font_slug', 'Invalid font slug.' );
+			return new \WP_Error( 'dashwoo_font_slug', __('Invalid font slug.', 'dashwoo') );
 		}
 		if ( ! $files ) {
-			return new \WP_Error( 'dashwoo_font_files', 'No font files supplied.' );
+			return new \WP_Error( 'dashwoo_font_files', __('No font files supplied.', 'dashwoo') );
 		}
 
 		$faces = array();
@@ -165,7 +165,7 @@ final class Font_Manager {
 		}
 
 		if ( ! $faces ) {
-			return new \WP_Error( 'dashwoo_font_files_missing', 'The uploaded font files are not readable.' );
+			return new \WP_Error( 'dashwoo_font_files_missing', __('The uploaded font files are not readable.', 'dashwoo') );
 		}
 
 		$meta = array(
@@ -294,7 +294,7 @@ final class Font_Manager {
 		$row      = Registry::instance()->find_by_slug( 'font', $slug );
 
 		if ( ! $row ) {
-			return new \WP_Error( 'dashwoo_font_missing', 'Font not installed.' );
+			return new \WP_Error( 'dashwoo_font_missing', __('Font not installed.', 'dashwoo') );
 		}
 
 		$check = $provider->check_update( $slug );

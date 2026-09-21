@@ -110,7 +110,7 @@ class Elementor_Adapter extends Abstract_Adapter {
 		$this->check(
 			'elementor_active',
 			$active ? self::STATUS_OK : self::STATUS_WARNING,
-			$active ? 'Elementor is active' : 'Elementor is not active - visual controls disabled'
+			$active ? __('Elementor is active', 'dashwoo') : __('Elementor is not active - visual controls disabled', 'dashwoo')
 		);
 		$this->capability( 'elementor_active', $active );
 
@@ -121,8 +121,8 @@ class Elementor_Adapter extends Abstract_Adapter {
 			'elementor_version',
 			! $active ? self::STATUS_NA : ( $meets ? self::STATUS_OK : self::STATUS_WARNING ),
 			$active
-				? sprintf( 'Elementor %s (minimum %s)', $version, self::minimum_version() )
-				: 'Elementor version not detected',
+				? sprintf( __('Elementor %s (minimum %s)', 'dashwoo'), $version, self::minimum_version() )
+				: __('Elementor version not detected', 'dashwoo'),
 			array(
 				'current'  => $version,
 				'required' => self::minimum_version(),
@@ -134,7 +134,7 @@ class Elementor_Adapter extends Abstract_Adapter {
 		$this->check(
 			'elementor_pro',
 			$pro ? self::STATUS_OK : self::STATUS_NA,
-			$pro ? sprintf( 'Elementor Pro %s detected', $pro ) : 'Elementor Pro not installed (optional)'
+			$pro ? sprintf( __('Elementor Pro %s detected', 'dashwoo'), $pro ) : __('Elementor Pro not installed (optional)', 'dashwoo')
 		);
 		$this->capability( 'elementor_pro', '' !== $pro );
 
@@ -142,7 +142,7 @@ class Elementor_Adapter extends Abstract_Adapter {
 		$this->check(
 			'global_kit',
 			$kit ? self::STATUS_OK : self::STATUS_NA,
-			$kit ? 'Global Kit API reachable (optional token sync)' : 'Kit API unavailable'
+			$kit ? __('Global Kit API reachable (optional token sync)', 'dashwoo') : __('Kit API unavailable', 'dashwoo')
 		);
 		$this->capability( 'elementor_kit', $kit );
 
@@ -150,7 +150,7 @@ class Elementor_Adapter extends Abstract_Adapter {
 		$this->check(
 			'css_variables',
 			$css_vars ? self::STATUS_OK : self::STATUS_NA,
-			$css_vars ? 'CSS custom properties supported by the frontend' : 'CSS custom properties unavailable'
+			$css_vars ? __('CSS custom properties supported by the frontend', 'dashwoo') : __('CSS custom properties unavailable', 'dashwoo')
 		);
 		$this->capability( 'css_variables', $css_vars );
 
@@ -158,7 +158,7 @@ class Elementor_Adapter extends Abstract_Adapter {
 		$this->check(
 			'experiments',
 			$experiments ? self::STATUS_OK : self::STATUS_NA,
-			$experiments ? 'Experiments API available' : 'Experiments API unavailable'
+			$experiments ? __('Experiments API available', 'dashwoo') : __('Experiments API unavailable', 'dashwoo')
 		);
 		$this->capability( 'experiments', $experiments );
 	}

@@ -4,9 +4,11 @@ DashWoo turns every visual decision of a WooCommerce shop into locally served
 assets and design tokens. Fonts, icons, images, SVG and custom code are managed
 inside WordPress — **with zero dependency on any external CDN**.
 
-> **فارسی:** DashWoo کنترل کامل ظاهر فروشگاه ووکامرس را در پیشخوان وردپرس می‌دهد؛
-> فونت‌ها، آیکون‌ها، تصاویر و توکن‌های طراحی همه **به‌صورت محلی** ذخیره و سرو می‌شوند
-> و پس از نصب، هیچ درخواستی به گوگل یا هیچ CDN دیگری زده نمی‌شود.
+> **English source, Persian ready.** Every string lives in the code in English and
+> goes through the WordPress gettext layer, so DashWoo follows the site language.
+> A complete Persian (`fa_IR`) catalogue — PHP and JavaScript — ships with the
+> plugin, and the platform is right-to-left aware. A Persian shop that only wants
+> DashWoo in Persian can force the language in the settings.
 
 ## Features
 
@@ -22,44 +24,50 @@ inside WordPress — **with zero dependency on any external CDN**.
   control, and optional Global Kit sync with backup + revert.
 - **Host capabilities → automatic feature gating** — DashWoo probes what the host
   actually has (`gd`, `imagick`, `zip`, `multisite`, `dom`, `webp`, `avif`, …). A
-  feature whose requirement is missing switches itself off with a Persian
+  feature whose requirement is missing switches itself off with a plain-language
   explanation, and comes back on its own the moment the host gains it. Nothing has to
   be configured twice, and no missing extension ever shows up as a broken store.
-  See the **قابلیت‌ها** tab in the System group.
+  See the **Capabilities** tab in the System group.
 - **No WooCommerce "incompatible plugin" notice** — DashWoo declares per-feature
   compatibility on `before_woocommerce_init`, so WooCommerce never lists it among the
   plugins that are incompatible with High-Performance Order Storage (or any other
   feature). The compatibility screen shows the declaration result.
-- **Account kit (حساب کاربری)** — the My Account area is rebuilt with DashWoo
-  markup, tokens and RTL: sidebar/top/cards layouts, a dashboard hero, orders,
-  downloads, addresses, payment methods, account details, forms and logout. Ten
-  Elementor widgets in a dedicated *DashWoo — حساب کاربری* category plus the
-  `[dashwoo_account]` shortcode, and a native bridge that renames, reorders and
-  hides WooCommerce's own endpoints (third-party endpoints included) in place.
-- **Settings Center** — 36 sections / 184 fields in 7 groups, schema-driven,
+- **Account kit** — the My Account area is rebuilt with DashWoo markup, tokens and
+  RTL: sidebar/top/cards layouts, a dashboard hero, orders, downloads, addresses,
+  payment methods, account details, forms and logout. Twelve Elementor widgets in a
+  dedicated *DashWoo — My Account* category plus the `[dashwoo_account]` shortcode,
+  and a native bridge that renames, reorders and hides WooCommerce's own endpoints
+  (third-party endpoints included) in place.
+- **Settings Center** — 38 sections / 220 fields in 7 groups, schema-driven,
   exportable and importable as JSON.
 - **Version compatibility layer** — adapters per component, activation check,
   warning screen and automatic Compatibility Mode instead of a hard dependency.
   Optional host capabilities (no `php-gd`, no `php-zip`) are reported as neutral
-  *informational* rows with a Persian explanation, and never turn the report yellow.
-- **REST API** `dashwoo/v1` — 33 routes for settings, fonts, icons, assets, tokens,
-  plus `/system/diagnostics` with the raw server facts (extensions,
-  `disable_functions`, ini limits) for support tickets.
-- **Full Persian / RTL** — the admin is Persian-first and `dir="rtl"` aware.
+  *informational* rows with an explanation, and never turn the report yellow.
+- **REST API** `dashwoo/v1` — routes for settings, fonts, icons, assets, tokens and
+  the account panel, plus `/system/diagnostics` with the raw server facts
+  (extensions, `disable_functions`, ini limits) for support tickets.
+- **i18n** — English source strings, a complete Persian catalogue (916 strings in
+  `languages/dashwoo-fa_IR.po` / `.mo`, plus the script catalogue
+  `languages/dashwoo-fa_IR-<hash>.json`), `Language` layer with a site / English /
+  Persian choice, and RTL output.
 
-## The My Account kit (حساب کاربری)
+## The My Account kit
 
 The account area is the first stop of the "no more default WooCommerce look"
 roadmap, and it ships complete:
 
 | Widget (Elementor) | What it renders |
 | --- | --- |
+| `dashwoo_account_panel` | The two-pane panel: menu card + content card, swapped over REST |
 | `dashwoo_account_dashboard` | Hero: avatar/initials, name, counters and the shortcut cards |
 | `dashwoo_account_nav` | The account menu — sidebar, top tabs or shortcut cards |
 | `dashwoo_account_profile` | Profile card with editable fields |
 | `dashwoo_account_orders` / `downloads` / `addresses` / `payment` / `details` | One endpoint each, with WooCommerce's own handlers kept reachable |
+| `dashwoo_account_order` | A single order, exactly as the panel's content card draws it |
 | `dashwoo_account_forms` | Profile, password, address and login forms |
 | `dashwoo_account_logout` | Logout button |
+| `dashwoo_icon` | The DashWoo icon widget (variable font axes, brand tab) |
 
 `[dashwoo_account]` prints the whole area in one shortcode, for classic pages and
 block themes.
@@ -74,20 +82,24 @@ block themes.
   downloads, a sample customer) so the design is always visible; a real customer's own
   data is never replaced.
 * Elementor Pro users can also build the area as a Theme Builder template for the
-  «حساب کاربری — DashWoo» location.
+  "My Account — DashWoo" location.
 * Widgets are registered for modern Elementor (3.5+) and legacy installations alike.
 
-**Settings — «حساب کاربری» group (5 sections)**
+**Settings — the "My Account" group**
 
-- **چیدمان و بخش‌ها** — layout (`sidebar` / `top` / `cards` / `cards_with_menu`),
+- **Layout and sections** — layout (`sidebar` / `top` / `cards` / `cards_with_menu`),
   columns, icons, counters, sticky navigation, breadcrumb.
-- **بخش‌های حساب کاربری** — label, icon, order and visibility for every endpoint
+- **Account sections** — label, icon, order and visibility for every endpoint
   WooCommerce reports, including tabs added by other plugins.
-- **ظاهر و رنگ‌ها** — accent colours, radius, avatar size, navigation width, stage
-  background.
-- **فرم‌ها و رفتار** — profile fields, inline validation, post-login redirect, guest
-  message, endpoint titles.
-- **منبع قالب‌ها** — `default` (WooCommerce keeps the page), `hybrid`, or
+- **Templates** — one shape per section (list, table, timeline, cards, plain), with
+  theme overrides (`dashwoo/account/{section}-{variation}.php`).
+- **Two-column panel** — menu card next to the content card, swap / modal / stacked,
+  AJAX, URL sync, mobile behaviour.
+- **Look and colors** — accent colours, radius, avatar size, navigation width, stage
+  background, the automatic-CSS master switch and the bare-markup mode.
+- **Forms and behaviour** — profile fields, inline validation, post-login redirect,
+  guest message, endpoint titles.
+- **Template source** — `default` (WooCommerce keeps the page), `hybrid`, or
   `elementor` (DashWoo removes the native navigation/content and hands the page to
   the builder). If the page is not built with Elementor yet — or the platform runs
   in Compatibility Mode — the native page stays intact, so the account area is never
@@ -96,9 +108,30 @@ block themes.
 Styles ship as one local CSS pack that is only enqueued on the account page, inside
 the builder preview, or on a page that uses `[dashwoo_account]`.
 
+## Languages
+
+| Path | What it is |
+| --- | --- |
+| `languages/dashwoo.pot` | The template with every English source string |
+| `languages/dashwoo-fa_IR.po` | The Persian translation (editable in Poedit) |
+| `languages/dashwoo-fa_IR.mo` | The compiled catalogue WordPress reads |
+| `languages/dashwoo-fa_IR-<hash>.json` | The catalogue `wp.i18n` hands to the admin script |
+
+Refresh them after changing a string:
+
+```bash
+python3 tools/i18n/build-catalogue.py            # sync POT/PO, compile MO + JSON
+python3 tools/i18n/build-catalogue.py --strict   # …and fail if a string is untranslated
+```
+
+The `Platform language` setting (`DashWoo → System → General`) decides what DashWoo
+speaks: **Follow the site language** (default), **English** or **Persian**. The
+filters are scoped to the `dashwoo` text domain, so WooCommerce and the active theme
+keep following the site language.
+
 ## Installation
 
-1. Download `dashwoo-1.4.0.zip` from the [Releases](../../releases) page.
+1. Download `dashwoo-1.5.0.zip` from the [Releases](../../releases) page.
 2. WordPress → **Plugins → Add New → Upload Plugin** → choose the zip → **Install**.
 3. Activate, then open **DashWoo** in the admin menu.
 
@@ -122,7 +155,8 @@ deletes your fonts, icons or images. Uninstalling keeps them too, unless you tic
 Every build ships `BUILD-MANIFEST.txt` with the sha256 of each file, and the
 release is verified by `bin/verify-build.php` (archive layout, hashes, plugin
 header, PHP syntax of every shipped file, full autoloader class-map resolution
-and a CDN scan) before publishing.
+and a CDN scan) before publishing. `php bin/lint.php` and `php tests/run.php`
+run the full local gate.
 
 ## License
 

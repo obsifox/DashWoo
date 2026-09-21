@@ -55,22 +55,22 @@ final class Tokens {
 	 */
 	public function categories() {
 		return array(
-			'color'      => array( 'label' => 'رنگ‌ها', 'settings' => 'colors' ),
-			'font'       => array( 'label' => 'فونت‌ها', 'settings' => 'typography' ),
-			'font-size'  => array( 'label' => 'اندازه فونت', 'settings' => 'typography' ),
-			'line-height' => array( 'label' => 'ارتفاع خط', 'settings' => 'typography' ),
-			'spacing'    => array( 'label' => 'فاصله‌ها', 'settings' => 'spacing' ),
-			'radius'     => array( 'label' => 'شعاع', 'settings' => 'radius' ),
-			'shadow'     => array( 'label' => 'سایه', 'settings' => 'shadows' ),
-			'border'     => array( 'label' => 'حاشیه', 'settings' => 'borders' ),
-			'button'     => array( 'label' => 'دکمه', 'settings' => 'buttons' ),
-			'input'      => array( 'label' => 'ورودی', 'settings' => 'forms' ),
-			'card'       => array( 'label' => 'کارت', 'settings' => 'cards' ),
-			'table'      => array( 'label' => 'جدول', 'settings' => 'tables' ),
-			'badge'      => array( 'label' => 'نشان', 'settings' => 'badges' ),
-			'alert'      => array( 'label' => 'هشدار', 'settings' => 'alerts' ),
-			'overlay'    => array( 'label' => 'لایه شناور', 'settings' => 'overlays' ),
-			'pagination' => array( 'label' => 'صفحه‌بندی', 'settings' => 'pagination' ),
+			'color'      => array( 'label' => __( 'Colors', 'dashwoo' ), 'settings' => 'colors' ),
+			'font'       => array( 'label' => __( 'Fonts', 'dashwoo' ), 'settings' => 'typography' ),
+			'font-size'  => array( 'label' => __( 'Font size', 'dashwoo' ), 'settings' => 'typography' ),
+			'line-height' => array( 'label' => __( 'Line height', 'dashwoo' ), 'settings' => 'typography' ),
+			'spacing'    => array( 'label' => __( 'Spacing', 'dashwoo' ), 'settings' => 'spacing' ),
+			'radius'     => array( 'label' => __( 'Radius', 'dashwoo' ), 'settings' => 'radius' ),
+			'shadow'     => array( 'label' => __( 'Shadow', 'dashwoo' ), 'settings' => 'shadows' ),
+			'border'     => array( 'label' => __( 'Border', 'dashwoo' ), 'settings' => 'borders' ),
+			'button'     => array( 'label' => __( 'Button', 'dashwoo' ), 'settings' => 'buttons' ),
+			'input'      => array( 'label' => __( 'Input', 'dashwoo' ), 'settings' => 'forms' ),
+			'card'       => array( 'label' => __( 'Card', 'dashwoo' ), 'settings' => 'cards' ),
+			'table'      => array( 'label' => __( 'Table', 'dashwoo' ), 'settings' => 'tables' ),
+			'badge'      => array( 'label' => __( 'Badge', 'dashwoo' ), 'settings' => 'badges' ),
+			'alert'      => array( 'label' => __( 'Notice', 'dashwoo' ), 'settings' => 'alerts' ),
+			'overlay'    => array( 'label' => __( 'Overlay', 'dashwoo' ), 'settings' => 'overlays' ),
+			'pagination' => array( 'label' => __( 'Pagination', 'dashwoo' ), 'settings' => 'pagination' ),
 		);
 	}
 

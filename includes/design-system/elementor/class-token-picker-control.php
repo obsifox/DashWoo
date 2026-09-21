@@ -68,7 +68,7 @@ class Token_Picker_Control extends \Elementor\Base_Data_Control {
 			<label class="elementor-control-title">{{{ data.label }}}</label>
 			<div class="elementor-control-input-wrapper">
 				<select id="<?php echo esc_attr( $control_uid ); ?>" class="dw-token-select" data-setting="{{ data.name }}">
-					<option value="">— توکن —</option>
+					<option value=""><?php echo esc_html__( '— token —', 'dashwoo' ); ?></option>
 					<# _.each( data.dashwooTokens || {}, function( group, key ) { #>
 						<optgroup label="{{ group.label }}">
 							<# _.each( group.tokens, function( token ) { #>

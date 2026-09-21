@@ -81,43 +81,43 @@ class Endpoints {
 	public static function core() {
 		return array(
 			'dashboard'       => array(
-				'label'     => 'پیشخوان حساب',
+				'label'     => __( 'Account dashboard', 'dashwoo' ),
 				'icon'      => 'space_dashboard',
 				'order'     => 10,
 				'permanent' => true,
 			),
 			'orders'          => array(
-				'label'     => 'سفارش‌ها',
+				'label'     => __( 'Orders', 'dashwoo' ),
 				'icon'      => 'receipt_long',
 				'order'     => 20,
 				'permanent' => false,
 			),
 			'downloads'       => array(
-				'label'     => 'دانلودها',
+				'label'     => __( 'Downloads', 'dashwoo' ),
 				'icon'      => 'download',
 				'order'     => 30,
 				'permanent' => false,
 			),
 			'edit-address'    => array(
-				'label'     => 'آدرس‌ها',
+				'label'     => __( 'Addresses', 'dashwoo' ),
 				'icon'      => 'home_pin',
 				'order'     => 40,
 				'permanent' => false,
 			),
 			'payment-methods' => array(
-				'label'     => 'روش‌های پرداخت',
+				'label'     => __( 'Payment methods', 'dashwoo' ),
 				'icon'      => 'credit_card',
 				'order'     => 50,
 				'permanent' => false,
 			),
 			'edit-account'    => array(
-				'label'     => 'جزئیات حساب',
+				'label'     => __( 'Account details', 'dashwoo' ),
 				'icon'      => 'manage_accounts',
 				'order'     => 60,
 				'permanent' => false,
 			),
 			'customer-logout' => array(
-				'label'     => 'خروج از حساب',
+				'label'     => __( 'Log out', 'dashwoo' ),
 				'icon'      => 'logout',
 				'order'     => 90,
 				'permanent' => true,
@@ -531,38 +531,38 @@ class Endpoints {
 			if ( empty( $definition['permanent'] ) ) {
 				$fields[ 'show_' . $slug ] = array(
 					'key'     => 'show_' . $slug,
-					'label'   => sprintf( 'نمایش «%s»', $label ),
+					'label'   => sprintf( __( 'Show “%s”', 'dashwoo' ), $label ),
 					'type'    => 'toggle',
 					'default' => true,
-					'hint'    => 'اگر خاموش باشد، این مورد از منوی حساب کاربری حذف می‌شود (فقط در نمایش؛ خودِ صفحهٔ ووکامرس دست‌نخورده می‌ماند).',
+					'hint'    => __( 'When off, this item disappears from the account menu (display only; the WooCommerce page itself stays untouched).', 'dashwoo' ),
 				);
 			}
 
 			$fields[ 'label_' . $slug ] = array(
 				'key'     => 'label_' . $slug,
-				'label'   => sprintf( 'عنوان «%s»', $label ),
+				'label'   => sprintf( __( 'Label for “%s”', 'dashwoo' ), $label ),
 				'type'    => 'text',
 				'default' => $label,
-				'hint'    => 'این عنوان در منو، تب‌ها و کارت‌های حساب کاربری نشان داده می‌شود.',
+				'hint'    => __( 'This label is used in the menu, the tabs and the account cards.', 'dashwoo' ),
 			);
 
 			$fields[ 'icon_' . $slug ] = array(
 				'key'     => 'icon_' . $slug,
-				'label'   => sprintf( 'آیکون «%s»', $label ),
+				'label'   => sprintf( __( 'Icon for “%s”', 'dashwoo' ), $label ),
 				'type'    => 'text',
 				'default' => isset( $definition['icon'] ) ? (string) $definition['icon'] : self::DEFAULT_ICON,
-				'hint'    => 'نام آیکون Material Symbols (مثلاً receipt_long، download، credit_card). خالی باشد، آیکون پیش‌فرض DashWoo استفاده می‌شود.',
+				'hint'    => __( 'A Material Symbols icon name (for example receipt_long, download, credit_card). Leave it empty to use the DashWoo default.', 'dashwoo' ),
 			);
 
 			$fields[ 'order_' . $slug ] = array(
 				'key'     => 'order_' . $slug,
-				'label'   => sprintf( 'ترتیب «%s»', $label ),
+				'label'   => sprintf( __( 'Order of “%s”', 'dashwoo' ), $label ),
 				'type'    => 'number',
 				'default' => isset( $definition['order'] ) ? (int) $definition['order'] : 70,
 				'min'     => 0,
 				'max'     => 99,
 				'step'    => 1,
-				'hint'    => 'عدد کوچک‌تر بالاتر می‌آید. خروج همیشه آخر است.',
+				'hint'    => __( 'A smaller number comes first. Log out is always last.', 'dashwoo' ),
 			);
 		}
 

@@ -347,7 +347,7 @@ class Elementor_Bridge {
 			) ),
 			$section( array(
 				$column( 50, array( $widget( 'dashwoo_account_profile', array() ) ) ),
-				$column( 50, array( $widget( 'dashwoo_account_orders', array( 'dw_title' => 'سفارش‌های من' ) ) ) ),
+				$column( 50, array( $widget( 'dashwoo_account_orders', array( 'dw_title' => __( 'My orders', 'dashwoo' ) ) ) ) ),
 			) ),
 		) );
 	}
@@ -371,7 +371,7 @@ class Elementor_Bridge {
 			return array(
 				'ok'      => false,
 				'mode'    => '',
-				'message' => 'صفحهٔ «حساب کاربری» پیدا نشد. اول در ووکامرس → تنظیمات → پیشرفته یک برگه به حساب کاربری اختصاص دهید.',
+				'message' => __( 'The My Account page was not found. First assign a page to My Account in WooCommerce → Settings → Advanced.', 'dashwoo' ),
 				'url'     => '',
 			);
 		}
@@ -399,7 +399,7 @@ class Elementor_Bridge {
 				return array(
 					'ok'      => true,
 					'mode'    => 'elementor',
-					'message' => 'چیدمان حساب کاربری با ابزارک‌های DashWoo ساخته شد. الان در ویرایشگر المنتور باز می‌شود و هر بخشش قابل جابه‌جایی و تغییر است.',
+					'message' => __( 'The account layout was built with DashWoo widgets. The Elementor editor opens now and every part can be moved or changed.', 'dashwoo' ),
 					'url'     => self::editor_url( $post_id ),
 					'post_id' => $post_id,
 				);
@@ -420,7 +420,7 @@ class Elementor_Bridge {
 				return array(
 					'ok'      => true,
 					'mode'    => 'shortcode',
-					'message' => 'محتوای صفحه با شورت‌کد [dashwoo_account] جایگزین شد. با المنتور هم می‌توانید همین شورت‌کد را در یک ویجت شورت‌کد بگذارید یا ابزارک‌های DashWoo را کنارش اضافه کنید.',
+					'message' => __( 'The page content was replaced with the [dashwoo_account] shortcode. In Elementor you can drop the same shortcode into a Shortcode widget or add DashWoo widgets next to it.', 'dashwoo' ),
 					'url'     => self::editor_url( $post_id ),
 					'post_id' => $post_id,
 				);
@@ -430,7 +430,7 @@ class Elementor_Bridge {
 		return array(
 			'ok'      => false,
 			'mode'    => '',
-			'message' => 'ساخت چیدمان ممکن نشد؛ دسترسی نوشتن به این برگه را بررسی کنید.',
+			'message' => __( 'The layout could not be built; please check that you can write to this page.', 'dashwoo' ),
 			'url'     => '',
 		);
 	}
@@ -481,7 +481,7 @@ class Elementor_Bridge {
 		$post_id = isset( $_GET['post'] ) ? (int) $_GET['post'] : 0;
 
 		if ( ! function_exists( 'current_user_can' ) || ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html( 'برای این کار دسترسی مدیریت لازم است.' ) );
+			wp_die( esc_html( __( 'This needs administrator access.', 'dashwoo' ) ) );
 		}
 
 		check_admin_referer( 'dashwoo_build_account_layout' );
@@ -538,7 +538,7 @@ class Elementor_Bridge {
 		$manager->register_location(
 			self::LOCATION,
 			array(
-				'label'    => 'حساب کاربری — DashWoo',
+				'label'    => __( 'My Account — DashWoo', 'dashwoo' ),
 				'multiple' => false,
 				'public'   => true,
 			)
@@ -595,7 +595,7 @@ class Elementor_Bridge {
 			echo '<div class="dw-editor-hint" style="position:fixed;inset-inline:0;bottom:0;z-index:9999;'
 				. 'background:#0d1117;color:#e6edf3;font:14px/1.8 Tahoma,sans-serif;padding:10px 16px;'
 				. 'text-align:center;border-top:1px solid #30363d">'
-				. esc_html( 'این برگه به‌عنوان صفحهٔ «حساب کاربری» ووکامرس ثبت نشده است؛ اول در ووکامرس → تنظیمات → پیشرفته آن را تعیین کنید.' )
+				. esc_html( __( 'This page is not set as the WooCommerce My Account page; pick it first in WooCommerce → Settings → Advanced.', 'dashwoo' ) )
 				. '</div>';
 
 			return;
@@ -607,18 +607,18 @@ class Elementor_Bridge {
 			return;
 		}
 
-		$label = 'این برگه هنوز هیچ ابزارک DashWoo ندارد. با یک کلیک چیدمان حساب کاربری را بساز.';
+		$label = __( 'This page has no DashWoo widget yet. Build the account layout with one click.', 'dashwoo' );
 
 		echo '<div class="dw-editor-hint" style="position:fixed;inset-inline:0;bottom:0;z-index:9999;'
 			. 'background:#0d1117;color:#e6edf3;font:14px/1.8 Tahoma,sans-serif;padding:10px 16px;'
 			. 'display:flex;gap:12px;align-items:center;justify-content:center;border-top:1px solid #30363d">'
 			. '<span>' . esc_html( $label ) . '</span>'
 			. '<a href="' . esc_url( $url ) . '" style="background:#2f81f7;color:#fff;padding:8px 14px;'
-			. 'border-radius:8px;text-decoration:none">ساخت چیدمان با DashWoo</a></div>';
+			. 'border-radius:8px;text-decoration:none">' . esc_html__( 'Build the layout with DashWoo', 'dashwoo' ) . '</a></div>';
 	}
 
 	/**
-	 * The "build it for me" card inside the «منبع قالب‌ها» settings section.
+	 * The "build it for me" card inside the account source settings section.
 	 *
 	 * @param string              $section_key Section key.
 	 * @param array<string,mixed> $context     View context.
@@ -636,26 +636,26 @@ class Elementor_Bridge {
 		$status  = self::status();
 
 		echo '<div class="dw-card" style="margin-top:16px">';
-		echo '<h3 style="margin-top:0">ساخت چیدمان با المنتور</h3>';
+		echo __( '<h3 style="margin-top:0">Build the layout with Elementor</h3>', 'dashwoo' );
 
 		if ( $page_id > 0 ) {
 			printf(
-				'<p>صفحهٔ حساب کاربری: <a href="%s" target="_blank" rel="noopener">%s</a></p>',
+				__( '<p>My Account page: <a href="%s" target="_blank" rel="noopener">%s</a></p>', 'dashwoo' ),
 				esc_url( (string) get_permalink( $page_id ) ),
 				esc_html( (string) get_the_title( $page_id ) )
 			);
 		}
 
-		echo '<p>با یک کلیک، چیدمان کامل حساب کاربری (منو + پیشخوان + پروفایل + سفارش‌ها) به شکل ابزارک‌های DashWoo داخل صفحه ساخته می‌شود و ویرایشگر المنتور باز می‌شود؛ بعد از آن هر بخش را می‌توانید جابه‌جا، حذف یا بازطراحی کنید.</p>';
+		echo __( '<p>With one click the whole account layout (menu + dashboard + profile + orders) is built from DashWoo widgets inside the page and the Elementor editor opens; after that every part can be moved, removed or redesigned.</p>', 'dashwoo' );
 
 		if ( '' !== $url ) {
 			printf(
-				'<p><a class="button button-primary" href="%s">ساخت / بازسازی چیدمان حساب کاربری در المنتور</a></p>',
+				__( '<p><a class="button button-primary" href="%s">Build / rebuild the account layout in Elementor</a></p>', 'dashwoo' ),
 				esc_url( $url )
 			);
 		}
 
-		echo '<h4>وضعیت آماده‌بودن المنتور</h4><ul style="margin:0;padding-inline-start:18px">';
+		echo __( '<h4>Elementor readiness</h4><ul style="margin:0;padding-inline-start:18px">', 'dashwoo' );
 
 		foreach ( $status['checks'] as $check ) {
 			printf(
@@ -681,42 +681,42 @@ class Elementor_Bridge {
 		$checks = array(
 			array(
 				'key'    => 'elementor',
-				'label'  => 'افزونهٔ المنتور',
+				'label'  => __( 'Elementor plugin', 'dashwoo' ),
 				'ok'     => self::is_active(),
 				'detail' => self::is_active()
-					? 'فعال است' . ( '' !== self::version() ? ' (نسخهٔ ' . self::version() . ')' : '' )
-					: 'المنتور فعال نیست؛ ابزارک‌ها فقط وقتی المنتور روشن باشد در پنل دیده می‌شوند.',
+					? __( 'active', 'dashwoo' ) . ( '' !== self::version() ? __( ' (version ', 'dashwoo' ) . self::version() . ')' : '' )
+					: __( 'Elementor is not active; the widgets only show up in the panel when Elementor is on.', 'dashwoo' ),
 			),
 			array(
 				'key'    => 'widgets',
-				'label'  => 'ابزارک‌های DashWoo',
+				'label'  => __( 'DashWoo widgets', 'dashwoo' ),
 				'ok'     => self::is_active(),
-				'detail' => 'دستهٔ «DashWoo — حساب کاربری» با ' . count( self::account_widget_names() ) . ' ابزارک ثبت می‌شود'
-					. ( self::is_active() ? '' : ' (نیازمند المنتور)' ),
+				'detail' => __( 'The “DashWoo — My Account” category registers ', 'dashwoo' ) . count( self::account_widget_names() ) . __( ' widgets', 'dashwoo' )
+					. ( self::is_active() ? '' : __( ' (requires Elementor)', 'dashwoo' ) ),
 			),
 			array(
 				'key'    => 'account_page',
-				'label'  => 'صفحهٔ حساب کاربری ووکامرس',
+				'label'  => __( 'WooCommerce My Account page', 'dashwoo' ),
 				'ok'     => $page_id > 0,
 				'detail' => $page_id > 0
-					? 'شناسهٔ ' . $page_id
-					: 'در ووکامرس → تنظیمات → پیشرفته، برگهٔ «حساب کاربری» را تعیین کنید.',
+					? __( 'page ID ', 'dashwoo' ) . $page_id
+					: __( 'Set the My Account page in WooCommerce → Settings → Advanced.', 'dashwoo' ),
 			),
 			array(
 				'key'    => 'document',
-				'label'  => 'ساخته‌شده با المنتور',
+				'label'  => __( 'built with Elementor', 'dashwoo' ),
 				'ok'     => self::has_account_widgets( $page_id ),
 				'detail' => self::has_account_widgets( $page_id )
-					? 'صفحه ابزارک حساب کاربری دارد؛ در ویرایشگر المنتور قابل تغییر است.'
-					: 'با دکمهٔ بالا چیدمان آمادهٔ DashWoo را داخل صفحه بسازید.',
+					? __( 'The page has account widgets and can be changed in the Elementor editor.', 'dashwoo' )
+					: __( 'Use the button above to build the ready-made DashWoo layout inside the page.', 'dashwoo' ),
 			),
 			array(
 				'key'    => 'mode',
-				'label'  => 'حالت منبع قالب',
+				'label'  => __( 'Template source mode', 'dashwoo' ),
 				'ok'     => Source_Adapter::MODE_DEFAULT !== $mode,
 				'detail' => Source_Adapter::MODE_DEFAULT === $mode
-					? 'روی «بومی» است؛ برای واگذاری صفحه به المنتور، حالت را روی «المنتور» بگذارید.'
-					: 'حالت فعال: ' . $mode,
+					? __( 'It is on “native”; set it to “Elementor” to hand the page over to Elementor.', 'dashwoo' )
+					: __( 'Active mode: ', 'dashwoo' ) . $mode,
 			),
 		);
 

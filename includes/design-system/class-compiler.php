@@ -148,7 +148,7 @@ final class Compiler {
 		$args = array_merge(
 			array(
 				'selector'   => ':root',
-				'rtl'        => dashwoo_is_on( 'general.rtl' ),
+				'rtl'        => dashwoo_is_on( 'general.rtl' ) || \DashWoo\I18n\Language::is_rtl(),
 				'responsive' => true,
 				'minify'     => dashwoo_is_on( 'performance.minify' ),
 			),

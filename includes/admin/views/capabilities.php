@@ -17,9 +17,9 @@ $dw_feat   = isset( $dw_status['features'] ) ? $dw_status['features'] : array();
 $dw_admin  = \DashWoo\Admin\Admin::instance();
 
 $dw_labels = array(
-	'on'      => array( 'روشن', 'dw-pill--ok' ),
-	'off'     => array( 'خاموش با انتخاب شما', 'dw-pill--warning' ),
-	'blocked' => array( 'خودکار خاموش (قابلیت هاست نیست)', 'dw-pill--info' ),
+	'on'      => array( __( 'On', 'dashwoo' ), 'dw-pill--ok' ),
+	'off'     => array( __( 'Off by your choice', 'dashwoo' ), 'dw-pill--warning' ),
+	'blocked' => array( __( 'Off automatically (host capability missing)', 'dashwoo' ), 'dw-pill--info' ),
 );
 
 $dw_on      = 0;
@@ -36,43 +36,43 @@ foreach ( $dw_feat as $dw_feature ) {
 ?>
 	<div class="dw-grid dw-grid--4">
 		<div class="dw-card">
-			<p class="description">قابلیت‌های موجود هاست</p>
+			<p class="description"><?php esc_html_e( 'Host capabilities found', 'dashwoo' ); ?></p>
 			<p class="dw-kpi"><?php echo (int) count( array_filter( $dw_checks, static function ( $c ) { return ! empty( $c['available'] ); } ) ); ?> / <?php echo (int) count( $dw_checks ); ?></p>
 		</div>
 		<div class="dw-card">
-			<p class="description">ویژگی‌های فعال</p>
+			<p class="description"><?php esc_html_e( 'Features that are on', 'dashwoo' ); ?></p>
 			<p class="dw-kpi"><?php echo (int) $dw_on; ?> / <?php echo (int) count( $dw_feat ); ?></p>
 		</div>
 		<div class="dw-card">
-			<p class="description">خودکار خاموش‌شده</p>
+			<p class="description"><?php esc_html_e( 'Switched off automatically', 'dashwoo' ); ?></p>
 			<p class="dw-kpi"><?php echo (int) $dw_blocked; ?></p>
 		</div>
 		<div class="dw-card">
-			<p class="description">آخرین بررسی خودکار</p>
+			<p class="description"><?php esc_html_e( 'Last automatic check', 'dashwoo' ); ?></p>
 			<p class="dw-kpi"><?php echo esc_html( isset( $dw_status['checked_human'] ) ? $dw_status['checked_human'] : '—' ); ?></p>
 			<form method="post" action="<?php echo esc_url( $context['action_url'] ); ?>">
 				<?php wp_nonce_field( 'dashwoo_action' ); ?>
 				<input type="hidden" name="action" value="dashwoo_action" />
 				<input type="hidden" name="dw_action" value="capabilities_recheck" />
-				<button class="button button-primary" type="submit">بررسی مجدد قابلیت‌ها</button>
+				<button class="button button-primary" type="submit"><?php esc_html_e( 'Run the capability check again', 'dashwoo' ); ?></button>
 			</form>
 		</div>
 	</div>
 
 	<div class="dw-card">
-		<h2>ویژگی‌های DashWoo و وضعیت خودکار آن‌ها</h2>
+		<h2><?php esc_html_e( 'DashWoo features and their automatic state', 'dashwoo' ); ?></h2>
 		<p class="description">
-			DashWoo هیچ‌گاه به قابلیت‌های اختیاری هاست وابسته نیست: اگر هاست چیزی را نداشته باشد،
-			ویژگی مربوطه خودش خاموش می‌ماند و به‌محض فراهم شدن، <strong>خودکار روشن می‌شود</strong>.
+			<?php esc_html_e( 'DashWoo never depends on a host capability that is optional: when the host does not have something,', 'dashwoo' ); ?>
+			<?php esc_html_e( 'the matching feature stays off by itself and switches <strong>on automatically</strong> as soon as it is there.', 'dashwoo' ); ?>
 		</p>
 
 		<table class="widefat striped dw-table">
 			<thead>
 				<tr>
-					<th>ویژگی</th>
-					<th>وضعیت</th>
-					<th>نیازمند قابلیت</th>
-					<th>اگر خاموش باشد چه می‌شود</th>
+					<th><?php esc_html_e( 'Feature', 'dashwoo' ); ?></th>
+					<th><?php esc_html_e( 'State', 'dashwoo' ); ?></th>
+					<th><?php esc_html_e( 'Needs capability', 'dashwoo' ); ?></th>
+					<th><?php esc_html_e( 'What happens when it is off', 'dashwoo' ); ?></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -86,7 +86,7 @@ foreach ( $dw_feat as $dw_feature ) {
 						<td><span class="dw-pill <?php echo esc_attr( $dw_state[1] ); ?>"><?php echo esc_html( $dw_state[0] ); ?></span></td>
 						<td>
 							<?php if ( empty( $dw_feature['requires'] ) ) : ?>
-								<span class="dw-pill">همیشه فعال</span>
+								<span class="dw-pill"><?php esc_html_e( 'always on', 'dashwoo' ); ?></span>
 							<?php else : ?>
 								<?php foreach ( $dw_feature['requires'] as $dw_req ) : ?>
 									<span class="dw-pill <?php echo ! empty( $dw_checks[ $dw_req ]['available'] ) ? 'dw-pill--ok' : 'dw-pill--info'; ?>">
@@ -108,16 +108,16 @@ foreach ( $dw_feat as $dw_feature ) {
 	</div>
 
 	<div class="dw-card">
-		<h2>قابلیت‌های هاست</h2>
-		<p class="description">این جدول هر ۶ ساعت خودکار و با دکمهٔ بالا دستی بررسی می‌شود.</p>
+		<h2><?php esc_html_e( 'Host capabilities', 'dashwoo' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'This table is checked automatically every 6 hours and by hand with the button above.', 'dashwoo' ); ?></p>
 
 		<table class="widefat striped dw-table">
 			<thead>
 				<tr>
-					<th>قابلیت</th>
-					<th>وضعیت</th>
-					<th>جزئیات</th>
-					<th>نقش در DashWoo</th>
+					<th><?php esc_html_e( 'Capability', 'dashwoo' ); ?></th>
+					<th><?php esc_html_e( 'State', 'dashwoo' ); ?></th>
+					<th><?php esc_html_e( 'Details', 'dashwoo' ); ?></th>
+					<th><?php esc_html_e( 'Role in DashWoo', 'dashwoo' ); ?></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -126,9 +126,9 @@ foreach ( $dw_feat as $dw_feature ) {
 						<td>
 							<strong><?php echo esc_html( $dw_check['label'] ); ?></strong>
 							<?php if ( ! empty( $dw_check['required'] ) ) : ?>
-								<span class="dw-pill dw-pill--err">الزامی</span>
+								<span class="dw-pill dw-pill--err"><?php esc_html_e( 'required', 'dashwoo' ); ?></span>
 							<?php else : ?>
-								<span class="dw-pill dw-pill--info">اختیاری</span>
+								<span class="dw-pill dw-pill--info"><?php esc_html_e( 'optional', 'dashwoo' ); ?></span>
 							<?php endif; ?>
 						</td>
 						<td>
@@ -143,8 +143,8 @@ foreach ( $dw_feat as $dw_feature ) {
 			</tbody>
 		</table>
 
-		<h3>متن آمادهٔ ارسال به هاست</h3>
-		<p class="description">اگر ویژگی‌ای خودکار خاموش مانده، این متن را کپی کنید و به پشتیبانی هاست بدهید.</p>
+		<h3><?php esc_html_e( 'Ready-made text for your host', 'dashwoo' ); ?></h3>
+		<p class="description"><?php esc_html_e( 'When a feature stays off automatically, copy this text and send it to your host\'s support.', 'dashwoo' ); ?></p>
 		<textarea class="dw-diagnostics" rows="10" readonly><?php
 		foreach ( $dw_checks as $dw_id => $dw_check ) {
 			printf(
@@ -158,26 +158,26 @@ foreach ( $dw_feat as $dw_feature ) {
 	</div>
 
 	<div class="dw-card">
-		<h2>اعلان سازگاری با ویژگی‌های ووکامرس</h2>
+		<h2><?php esc_html_e( 'Compatibility declaration for the WooCommerce features', 'dashwoo' ); ?></h2>
 		<?php $dw_wc = \DashWoo\Compatibility\WooCommerce_Features::instance()->status(); ?>
 
 		<?php if ( empty( $dw_wc['aware'] ) ) : ?>
-			<p class="description">ووکامرس فعال نیست؛ اعلانی لازم نیست. به‌محض فعال شدن، DashWoo سازگاری خود را روی قلاب
-				<code>before_woocommerce_init</code> اعلام می‌کند.</p>
+			<p class="description"><?php esc_html_e( 'WooCommerce is not active, so no declaration is needed. As soon as it is active, DashWoo declares its compatibility on the', 'dashwoo' ); ?>
+				<code>before_woocommerce_init</code> <?php esc_html_e( 'hook.', 'dashwoo' ); ?></p>
 		<?php else : ?>
 			<p class="description">
-				ووکامرس فقط افزونه‌هایی را بررسی می‌کند که هدر <code>WC tested up to</code> دارند و افزونهٔ اعلام‌نکرده را
-				برای ویژگی‌هایی مثل HPOS «ناسازگار» می‌شمارد. DashWoo برای همهٔ ویژگی‌ها اعلام سازگاری می‌کند.
+				<?php esc_html_e( 'WooCommerce only checks plugins that carry the <code>WC tested up to</code> header and counts a plugin that never declared', 'dashwoo' ); ?>
+				<?php esc_html_e( 'itself as “incompatible” for features such as HPOS. DashWoo declares compatibility for every feature.', 'dashwoo' ); ?>
 			</p>
 			<ul class="dw-list">
-				<li>اعلام‌شده در این درخواست: <strong><?php echo (int) count( (array) $dw_wc['declared'] ); ?></strong></li>
-				<li>ووکامرس DashWoo را سازگار می‌داند: <strong><?php echo (int) count( (array) $dw_wc['compatible'] ); ?></strong></li>
-				<li>ناسازگار: <strong><?php echo (int) count( (array) $dw_wc['incompatible'] ); ?></strong>
+				<li><?php esc_html_e( 'Declared in this request:', 'dashwoo' ); ?> <strong><?php echo (int) count( (array) $dw_wc['declared'] ); ?></strong></li>
+				<li><?php esc_html_e( 'WooCommerce sees DashWoo as compatible:', 'dashwoo' ); ?> <strong><?php echo (int) count( (array) $dw_wc['compatible'] ); ?></strong></li>
+				<li><?php esc_html_e( 'Incompatible:', 'dashwoo' ); ?> <strong><?php echo (int) count( (array) $dw_wc['incompatible'] ); ?></strong>
 					<?php if ( ! empty( $dw_wc['incompatible'] ) ) : ?>
 						— <?php echo esc_html( implode( ', ', $dw_wc['incompatible'] ) ); ?>
 					<?php endif; ?></li>
-				<li>نامعلوم نزد ووکامرس: <strong><?php echo (int) count( (array) $dw_wc['uncertain'] ); ?></strong></li>
-				<li>خارج از فهرست ممیزی DashWoo: <strong><?php echo (int) count( (array) $dw_wc['unknown'] ); ?></strong>
+				<li><?php esc_html_e( 'Unknown to WooCommerce:', 'dashwoo' ); ?> <strong><?php echo (int) count( (array) $dw_wc['uncertain'] ); ?></strong></li>
+				<li><?php esc_html_e( 'Outside the DashWoo audit list:', 'dashwoo' ); ?> <strong><?php echo (int) count( (array) $dw_wc['unknown'] ); ?></strong>
 					<?php if ( ! empty( $dw_wc['unknown'] ) ) : ?>
 						— <?php echo esc_html( implode( ', ', $dw_wc['unknown'] ) ); ?>
 					<?php endif; ?></li>
@@ -185,8 +185,8 @@ foreach ( $dw_feat as $dw_feature ) {
 		<?php endif; ?>
 
 		<p>
-			<a class="button" href="<?php echo esc_url( $dw_admin->url( 'features' ) ); ?>">تنظیم دستی ویژگی‌ها</a>
-			<a class="button" href="<?php echo esc_url( $dw_admin->url( 'system' ) ); ?>">مشاهدهٔ گزارش کامل سازگاری</a>
+			<a class="button" href="<?php echo esc_url( $dw_admin->url( 'features' ) ); ?>"><?php esc_html_e( 'Set the features by hand', 'dashwoo' ); ?></a>
+			<a class="button" href="<?php echo esc_url( $dw_admin->url( 'system' ) ); ?>"><?php esc_html_e( 'View the full compatibility report', 'dashwoo' ); ?></a>
 		</p>
 	</div>
 </div>

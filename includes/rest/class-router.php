@@ -381,7 +381,7 @@ final class Router {
 		$result = Settings::instance()->import_json( (string) $json );
 
 		if ( empty( $result['ok'] ) ) {
-			return new \WP_Error( 'dashwoo_import_failed', 'Import failed.', array( 'status' => 400 ) );
+			return new \WP_Error( 'dashwoo_import_failed', __('Import failed.', 'dashwoo'), array( 'status' => 400 ) );
 		}
 
 		Compiler::instance()->recompile();
@@ -400,7 +400,7 @@ final class Router {
 		$all     = Sections::all();
 
 		if ( ! isset( $all[ $section ] ) ) {
-			return new \WP_Error( 'dashwoo_unknown_section', 'Unknown section.', array( 'status' => 404 ) );
+			return new \WP_Error( 'dashwoo_unknown_section', __('Unknown section.', 'dashwoo'), array( 'status' => 404 ) );
 		}
 
 		return array(
@@ -421,7 +421,7 @@ final class Router {
 		$all     = Sections::all();
 
 		if ( ! isset( $all[ $section ] ) ) {
-			return new \WP_Error( 'dashwoo_unknown_section', 'Unknown section.', array( 'status' => 404 ) );
+			return new \WP_Error( 'dashwoo_unknown_section', __('Unknown section.', 'dashwoo'), array( 'status' => 404 ) );
 		}
 
 		$payload = $this->payload( $request );
@@ -654,7 +654,7 @@ final class Router {
 		$preview = Asset_Manager::instance()->preview( (int) $this->param( $request, 'id' ) );
 
 		if ( ! $preview ) {
-			return new \WP_Error( 'dashwoo_asset_not_found', 'Asset not found.', array( 'status' => 404 ) );
+			return new \WP_Error( 'dashwoo_asset_not_found', __('Asset not found.', 'dashwoo'), array( 'status' => 404 ) );
 		}
 
 		return $preview;
@@ -785,7 +785,7 @@ final class Router {
 		$order_id = max( 0, (int) $this->param( $request, 'order_id', 0 ) );
 
 		if ( '' === $view ) {
-			return new \WP_Error( 'dashwoo_panel_view', 'Unknown view.', array( 'status' => 404 ) );
+			return new \WP_Error( 'dashwoo_panel_view', __('Unknown view.', 'dashwoo'), array( 'status' => 404 ) );
 		}
 
 		$data = Panel::instance()->payload(

@@ -116,7 +116,7 @@ class Form_Adapter {
 		if ( '' === $new ) {
 			return array(
 				'ok'      => false,
-				'message' => 'نام نمایشی نمی‌تواند خالی باشد.',
+				'message' => __( 'The display name cannot be empty.', 'dashwoo' ),
 				'changed' => false,
 			);
 		}
@@ -128,7 +128,7 @@ class Form_Adapter {
 		if ( $new === (string) $old ) {
 			return array(
 				'ok'      => true,
-				'message' => 'نام نمایشی تغییری نکرد.',
+				'message' => __( 'The display name did not change.', 'dashwoo' ),
 				'changed' => false,
 			);
 		}
@@ -136,7 +136,7 @@ class Form_Adapter {
 		if ( ! function_exists( 'wp_update_user' ) ) {
 			return array(
 				'ok'      => false,
-				'message' => 'امکان ذخیره در این محیط نیست.',
+				'message' => __( 'Saving is not possible in this environment.', 'dashwoo' ),
 				'changed' => false,
 			);
 		}
@@ -146,7 +146,7 @@ class Form_Adapter {
 		if ( ! $profile->logged_in() ) {
 			return array(
 				'ok'      => false,
-				'message' => 'برای تغییر نام باید وارد حساب شوید.',
+				'message' => __( 'You must be signed in to change the name.', 'dashwoo' ),
 				'changed' => false,
 			);
 		}
@@ -163,7 +163,7 @@ class Form_Adapter {
 		if ( $failed ) {
 			return array(
 				'ok'      => false,
-				'message' => 'ذخیره نشد؛ دوباره تلاش کنید.',
+				'message' => __( 'It was not saved; please try again.', 'dashwoo' ),
 				'changed' => false,
 			);
 		}
@@ -179,7 +179,7 @@ class Form_Adapter {
 
 		return array(
 			'ok'      => true,
-			'message' => 'نام نمایشی ذخیره شد.',
+			'message' => __( 'Display name saved.', 'dashwoo' ),
 			'changed' => true,
 		);
 	}

@@ -10,7 +10,7 @@ namespace DashWoo\Widgets;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * آدرس‌های حساب
+ * Account addresses
  */
 class Account_Addresses_Widget extends Account_Endpoint_Widget_Base {
 
@@ -29,7 +29,7 @@ class Account_Addresses_Widget extends Account_Endpoint_Widget_Base {
 	 * @return string
 	 */
 	public function get_title() {
-		return 'DashWoo — آدرس‌های حساب';
+		return __( 'DashWoo — Account addresses', 'dashwoo' );
 	}
 
 	/**

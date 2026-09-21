@@ -342,7 +342,7 @@ body.dw-acc-modal-open { overflow: hidden; }
 .dw-acc__avatar { width: var( --dw-acc-avatar, 96px ); height: var( --dw-acc-avatar, 96px ); border-radius: 50%; object-fit: cover; }
 .dw-acc__hero-logo { display: inline-flex; }
 
-/* Device visibility (widget control "پنهان در") ----------------------- */
+/* Device visibility (the "Hidden on" widget control) ---------------------- */
 @media ( min-width: 1025px ) { .dw-hide-desktop { display: none !important; } }
 @media ( min-width: 768px ) and ( max-width: 1024px ) { .dw-hide-tablet { display: none !important; } }
 @media ( max-width: 767px ) { .dw-hide-mobile { display: none !important; } }

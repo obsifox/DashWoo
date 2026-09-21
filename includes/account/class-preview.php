@@ -78,9 +78,9 @@ class Preview {
 	 */
 	public static function orders() {
 		return array(
-			new Preview_Order( '1048', 'completed', '۱٬۲۵۰٬۰۰۰ تومان', '۱۴۰۵/۰۶/۱۲' ),
-			new Preview_Order( '1041', 'processing', '۸۵۰٬۰۰۰ تومان', '۱۴۰۵/۰۵/۲۸' ),
-			new Preview_Order( '1027', 'on-hold', '۲٬۴۹۰٬۰۰۰ تومان', '۱۴۰۵/۰۴/۰۹' ),
+			new Preview_Order( '1048', 'completed', __( '$1,250,000', 'dashwoo' ), __( '2026-08-03', 'dashwoo' ) ),
+			new Preview_Order( '1041', 'processing', __( '$850,000', 'dashwoo' ), __( '2026-07-19', 'dashwoo' ) ),
+			new Preview_Order( '1027', 'on-hold', __( '$2,490,000', 'dashwoo' ), __( '2026-06-30', 'dashwoo' ) ),
 		);
 	}
 
@@ -92,12 +92,12 @@ class Preview {
 	public static function downloads() {
 		return array(
 			array(
-				'product_name'  => 'قالب فروشگاهی نمونه',
+				'product_name'  => __( 'Sample store theme', 'dashwoo' ),
 				'download_url'  => '#',
 				'download_name' => 'sample-template.zip',
 			),
 			array(
-				'product_name'  => 'بستهٔ آیکون‌های فروشگاه',
+				'product_name'  => __( 'Store icon pack', 'dashwoo' ),
 				'download_url'  => '#',
 				'download_name' => 'shop-icons.zip',
 			),
@@ -129,8 +129,8 @@ class Preview {
 	 */
 	public static function addresses() {
 		return array(
-			'billing'  => 'تهران، خیابان نمونه، پلاک ۱۲، واحد ۳',
-			'shipping' => 'تهران، خیابان نمونه، پلاک ۱۲، واحد ۳',
+			'billing'  => __( '12 Sample Street, Unit 3, Tehran', 'dashwoo' ),
+			'shipping' => __( '12 Sample Street, Unit 3, Tehran', 'dashwoo' ),
 		);
 	}
 
@@ -141,9 +141,9 @@ class Preview {
 	 */
 	public static function customer() {
 		return array(
-			'name'       => 'مشتری نمونه',
-			'first_name' => 'مشتری',
-			'last_name'  => 'نمونه',
+			'name'       => __( 'Sample customer', 'dashwoo' ),
+			'first_name' => __( 'Customer', 'dashwoo' ),
+			'last_name'  => __( 'Sample', 'dashwoo' ),
 			'email'      => 'customer@example.com',
 		);
 	}
@@ -270,14 +270,14 @@ class Preview_Order {
 	public function get_items() {
 		return array(
 			array(
-				'name'     => 'دورهٔ آموزشی نمونه',
+				'name'     => __( 'Sample course', 'dashwoo' ),
 				'quantity' => 1,
-				'total'    => '۶۵۰٬۰۰۰ تومان',
+				'total'    => __( '$650,000', 'dashwoo' ),
 			),
 			array(
-				'name'     => 'قالب فروشگاهی نمونه',
+				'name'     => __( 'Sample store theme', 'dashwoo' ),
 				'quantity' => 2,
-				'total'    => '۶۰۰٬۰۰۰ تومان',
+				'total'    => __( '$600,000', 'dashwoo' ),
 			),
 		);
 	}
@@ -289,9 +289,9 @@ class Preview_Order {
 	 */
 	public function get_totals() {
 		return array(
-			'جمع اقلام'    => $this->total,
-			'هزینهٔ ارسال' => 'رایگان',
-			'مبلغ پرداختی' => $this->total,
+			__( 'Items subtotal', 'dashwoo' )    => $this->total,
+			__( 'Shipping', 'dashwoo' ) => __( 'Free', 'dashwoo' ),
+			__( 'Order total', 'dashwoo' ) => $this->total,
 		);
 	}
 
@@ -301,7 +301,7 @@ class Preview_Order {
 	 * @return string
 	 */
 	public function get_payment_method_title() {
-		return 'پرداخت آنلاین (نمونه)';
+		return __( 'Online payment (sample)', 'dashwoo' );
 	}
 }
 

@@ -10,7 +10,7 @@ namespace DashWoo\Widgets;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * دانلودهای حساب
+ * Account downloads
  */
 class Account_Downloads_Widget extends Account_Endpoint_Widget_Base {
 
@@ -29,7 +29,7 @@ class Account_Downloads_Widget extends Account_Endpoint_Widget_Base {
 	 * @return string
 	 */
 	public function get_title() {
-		return 'DashWoo — دانلودهای حساب';
+		return __( 'DashWoo — Account downloads', 'dashwoo' );
 	}
 
 	/**

@@ -1,6 +1,6 @@
 <?php
 /**
- * Elementor widget: منوی حساب کاربری (navigation).
+ * Elementor widget: the account menu (navigation).
  *
  * Fully controllable: layout, icons and their position, counters, dividers, size,
  * alignment, sticky behaviour - and the menu itself (which items, in which order, with
@@ -35,7 +35,7 @@ class Account_Nav_Widget extends Account_Widget_Base {
 	 * @return string
 	 */
 	public function get_title() {
-		return 'DashWoo — منوی حساب کاربری';
+		return __( 'DashWoo — Account menu', 'dashwoo' );
 	}
 
 	/**
@@ -94,21 +94,21 @@ class Account_Nav_Widget extends Account_Widget_Base {
 	protected function register_controls() {
 		$this->start_controls_section(
 			'dw_account_nav',
-			array( 'label' => 'شکل و رفتار منو' )
+			array( 'label' => __( 'Menu shape and behaviour', 'dashwoo' ) )
 		);
 
 		$this->add_control(
 			'dw_layout',
 			array(
-				'label'   => 'چیدمان',
+				'label'   => __( 'Layout', 'dashwoo' ),
 				'type'    => 'select',
 				'default' => 'menu',
 				'options' => array(
-					'menu'  => 'فهرست عمودی',
-					'tabs'  => 'نوار تب افقی',
-					'cards' => 'کارت‌های میان‌بر',
-					'rail'  => 'نوار آیکونی کنار',
-					'plain' => 'بدون استایل (خام)',
+					'menu'  => __( 'Vertical list', 'dashwoo' ),
+					'tabs'  => __( 'Horizontal tabs', 'dashwoo' ),
+					'cards' => __( 'Shortcut cards', 'dashwoo' ),
+					'rail'  => __( 'Side icon rail', 'dashwoo' ),
+					'plain' => __( 'Unstyled (plain)', 'dashwoo' ),
 				),
 			)
 		);
@@ -116,7 +116,7 @@ class Account_Nav_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_icons',
 			array(
-				'label'   => 'آیکون‌ها',
+				'label'   => __( 'Icons', 'dashwoo' ),
 				'type'    => 'switcher',
 				'default' => 'yes',
 			)
@@ -125,12 +125,12 @@ class Account_Nav_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_icon_position',
 			array(
-				'label'     => 'جای آیکون',
+				'label'     => __( 'Icon position', 'dashwoo' ),
 				'type'      => 'select',
 				'default'   => 'before',
 				'options'   => array(
-					'before' => 'قبل از عنوان',
-					'after'  => 'بعد از عنوان',
+					'before' => __( 'Before the label', 'dashwoo' ),
+					'after'  => __( 'After the label', 'dashwoo' ),
 				),
 				'condition' => array( 'dw_icons' => 'yes' ),
 			)
@@ -139,23 +139,23 @@ class Account_Nav_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_counts',
 			array(
-				'label'       => 'شمارنده (سفارش‌ها / دانلودها)',
+				'label'       => __( 'Counter (orders / downloads)', 'dashwoo' ),
 				'type'        => 'switcher',
 				'default'     => '',
-				'description' => 'فقط برای مواردی که DashWoo می‌تواند با API عمومی بشمارد.',
+				'description' => __( 'Only for the items DashWoo can count through the public API.', 'dashwoo' ),
 			)
 		);
 
 		$this->add_control(
 			'dw_size',
 			array(
-				'label'   => 'اندازهٔ آیتم‌ها',
+				'label'   => __( 'Item size', 'dashwoo' ),
 				'type'    => 'select',
 				'default' => 'md',
 				'options' => array(
-					'sm' => 'کوچک',
-					'md' => 'متوسط',
-					'lg' => 'بزرگ',
+					'sm' => __( 'Small', 'dashwoo' ),
+					'md' => __( 'Medium', 'dashwoo' ),
+					'lg' => __( 'Large', 'dashwoo' ),
 				),
 			)
 		);
@@ -163,13 +163,13 @@ class Account_Nav_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_align',
 			array(
-				'label'   => 'ترازبندی آیتم‌ها',
+				'label'   => __( 'Item alignment', 'dashwoo' ),
 				'type'    => 'select',
 				'default' => 'start',
 				'options' => array(
-					'start'  => 'شروع',
-					'center' => 'وسط',
-					'end'    => 'پایان',
+					'start'  => __( 'Getting started', 'dashwoo' ),
+					'center' => __( 'Center', 'dashwoo' ),
+					'end'    => __( 'End', 'dashwoo' ),
 				),
 			)
 		);
@@ -177,7 +177,7 @@ class Account_Nav_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_divider',
 			array(
-				'label'   => 'خط جداکننده بین آیتم‌ها',
+				'label'   => __( 'Divider between the items', 'dashwoo' ),
 				'type'    => 'switcher',
 				'default' => '',
 			)
@@ -186,7 +186,7 @@ class Account_Nav_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_sticky',
 			array(
-				'label'   => 'چسبیدن منو در اسکرول',
+				'label'   => __( 'Sticky menu while scrolling', 'dashwoo' ),
 				'type'    => 'switcher',
 				'default' => '',
 			)
@@ -195,14 +195,14 @@ class Account_Nav_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_columns',
 			array(
-				'label'     => 'تعداد ستون (چیدمان کارتی)',
+				'label'     => __( 'Number of columns (card layout)', 'dashwoo' ),
 				'type'      => 'select',
 				'default'   => (string) (int) dashwoo_get_setting( 'account_layout.cards_columns', 3 ),
 				'options'   => array(
-					'1' => 'یک ستون',
-					'2' => 'دو ستون',
-					'3' => 'سه ستون',
-					'4' => 'چهار ستون',
+					'1' => __( 'One column', 'dashwoo' ),
+					'2' => __( 'Two columns', 'dashwoo' ),
+					'3' => __( 'Three columns', 'dashwoo' ),
+					'4' => __( 'Four columns', 'dashwoo' ),
 				),
 				'condition' => array( 'dw_layout' => 'cards' ),
 			)
@@ -212,13 +212,13 @@ class Account_Nav_Widget extends Account_Widget_Base {
 
 		$this->start_controls_section(
 			'dw_account_nav_items',
-			array( 'label' => 'آیتم‌های منو' )
+			array( 'label' => __( 'Menu items', 'dashwoo' ) )
 		);
 
 		$this->register_items_control(
 			'dw_items',
-			'آیتم‌ها',
-			'خالی بگذارید تا همهٔ بخش‌هایی که ووکامرس دارد (و در تنظیمات DashWoo روشن است) با ترتیب پیش‌فرض نمایش داده شود. با افزودن آیتم، همین فهرست جای فهرست خودکار را می‌گیرد: ترتیب، عنوان، آیکون، شمارنده، پنهان‌کردن و حتی لینک‌های دلخواه (مثل «پشتیبانی») در همین جدول قابل تنظیم است.'
+			__( 'Items', 'dashwoo' ),
+			__( 'Leave it empty to show every section WooCommerce has (that is switched on in the DashWoo settings) in the default order. As soon as you add an item, this list replaces the automatic one: order, label, icon, counter, visibility and even custom links (such as “Support”) are all set in this table.', 'dashwoo' )
 		);
 
 		$this->end_controls_section();

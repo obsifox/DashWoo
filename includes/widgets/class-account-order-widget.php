@@ -1,10 +1,10 @@
 <?php
 /**
- * Elementor widget: جزئیات یک سفارش (تک سفارش).
+ * Elementor widget: a single order (the details view).
  *
- * This is the widget that makes "وارد سفارش شو و جزئیاتش را همان‌جا ببین" possible
- * outside the panel too: drop it in a column, pick a template (خلاصه / جدول / فقط
- * اقلام / خام) and it draws the order exactly like the panel's content card does.
+ * This is the widget that makes "Open an order and see its details right there" possible
+ * outside the panel too: drop it in a column, pick a template (summary / table / items
+ * only / plain) and it draws the order exactly like the panel's content card does.
  *
  * @package DashWoo
  */
@@ -33,7 +33,7 @@ class Account_Order_Widget extends Account_Endpoint_Widget_Base {
 	 * @return string
 	 */
 	public function get_title() {
-		return 'DashWoo — جزئیات یک سفارش';
+		return __( 'DashWoo — Single order', 'dashwoo' );
 	}
 
 	/**
@@ -51,7 +51,7 @@ class Account_Order_Widget extends Account_Endpoint_Widget_Base {
 	 * @return array<int,string>
 	 */
 	public function get_keywords() {
-		return array_merge( parent::get_keywords(), array( 'order', 'سفارش', 'order view', 'invoice' ) );
+		return array_merge( parent::get_keywords(), array( 'order', __( 'Order', 'dashwoo' ), 'order view', 'invoice' ) );
 	}
 
 	/**
@@ -89,17 +89,17 @@ class Account_Order_Widget extends Account_Endpoint_Widget_Base {
 	protected function register_controls() {
 		$this->start_controls_section(
 			'dw_account_order_source',
-			array( 'label' => 'کدام سفارش؟' )
+			array( 'label' => __( 'Which order?', 'dashwoo' ) )
 		);
 
 		$this->add_control(
 			'dw_order_id',
 			array(
-				'label'       => 'شناسهٔ سفارش',
+				'label'       => __( 'Order ID', 'dashwoo' ),
 				'type'        => 'number',
 				'default'     => 0,
 				'min'         => 0,
-				'description' => 'صفر = آخرین سفارش مشتری. وقتی مشتری روی یک سفارش کلیک می‌کند، همان سفارش داخل پنل باز می‌شود.',
+				'description' => __( 'Zero = the customer\'s latest order. When a customer clicks an order, that order opens inside the panel.', 'dashwoo' ),
 			)
 		);
 

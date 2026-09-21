@@ -7,7 +7,7 @@
 		document.querySelectorAll( 'select[data-search="1"]' ).forEach( function ( select ) {
 			var box = document.createElement( 'input' );
 			box.type = 'search';
-			box.placeholder = 'جست‌وجو…';
+			box.placeholder = wp.i18n.__( 'Search…', 'dashwoo' );
 			box.className = 'dw-select-search__input';
 			select.parentNode.insertBefore( box, select );
 			box.addEventListener( 'input', function () {

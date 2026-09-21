@@ -135,10 +135,16 @@ final class Asset_Manager {
 		wp_enqueue_script(
 			'dashwoo-admin',
 			DASHWOO_URL . 'assets/js/admin.js',
-			array( 'wp-api-fetch' ),
+			array( 'wp-api-fetch', 'wp-i18n' ),
 			DASHWOO_VERSION,
 			true
 		);
+
+		// The admin script speaks through wp.i18n as well, so the JSON catalogue
+		// next to the .mo file is what makes the strings Persian (or English).
+		if ( function_exists( 'wp_set_script_translations' ) ) {
+			wp_set_script_translations( 'dashwoo-admin', DASHWOO_TEXTDOMAIN, DASHWOO_DIR . 'languages' );
+		}
 		wp_localize_script(
 			'dashwoo-admin',
 			'DashWooData',
@@ -240,23 +246,23 @@ final class Asset_Manager {
 		$rules = $this->rules();
 
 		if ( ! isset( $rules[ $type ] ) ) {
-			return new \WP_Error( 'dashwoo_asset_type', sprintf( 'Type "%s" does not accept uploads.', $type ) );
+			return new \WP_Error( 'dashwoo_asset_type', sprintf( __('Type "%s" does not accept uploads.', 'dashwoo'), $type ) );
 		}
 
 		if ( ! is_readable( $tmp_path ) ) {
-			return new \WP_Error( 'dashwoo_asset_unreadable', 'The uploaded file is not readable.' );
+			return new \WP_Error( 'dashwoo_asset_unreadable', __('The uploaded file is not readable.', 'dashwoo') );
 		}
 
 		$size = (int) filesize( $tmp_path );
 		$max  = (int) $rules[ $type ]['max'];
 
 		if ( $size <= 0 ) {
-			return new \WP_Error( 'dashwoo_asset_empty', 'The uploaded file is empty.' );
+			return new \WP_Error( 'dashwoo_asset_empty', __('The uploaded file is empty.', 'dashwoo') );
 		}
 		if ( $size > $max ) {
 			return new \WP_Error(
 				'dashwoo_asset_too_large',
-				sprintf( 'File is bigger than the %s limit.', Filesystem::format_size( $max ) )
+				sprintf( __('File is bigger than the %s limit.', 'dashwoo'), Filesystem::format_size( $max ) )
 			);
 		}
 
@@ -264,13 +270,13 @@ final class Asset_Manager {
 		if ( ! in_array( $extension, (array) $rules[ $type ]['ext'], true ) ) {
 			return new \WP_Error(
 				'dashwoo_asset_extension',
-				sprintf( 'Extension ".%s" is not allowed for %s assets.', $extension, $type )
+				sprintf( __('Extension ".%s" is not allowed for %s assets.', 'dashwoo'), $extension, $type )
 			);
 		}
 
 		$contents = Filesystem::get( $tmp_path );
 		if ( false === $contents ) {
-			return new \WP_Error( 'dashwoo_asset_unreadable', 'Cannot read the uploaded file.' );
+			return new \WP_Error( 'dashwoo_asset_unreadable', __('Cannot read the uploaded file.', 'dashwoo') );
 		}
 
 		$magic = (array) $rules[ $type ]['magic'];
@@ -283,13 +289,13 @@ final class Asset_Manager {
 				}
 			}
 			if ( ! $ok ) {
-				return new \WP_Error( 'dashwoo_asset_signature', 'The file signature does not match its type.' );
+				return new \WP_Error( 'dashwoo_asset_signature', __('The file signature does not match its type.', 'dashwoo') );
 			}
 		}
 
 		if ( 'svg' === $type ) {
 			if ( ! dashwoo_is_on( 'assets_svg.allow_upload' ) ) {
-				return new \WP_Error( 'dashwoo_svg_disabled', 'SVG uploads are disabled in the settings.' );
+				return new \WP_Error( 'dashwoo_svg_disabled', __('SVG uploads are disabled in the settings.', 'dashwoo') );
 			}
 
 			$audit = Svg_Sanitizer::audit( (string) $contents );
@@ -301,7 +307,7 @@ final class Asset_Manager {
 			$contents = Svg_Sanitizer::sanitize( (string) $contents, dashwoo_is_on( 'assets_svg.strip_ids' ) );
 
 			if ( '' === $contents ) {
-				return new \WP_Error( 'dashwoo_svg_invalid', 'The SVG could not be sanitised.' );
+				return new \WP_Error( 'dashwoo_svg_invalid', __('The SVG could not be sanitised.', 'dashwoo') );
 			}
 		}
 
@@ -314,7 +320,7 @@ final class Asset_Manager {
 		$abs       = $directory . $file_name;
 
 		if ( ! Filesystem::put( $abs, $contents ) ) {
-			return new \WP_Error( 'dashwoo_asset_write', 'The asset could not be written to the uploads directory.' );
+			return new \WP_Error( 'dashwoo_asset_write', __('The asset could not be written to the uploads directory.', 'dashwoo') );
 		}
 
 		$meta = array_merge(
@@ -455,7 +461,7 @@ final class Asset_Manager {
 		$row = Registry::instance()->find( $id );
 
 		if ( ! $row ) {
-			return new \WP_Error( 'dashwoo_asset_missing', 'Asset not found.' );
+			return new \WP_Error( 'dashwoo_asset_missing', __('Asset not found.', 'dashwoo') );
 		}
 
 		$result = $this->import_file(
@@ -548,9 +554,10 @@ final class Asset_Manager {
 		switch ( $row['type'] ) {
 			case 'font':
 				$html = sprintf(
-					'<span class="dw-font-preview" style="font-family:%s;font-size:22px">%s ۱۲۳ نمونه متن ABC 123</span>',
+					'<span class="dw-font-preview" style="font-family:%s;font-size:22px">%s %s</span>',
 					esc_attr( Fonts\Font_Face_Compiler::quote( $row['meta']['family'] ?? $row['label'] ) ),
-					esc_html( 'نمونه' )
+					esc_html( __( 'Sample', 'dashwoo' ) ),
+					esc_html__( 'ABC 123 — sample text', 'dashwoo' )
 				);
 				break;
 

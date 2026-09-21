@@ -327,13 +327,13 @@ final class Compatibility {
 			esc_html(
 				sprintf(
 					/* translators: 1: warnings, 2: errors */
-					'dashwoo: %1$d هشدار و %2$d خطا در بررسی سازگاری محیط.',
+					__( 'dashwoo: %1$d warnings and %2$d errors in the environment compatibility check.', 'dashwoo' ),
 					(int) $summary['warning'],
 					(int) $summary['error']
 				)
 			),
 			esc_url( admin_url( 'admin.php?page=dashwoo&section=system' ) ),
-			esc_html__( 'مشاهده وضعیت سیستم', 'dashwoo' )
+			esc_html__( __( 'View the system status', 'dashwoo' ), 'dashwoo' )
 		);
 	}
 

@@ -105,7 +105,7 @@ final class Http {
 		if ( ! self::is_allowed_url( $url ) ) {
 			return new \WP_Error(
 				'dashwoo_http_host_not_allowed',
-				sprintf( 'DashWoo blocked a request to a non allow-listed host: %s', $url )
+				sprintf( __('DashWoo blocked a request to a non allow-listed host: %s', 'dashwoo'), $url )
 			);
 		}
 
@@ -152,7 +152,7 @@ final class Http {
 		if ( 200 !== (int) $response['code'] ) {
 			return new \WP_Error(
 				'dashwoo_http_status',
-				sprintf( 'Unexpected HTTP status %d for %s', (int) $response['code'], $url )
+				sprintf( __('Unexpected HTTP status %d for %s', 'dashwoo'), (int) $response['code'], $url )
 			);
 		}
 
@@ -160,12 +160,12 @@ final class Http {
 		$size = strlen( $body );
 
 		if ( 0 === $size ) {
-			return new \WP_Error( 'dashwoo_http_empty', sprintf( 'Empty response body for %s', $url ) );
+			return new \WP_Error( 'dashwoo_http_empty', sprintf( __('Empty response body for %s', 'dashwoo'), $url ) );
 		}
 		if ( $size > (int) $max_bytes ) {
 			return new \WP_Error(
 				'dashwoo_http_too_large',
-				sprintf( 'File is larger than the %d byte limit.', (int) $max_bytes )
+				sprintf( __('File is larger than the %d byte limit.', 'dashwoo'), (int) $max_bytes )
 			);
 		}
 
@@ -179,12 +179,12 @@ final class Http {
 		if ( '' === $found ) {
 			return new \WP_Error(
 				'dashwoo_http_magic_bytes',
-				sprintf( 'Signature check failed for %s (expected %s).', $url, implode( '|', $magic ) )
+				sprintf( __('Signature check failed for %s (expected %s).', 'dashwoo'), $url, implode( '|', $magic ) )
 			);
 		}
 
 		if ( ! Filesystem::put( $dest, $body ) ) {
-			return new \WP_Error( 'dashwoo_http_write', sprintf( 'Cannot write %s', $dest ) );
+			return new \WP_Error( 'dashwoo_http_write', sprintf( __('Cannot write %s', 'dashwoo'), $dest ) );
 		}
 
 		return array(

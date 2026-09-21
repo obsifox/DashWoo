@@ -1,6 +1,6 @@
 <?php
 /**
- * Elementor widget: فرم‌های حساب (forms).
+ * Elementor widget: the account forms (profile, credentials, sign-in).
  *
  * @package DashWoo
  */
@@ -29,7 +29,7 @@ class Account_Forms_Widget extends Account_Widget_Base {
 	 * @return string
 	 */
 	public function get_title() {
-		return 'DashWoo — فرم‌های حساب';
+		return __( 'DashWoo — Account forms', 'dashwoo' );
 	}
 
 	/**
@@ -58,20 +58,20 @@ class Account_Forms_Widget extends Account_Widget_Base {
 	protected function register_controls() {
 		$this->start_controls_section(
 			'dw_account_form',
-			array( 'label' => 'فرم' )
+			array( 'label' => __( 'Form', 'dashwoo' ) )
 		);
 
 		$this->add_control(
 			'dw_form',
 			array(
-				'label'   => 'نوع فرم',
+				'label'   => __( 'Form type', 'dashwoo' ),
 				'type'    => 'select',
 				'default' => 'profile',
 				'options' => array(
-					'profile'  => 'جزئیات حساب (نام نمایشی)',
-					'address'  => 'آدرس‌ها',
-					'password' => 'تغییر گذرواژه',
-					'login'    => 'ورود به حساب',
+					'profile'  => __( 'Account details (display name)', 'dashwoo' ),
+					'address'  => __( 'Addresses', 'dashwoo' ),
+					'password' => __( 'Change password', 'dashwoo' ),
+					'login'    => __( 'Sign in', 'dashwoo' ),
 				),
 			)
 		);
@@ -79,7 +79,7 @@ class Account_Forms_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_title',
 			array(
-				'label'   => 'عنوان فرم',
+				'label'   => __( 'Form title', 'dashwoo' ),
 				'type'    => 'text',
 				'default' => '',
 			)
@@ -88,16 +88,16 @@ class Account_Forms_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_fields',
 			array(
-				'label'       => 'فیلدهای فرم پروفایل',
+				'label'       => __( 'Profile form fields', 'dashwoo' ),
 				'type'        => 'select2',
 				'multiple'    => true,
 				'default'     => array( 'display_name' ),
 				'options'     => array(
-					'display_name'  => 'نام نمایشی (قابل ذخیره)',
-					'first_name'    => 'نام',
-					'last_name'     => 'نام خانوادگی',
-					'billing_email' => 'ایمیل صورتحساب',
-					'billing_phone' => 'تلفن',
+					'display_name'  => __( 'Display name (savable)', 'dashwoo' ),
+					'first_name'    => __( 'First name', 'dashwoo' ),
+					'last_name'     => __( 'Last name', 'dashwoo' ),
+					'billing_email' => __( 'Billing email', 'dashwoo' ),
+					'billing_phone' => __( 'Phone', 'dashwoo' ),
 				),
 				'condition'   => array( 'dw_form' => 'profile' ),
 			)
@@ -107,7 +107,7 @@ class Account_Forms_Widget extends Account_Widget_Base {
 			'dw_note',
 			array(
 				'type' => 'raw_html',
-				'raw'  => 'DashWoo فقط «نام نمایشی» را ذخیره می‌کند؛ ایمیل، گذرواژه و آدرس‌ها همچنان با فرم و اعتبارسنجی خود ووکامرس ذخیره می‌شوند. لینک‌های هر بخش در همان ویجت هست.',
+				'raw'  => __( 'DashWoo only saves the display name; email, password and addresses still go through WooCommerce\'s own form and validation. Every section links to it from this widget.', 'dashwoo' ),
 			)
 		);
 

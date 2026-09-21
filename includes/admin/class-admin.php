@@ -84,7 +84,7 @@ final class Admin {
 
 		// One submenu per navigation group; the sections inside a group are tabs
 		// on that screen (see partial-nav.php), never one long flat list.
-		add_submenu_page( self::SLUG, 'داشبورد', 'داشبورد', 'manage_options', self::SLUG, array( $this, 'render' ) );
+		add_submenu_page( self::SLUG, __( 'Dashboard', 'dashwoo' ), __( 'Dashboard', 'dashwoo' ), 'manage_options', self::SLUG, array( $this, 'render' ) );
 
 		foreach ( Sections::groups() as $group => $meta ) {
 			if ( 'home' === $group ) {
@@ -215,7 +215,7 @@ final class Admin {
 				$tabs,
 				array(
 					'key'    => 'assets-library',
-					'label'  => 'کتابخانهٔ رسانه',
+					'label'  => __( 'Media Library', 'dashwoo' ),
 					'url'    => admin_url( 'admin.php?page=' . self::SLUG . '-assets' ),
 					'active' => 'assets-library' === $active,
 				)
@@ -225,7 +225,7 @@ final class Admin {
 		if ( 'system' === $group && 'basic' === $cluster ) {
 			$tabs[] = array(
 				'key'    => 'system-status',
-				'label'  => 'وضعیت سیستم',
+				'label'  => __( 'System status', 'dashwoo' ),
 				'url'    => $this->url( 'system' ),
 				'active' => 'system-status' === $active,
 			);
@@ -236,7 +236,7 @@ final class Admin {
 				$tabs,
 				array(
 					'key'    => 'capabilities',
-					'label'  => 'قابلیت‌های هاست',
+					'label'  => __( 'Host capabilities', 'dashwoo' ),
 					'url'    => $this->url( 'capabilities' ),
 					'active' => 'capabilities' === $active,
 				)
@@ -305,7 +305,7 @@ final class Admin {
 	 */
 	public function render() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( 'Access denied.' );
+			wp_die( __('Access denied.', 'dashwoo') );
 		}
 
 		$section = $this->current_section();
@@ -360,7 +360,7 @@ final class Admin {
 	 */
 	public function render_assets() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( 'Access denied.' );
+			wp_die( __('Access denied.', 'dashwoo') );
 		}
 
 		$type    = isset( $_GET['type'] ) ? sanitize_key( wp_unslash( $_GET['type'] ) ) : 'font'; // phpcs:ignore WordPress.Security.NonceVerification
@@ -456,7 +456,7 @@ final class Admin {
 
 	public function handle_action() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( 'Access denied.' );
+			wp_die( __('Access denied.', 'dashwoo') );
 		}
 
 		check_admin_referer( 'dashwoo_action' );
@@ -496,7 +496,7 @@ final class Admin {
 
 				return array(
 					'ok'      => (bool) $saved,
-					'message' => $saved ? 'تنظیمات ذخیره شد.' : 'بخش نامعتبر است.',
+					'message' => $saved ? __( 'Settings saved.', 'dashwoo' ) : __( 'Unknown section.', 'dashwoo' ),
 				);
 
 			case 'reset_section':
@@ -504,7 +504,7 @@ final class Admin {
 
 				return array(
 					'ok'      => true,
-					'message' => 'بخش بازنشانی شد.',
+					'message' => __( 'Section reset.', 'dashwoo' ),
 				);
 
 			case 'install_font':
@@ -519,7 +519,7 @@ final class Admin {
 					)
 					: array(
 						'ok'      => true,
-						'message' => sprintf( 'فونت %s با موفقیت دانلود و به‌صورت محلی ذخیره شد.', $result['label'] ),
+						'message' => sprintf( __( 'The font %s was downloaded and stored locally.', 'dashwoo' ), $result['label'] ),
 					);
 
 			case 'update_font':
@@ -532,7 +532,7 @@ final class Admin {
 					)
 					: array(
 						'ok'      => true,
-						'message' => ! empty( $result['updated'] ) ? 'فونت به‌روزرسانی شد.' : 'فونت از قبل به‌روز است.',
+						'message' => ! empty( $result['updated'] ) ? __( 'Font updated.', 'dashwoo' ) : __( 'The font is already up to date.', 'dashwoo' ),
 					);
 
 			case 'delete_font':
@@ -540,7 +540,7 @@ final class Admin {
 
 				return array(
 					'ok'      => $ok,
-					'message' => $ok ? 'فونت حذف شد.' : 'فونت یافت نشد.',
+					'message' => $ok ? __( 'Font deleted.', 'dashwoo' ) : __( 'Font not found.', 'dashwoo' ),
 				);
 
 			case 'upload_font':
@@ -562,7 +562,7 @@ final class Admin {
 
 				return array(
 					'ok'      => (bool) $result->set_status( (string) ( $post['slug'] ?? '' ), true ),
-					'message' => 'فونت پیش‌فرض تنظیم شد.',
+					'message' => __( 'Default font set.', 'dashwoo' ),
 				);
 
 			case 'install_icons':
@@ -575,7 +575,7 @@ final class Admin {
 					)
 					: array(
 						'ok'      => true,
-						'message' => ! empty( $result['installed'] ) ? 'فونت آیکون دانلود شد (یک فایل متغیر).' : 'این سبک از قبل نصب است.',
+						'message' => ! empty( $result['installed'] ) ? __( 'The icon font was downloaded (a single variable file).', 'dashwoo' ) : __( 'This style is already installed.', 'dashwoo' ),
 					);
 
 			case 'delete_icon':
@@ -583,7 +583,7 @@ final class Admin {
 
 				return array(
 					'ok'      => $ok,
-					'message' => $ok ? 'سبک آیکون حذف شد.' : 'سبک یافت نشد.',
+					'message' => $ok ? __( 'Icon style removed.', 'dashwoo' ) : __( 'Style not found.', 'dashwoo' ),
 				);
 
 			case 'capabilities_recheck':
@@ -600,8 +600,8 @@ final class Admin {
 				return array(
 					'ok'      => true,
 					'message' => $blocked
-						? sprintf( 'بررسی انجام شد: %d ویژگی به‌خاطر نبود قابلیت هاست خودکار خاموش است.', $blocked )
-						: 'بررسی انجام شد: همهٔ ویژگی‌های DashWoo فعال‌اند.',
+						? sprintf( __( 'Check finished: %d features are switched off automatically because the host capability is missing.', 'dashwoo' ), $blocked )
+						: __( 'Check finished: every DashWoo feature is active.', 'dashwoo' ),
 				);
 
 			case 'recheck':
@@ -610,7 +610,7 @@ final class Admin {
 				return array(
 					'ok'      => true,
 					'message' => sprintf(
-						'بررسی انجام شد: %d موفق، %d هشدار، %d خطا.',
+						__( 'Check finished: %d passed, %d warnings, %d errors.', 'dashwoo' ),
 						(int) $report->summary()['ok'],
 						(int) $report->summary()['warning'],
 						(int) $report->summary()['error']
@@ -622,7 +622,7 @@ final class Admin {
 
 				return array(
 					'ok'      => true,
-					'message' => sprintf( 'CSS توکن‌ها ساخته شد (%d متغیر، %s).', (int) $result['variables'], $result['file'] ),
+					'message' => sprintf( __( 'The token CSS was compiled (%d variables, %s).', 'dashwoo' ), (int) $result['variables'], $result['file'] ),
 				);
 
 			case 'flush_cache':
@@ -630,7 +630,7 @@ final class Admin {
 
 				return array(
 					'ok'      => true,
-					'message' => sprintf( '%d فایل کش حذف شد.', (int) $gone ),
+					'message' => sprintf( __( '%d cache files were removed.', 'dashwoo' ), (int) $gone ),
 				);
 
 			case 'kit_sync':
@@ -643,7 +643,7 @@ final class Admin {
 					)
 					: array(
 						'ok'      => true,
-						'message' => sprintf( 'کیت المنتور همگام شد (%d رنگ).', (int) $result['colors'] ),
+						'message' => sprintf( __( 'The Elementor kit was synced (%d colours).', 'dashwoo' ), (int) $result['colors'] ),
 					);
 
 			case 'kit_revert':
@@ -656,7 +656,7 @@ final class Admin {
 					)
 					: array(
 						'ok'      => true,
-						'message' => 'کیت المنتور به نسخه پشتیبان بازگشت.',
+						'message' => __( 'The Elementor kit was restored from the backup.', 'dashwoo' ),
 					);
 
 			case 'clear_logs':
@@ -664,13 +664,13 @@ final class Admin {
 
 				return array(
 					'ok'      => true,
-					'message' => 'گزارش‌ها پاک شد.',
+					'message' => __( 'The logs were cleared.', 'dashwoo' ),
 				);
 
 			default:
 				return array(
 					'ok'      => false,
-					'message' => 'عملیات ناشناخته.',
+					'message' => __( 'Unknown action.', 'dashwoo' ),
 				);
 		}
 	}
@@ -699,7 +699,7 @@ final class Admin {
 		echo '<div class="notice ' . esc_attr( $class ) . ' is-dismissible"><p><strong>DashWoo</strong> — ';
 		printf(
 			/* translators: 1: ok, 2: warnings, 3: errors */
-			esc_html__( 'بررسی سازگاری: %1$d موفق، %2$d هشدار، %3$d خطا.', 'dashwoo' ),
+			esc_html__( __( 'Compatibility check: %1$d passed, %2$d warnings, %3$d errors.', 'dashwoo' ), 'dashwoo' ),
 			(int) ( $summary['ok'] ?? 0 ),
 			(int) ( $summary['warning'] ?? 0 ),
 			(int) ( $summary['error'] ?? 0 )
@@ -707,7 +707,7 @@ final class Admin {
 		printf(
 			' <a href="%s">%s</a></p></div>',
 			esc_url( admin_url( 'admin.php?page=dashwoo&section=system' ) ),
-			esc_html__( 'مشاهده گزارش کامل', 'dashwoo' )
+			esc_html__( __( 'View the full report', 'dashwoo' ), 'dashwoo' )
 		);
 	}
 
@@ -723,7 +723,7 @@ final class Admin {
 		if ( empty( $_FILES[ $field ]['tmp_name'] ) ) {
 			return array(
 				'ok'      => false,
-				'message' => 'فایلی انتخاب نشده است.',
+				'message' => __( 'No file was selected.', 'dashwoo' ),
 			);
 		}
 
@@ -736,7 +736,7 @@ final class Admin {
 			if ( empty( $check['ext'] ) ) {
 				return array(
 					'ok'      => false,
-					'message' => 'پسوند فایل مجاز نیست.',
+					'message' => __( 'This file extension is not allowed.', 'dashwoo' ),
 				);
 			}
 		}
@@ -775,7 +775,7 @@ final class Admin {
 
 		return array(
 			'ok'      => true,
-			'message' => sprintf( 'فایل «%s» با موفقیت ذخیره شد.', $label ),
+			'message' => sprintf( __( 'The file “%s” was saved.', 'dashwoo' ), $label ),
 		);
 	}
 

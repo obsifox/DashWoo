@@ -92,115 +92,115 @@ class WooCommerce_Features {
 
 		$features = array(
 			'custom_order_tables'         => array(
-				'label' => 'انبارش سفارش‌های پرفورمنس (HPOS)',
+				'label' => __( 'High-Performance Order Storage (HPOS)', 'dashwoo' ),
 				'why'   => 'The one order read goes through wc_get_order()->get_status(), i.e. the CRUD API WooCommerce recommends under HPOS; no post tables or post meta are touched.',
 			),
 			'cart_checkout_blocks'        => array(
-				'label' => 'بلوک‌های سبد و تسویه',
+				'label' => __( 'Cart and Checkout blocks', 'dashwoo' ),
 				'why'   => 'The v9 adapter hooks the documented block checkout actions and adds no cart logic of its own.',
 			),
 			'product_block_editor'        => array(
-				'label' => 'ویرایشگر بلوکی محصول',
+				'label' => __( 'Product block editor', 'dashwoo' ),
 				'why'   => 'No product editor extension is registered; product markup is styled with tokens only.',
 			),
 			'analytics'                   => array(
-				'label' => 'تحلیل‌ها',
+				'label' => __( 'Analytics', 'dashwoo' ),
 				'why'   => 'WooCommerce Analytics screens are untouched.',
 			),
 			'rate_limit_checkout'         => array(
-				'label' => 'محدودیت نرخ تسویه',
+				'label' => __( 'Checkout rate limiting', 'dashwoo' ),
 				'why'   => 'No checkout request handling, no rate logic.',
 			),
 			'marketplace'                 => array(
-				'label' => 'مارکت‌پلیس',
+				'label' => __( 'Marketplace', 'dashwoo' ),
 				'why'   => 'No product listing or marketplace integration.',
 			),
 			'order_withdrawal'            => array(
-				'label' => 'انصراف از سفارش',
+				'label' => __( 'Order withdrawal', 'dashwoo' ),
 				'why'   => 'No order lifecycle participation.',
 			),
 			'order_attribution'           => array(
-				'label' => 'اسناد سفارش',
+				'label' => __( 'Order attribution', 'dashwoo' ),
 				'why'   => 'No order meta is written.',
 			),
 			'site_visibility_badge'       => array(
-				'label' => 'نشان وضعیت فروشگاه',
+				'label' => __( 'Site visibility badge', 'dashwoo' ),
 				'why'   => 'No storefront badge or visibility logic.',
 			),
 			'hpos_fts_indexes'            => array(
-				'label' => 'ایندکس‌های HPOS',
+				'label' => __( 'HPOS full-text search indexes', 'dashwoo' ),
 				'why'   => 'No direct SQL against order tables.',
 			),
 			'hpos_datastore_caching'      => array(
-				'label' => 'کش انبارش سفارش‌ها',
+				'label' => __( 'HPOS datastore caching', 'dashwoo' ),
 				'why'   => 'No order datastore usage.',
 			),
 			'remote_logging'              => array(
-				'label' => 'لاگ‌گیری راه دور',
+				'label' => __( 'Remote logging', 'dashwoo' ),
 				'why'   => 'DashWoo logs into its own option and never to a remote endpoint.',
 			),
 			'deferred_transactional_emails' => array(
-				'label' => 'ایمیل‌های تراکنشی معوق',
+				'label' => __( 'Deferred transactional emails', 'dashwoo' ),
 				'why'   => 'No email sending or email template overrides.',
 			),
 			'customer_review_request'     => array(
-				'label' => 'درخواست نظر مشتری',
+				'label' => __( 'Customer review request', 'dashwoo' ),
 				'why'   => 'No scheduled customer communication.',
 			),
 			'email_improvements'          => array(
-				'label' => 'بهبود ایمیل‌ها',
+				'label' => __( 'Email improvements', 'dashwoo' ),
 				'why'   => 'WooCommerce email templates are not filtered.',
 			),
 			'block_email_editor'          => array(
-				'label' => 'ویرایشگر بلوکی ایمیل',
+				'label' => __( 'Block email editor', 'dashwoo' ),
 				'why'   => 'No email template edits.',
 			),
 			'blueprint'                   => array(
-				'label' => 'بلوپرینت فروشگاه',
+				'label' => __( 'Store blueprint', 'dashwoo' ),
 				'why'   => 'No store setup wizard participation.',
 			),
 			'wc-visual-attribute'         => array(
-				'label' => 'ویژگی‌های تصویری',
+				'label' => __( 'Product attributes', 'dashwoo' ),
 				'why'   => 'Attribute markup is only styled through the design tokens.',
 			),
 			'point_of_sale'               => array(
-				'label' => 'فروش حضوری (POS)',
+				'label' => __( 'Point of Sale (POS)', 'dashwoo' ),
 				'why'   => 'No POS integration.',
 			),
 			'point_of_sale_staff'         => array(
-				'label' => 'کارکنان POS',
+				'label' => __( 'POS staff', 'dashwoo' ),
 				'why'   => 'No POS integration.',
 			),
 			'fulfillments'                => array(
-				'label' => 'تکمیل سفارش',
+				'label' => __( 'Fulfillments', 'dashwoo' ),
 				'why'   => 'No fulfillment workflow.',
 			),
 			'mcp_integration'             => array(
-				'label' => 'یکپارچه‌سازی MCP',
+				'label' => __( 'MCP integration', 'dashwoo' ),
 				'why'   => 'No MCP tool registration.',
 			),
 			'destroy-empty-sessions'      => array(
-				'label' => 'حذف نشست‌های خالی',
+				'label' => __( 'Clear empty sessions', 'dashwoo' ),
 				'why'   => 'No session handling.',
 			),
 			'rest_api_caching'            => array(
-				'label' => 'کش REST API',
+				'label' => __( 'REST API caching', 'dashwoo' ),
 				'why'   => 'DashWoo exposes its own namespace (dashwoo/v1) and does not intercept WooCommerce routes.',
 			),
 			'cart_save_for_later'         => array(
-				'label' => 'ذخیرهٔ سبد برای بعد',
+				'label' => __( 'Save cart for later', 'dashwoo' ),
 				'why'   => 'No cart data manipulation.',
 			),
 			'product_wishlist'            => array(
-				'label' => 'لیست علاقه‌مندی',
+				'label' => __( 'Wishlist', 'dashwoo' ),
 				'why'   => 'No wishlist storage or markup.',
 			),
 			'address_autocomplete'        => array(
-				'label' => 'تکمیل خودکار آدرس',
+				'label' => __( 'Address autocomplete', 'dashwoo' ),
 				'why'   => 'No address fields are registered or filtered.',
 			),
 			'new_product_editor'          => array(
-				'label' => 'ویرایشگر جدید محصول',
+				'label' => __( 'New product editor', 'dashwoo' ),
 				'why'   => 'No product editor extension.',
 			),
 		);

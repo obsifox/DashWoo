@@ -1,6 +1,6 @@
 <?php
 /**
- * Elementor widget: کارت پروفایل کاربر (account profile).
+ * Elementor widget: the customer profile card.
  *
  * @package DashWoo
  */
@@ -29,7 +29,7 @@ class Account_Profile_Widget extends Account_Widget_Base {
 	 * @return string
 	 */
 	public function get_title() {
-		return 'DashWoo — پروفایل کاربر';
+		return __( 'DashWoo — Customer profile', 'dashwoo' );
 	}
 
 	/**
@@ -58,19 +58,19 @@ class Account_Profile_Widget extends Account_Widget_Base {
 	protected function register_controls() {
 		$this->start_controls_section(
 			'dw_account_profile',
-			array( 'label' => 'کارت پروفایل' )
+			array( 'label' => __( 'Profile card', 'dashwoo' ) )
 		);
 
 		$this->add_control(
 			'dw_variant',
 			array(
-				'label'   => 'حالت نمایش',
+				'label'   => __( 'Display mode', 'dashwoo' ),
 				'type'    => 'select',
 				'default' => 'card',
 				'options' => array(
-					'card'    => 'کارت بزرگ',
-					'compact' => 'فشرده (یک خط)',
-					'inline'  => 'افقی کنار محتوا',
+					'card'    => __( 'Large card', 'dashwoo' ),
+					'compact' => __( 'Compact (one line)', 'dashwoo' ),
+					'inline'  => __( 'Horizontal next to the content', 'dashwoo' ),
 				),
 			)
 		);
@@ -78,17 +78,17 @@ class Account_Profile_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_avatar',
 			array(
-				'label'       => 'آواتار',
+				'label'       => __( 'Avatar', 'dashwoo' ),
 				'type'        => 'switcher',
 				'default'     => 'yes',
-				'description' => 'اگر سایت گراواتار نداشته باشد، حرف اول نام نمایش داده می‌شود.',
+				'description' => __( 'When the site has no Gravatar, the first letter of the name is shown.', 'dashwoo' ),
 			)
 		);
 
 		$this->add_control(
 			'dw_avatar_size',
 			array(
-				'label'     => 'اندازه آواتار (px)',
+				'label'     => __( 'Avatar size (px)', 'dashwoo' ),
 				'type'      => 'number',
 				'default'   => (int) dashwoo_get_setting( 'account_design.avatar_size', 96 ),
 				'min'       => 32,
@@ -100,17 +100,17 @@ class Account_Profile_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_fields',
 			array(
-				'label'       => 'خطوط اطلاعات',
+				'label'       => __( 'Information rows', 'dashwoo' ),
 				'type'        => 'select2',
 				'multiple'    => true,
 				'default'     => array( 'email' ),
 				'options'     => array(
-					'email'         => 'ایمیل',
-					'billing_phone' => 'تلفن',
-					'billing_city'  => 'شهر',
-					'orders'        => 'تعداد سفارش',
-					'first_name'    => 'نام',
-					'last_name'     => 'نام خانوادگی',
+					'email'         => __( 'Email', 'dashwoo' ),
+					'billing_phone' => __( 'Phone', 'dashwoo' ),
+					'billing_city'  => __( 'City', 'dashwoo' ),
+					'orders'        => __( 'Order count', 'dashwoo' ),
+					'first_name'    => __( 'First name', 'dashwoo' ),
+					'last_name'     => __( 'Last name', 'dashwoo' ),
 				),
 			)
 		);
@@ -118,10 +118,10 @@ class Account_Profile_Widget extends Account_Widget_Base {
 		$this->add_control(
 			'dw_edit_button',
 			array(
-				'label'       => 'دکمهٔ ویرایش پروفایل',
+				'label'       => __( 'Edit profile button', 'dashwoo' ),
 				'type'        => 'switcher',
 				'default'     => 'yes',
-				'description' => 'لینک به فرم ویرایش حساب ووکامرس.',
+				'description' => __( 'Links to the WooCommerce account edit form.', 'dashwoo' ),
 			)
 		);
 

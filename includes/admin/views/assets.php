@@ -16,9 +16,9 @@ $dw_type    = $context['type'];
 $dw_rows    = $context['rows'];
 $dw_storage = $context['storage'];
 $dw_tabs    = array(
-	'font'   => 'فونت‌ها',
-	'icon'   => 'آیکون‌ها',
-	'image'  => 'تصاویر',
+	'font'   => __( 'Fonts', 'dashwoo' ),
+	'icon'   => __( 'Icons', 'dashwoo' ),
+	'image'  => __( 'Images', 'dashwoo' ),
 	'svg'    => 'SVG',
 	'custom' => 'CSS/JS',
 );
@@ -36,51 +36,51 @@ $dw_tabs    = array(
 	<?php if ( 'font' === $dw_type ) : ?>
 		<div class="dw-grid dw-grid--2">
 			<div class="dw-card">
-				<h2>افزودن فونت از Google Fonts</h2>
+				<h2><?php esc_html_e( 'Add a font from Google Fonts', 'dashwoo' ); ?></h2>
 				<form method="post" action="<?php echo esc_url( $context['action_url'] ); ?>">
 					<?php wp_nonce_field( 'dashwoo_action' ); ?>
 					<input type="hidden" name="action" value="dashwoo_action" />
 					<input type="hidden" name="dw_action" value="install_font" />
 					<p>
-						<label for="dw-family">فونت</label>
+						<label for="dw-family"><?php esc_html_e( 'Font family', 'dashwoo' ); ?></label>
 						<select id="dw-family" name="family" class="dw-select-search" data-search="1">
 							<?php foreach ( (array) $context['catalog'] as $dw_font ) : ?>
 								<option value="<?php echo esc_attr( $dw_font['family'] ); ?>">
-									<?php echo esc_html( $dw_font['family'] . ( $dw_font['persian'] ? ' — فارسی' : '' ) ); ?>
+									<?php echo esc_html( $dw_font['family'] . ( $dw_font['persian'] ? __( ' — Persian', 'dashwoo' ) : '' ) ); ?>
 								</option>
 							<?php endforeach; ?>
 						</select>
 					</p>
 					<p>
-						<label>وزن‌ها</label><br />
+						<label><?php esc_html_e( 'Weights', 'dashwoo' ); ?></label><br />
 						<?php foreach ( array( '100', '200', '300', '400', '500', '600', '700', '800', '900' ) as $dw_weight ) : ?>
 							<label class="dw-inline"><input type="checkbox" name="weights[]" value="<?php echo esc_attr( $dw_weight ); ?>"
 								<?php checked( in_array( $dw_weight, array( '400', '500', '700' ), true ) ); ?> /> <?php echo esc_html( $dw_weight ); ?></label>
 						<?php endforeach; ?>
 					</p>
-					<button class="button button-primary" type="submit">دانلود و ذخیره محلی</button>
-					<p class="description">پس از دانلود، فایل‌ها در <code>uploads/dashwoo/fonts/</code> قرار می‌گیرند و هیچ درخواستی به گوگل ارسال نمی‌شود.</p>
+					<button class="button button-primary" type="submit"><?php esc_html_e( 'Download and store it locally', 'dashwoo' ); ?></button>
+					<p class="description"><?php esc_html_e( 'After the download the files live in', 'dashwoo' ); ?> <code>uploads/dashwoo/fonts/</code> <?php esc_html_e( 'and no request is made to Google.', 'dashwoo' ); ?></p>
 				</form>
 			</div>
 
 			<div class="dw-card">
-				<h2>آپلود فونت اختصاصی</h2>
+				<h2><?php esc_html_e( 'Upload your own font', 'dashwoo' ); ?></h2>
 				<form method="post" action="<?php echo esc_url( $context['action_url'] ); ?>" enctype="multipart/form-data">
 					<?php wp_nonce_field( 'dashwoo_action' ); ?>
 					<input type="hidden" name="action" value="dashwoo_action" />
 					<input type="hidden" name="dw_action" value="upload_font" />
-					<p><input type="text" name="label" placeholder="نام خانوادگی فونت" class="regular-text" required /></p>
+					<p><input type="text" name="label" placeholder=__( 'Font family name', 'dashwoo' ) class="regular-text" required /></p>
 					<p><input type="file" name="font_file" accept=".woff2,.woff,.ttf,.otf" required /></p>
-					<button class="button" type="submit">آپلود</button>
+					<button class="button" type="submit"><?php esc_html_e( 'Upload', 'dashwoo' ); ?></button>
 				</form>
 			</div>
 		</div>
 	<?php elseif ( 'icon' === $dw_type ) : ?>
 		<div class="dw-card">
-			<h2>Material Symbols و Material Icons</h2>
+			<h2><?php esc_html_e( 'Material Symbols and Material Icons', 'dashwoo' ); ?></h2>
 			<p class="description">
-				Material Symbols یک <strong>فونت متغیر</strong> است: برای هر سبک فقط یک فایل WOFF2 دانلود می‌شود و
-				Weight / Fill / Grade / Optical Size در زمان رندر با <code>font-variation-settings</code> تنظیم می‌شوند.
+				<?php esc_html_e( 'Material Symbols is a <strong>variable font</strong>: one WOFF2 file is downloaded for every style and', 'dashwoo' ); ?>
+				<?php esc_html_e( 'Weight / Fill / Grade / Optical Size are set at render time through <code>font-variation-settings</code>.', 'dashwoo' ); ?>
 			</p>
 			<form method="post" action="<?php echo esc_url( $context['action_url'] ); ?>" class="dw-inline">
 				<?php wp_nonce_field( 'dashwoo_action' ); ?>
@@ -91,24 +91,24 @@ $dw_tabs    = array(
 						<option value="<?php echo esc_attr( $dw_style ); ?>"><?php echo esc_html( $dw_label ); ?></option>
 					<?php endforeach; ?>
 				</select>
-				<label class="dw-inline"><input type="checkbox" name="force" value="1" /> دانلود مجدد</label>
-				<button class="button button-primary" type="submit">دانلود</button>
+				<label class="dw-inline"><input type="checkbox" name="force" value="1" /> <?php esc_html_e( 'Download again', 'dashwoo' ); ?></label>
+				<button class="button button-primary" type="submit"><?php esc_html_e( 'Download', 'dashwoo' ); ?></button>
 			</form>
 		</div>
 	<?php endif; ?>
 
 	<div class="dw-card">
-		<h2>دارایی‌های ثبت‌شده (<?php echo esc_html( $dw_tabs[ $dw_type ] ?? $dw_type ); ?>)</h2>
+		<h2><?php esc_html_e( 'Registered assets', 'dashwoo' ); ?> (<?php echo esc_html( $dw_tabs[ $dw_type ] ?? $dw_type ); ?>)</h2>
 		<table class="widefat striped dw-table">
 			<thead>
 				<tr>
-					<th>نام</th><th>اسلاگ</th><th>ارائه‌دهنده</th><th>نسخه</th><th>وضعیت</th>
-					<th>پیش‌فرض</th><th>حجم</th><th>آخرین تغییر</th><th>عملیات</th>
+					<th><?php esc_html_e( 'Label', 'dashwoo' ); ?></th><th><?php esc_html_e( 'Slug', 'dashwoo' ); ?></th><th><?php esc_html_e( 'Provider', 'dashwoo' ); ?></th><th><?php esc_html_e( 'Version', 'dashwoo' ); ?></th><th><?php esc_html_e( 'Status', 'dashwoo' ); ?></th>
+					<th><?php esc_html_e( 'Default', 'dashwoo' ); ?></th><th><?php esc_html_e( 'Size', 'dashwoo' ); ?></th><th><?php esc_html_e( 'Last change', 'dashwoo' ); ?></th><th><?php esc_html_e( 'Actions', 'dashwoo' ); ?></th>
 				</tr>
 			</thead>
 			<tbody>
 			<?php if ( ! $dw_rows ) : ?>
-				<tr><td colspan="9">هنوز دارایی‌ای ثبت نشده است.</td></tr>
+				<tr><td colspan="9"><?php esc_html_e( 'No asset is registered yet.', 'dashwoo' ); ?></td></tr>
 			<?php endif; ?>
 			<?php foreach ( (array) $dw_rows as $dw_row ) : ?>
 				<tr>
@@ -116,7 +116,7 @@ $dw_tabs    = array(
 					<td><code><?php echo esc_html( $dw_row['slug'] ); ?></code></td>
 					<td><?php echo esc_html( $dw_row['provider'] ); ?></td>
 					<td><code><?php echo esc_html( $dw_row['version'] ); ?></code></td>
-					<td><?php echo 'active' === $dw_row['status'] ? '<span class="dw-pill dw-pill--ok">فعال</span>' : '<span class="dw-pill">غیرفعال</span>'; ?></td>
+					<td><?php echo 'active' === $dw_row['status'] ? '<span class="dw-pill dw-pill--ok">' . esc_html__( 'active', 'dashwoo' ) . '</span>' : '<span class="dw-pill">' . esc_html__( 'inactive', 'dashwoo' ) . '</span>'; ?></td>
 					<td><?php echo $dw_row['is_default'] ? '✓' : '—'; ?></td>
 					<td><?php echo esc_html( size_format( (int) $dw_row['size'] ) ); ?></td>
 					<td><?php echo esc_html( $dw_row['updated_at'] ); ?></td>
@@ -125,8 +125,8 @@ $dw_tabs    = array(
 							<?php wp_nonce_field( 'dashwoo_action' ); ?>
 							<input type="hidden" name="action" value="dashwoo_action" />
 							<input type="hidden" name="slug" value="<?php echo esc_attr( $dw_row['slug'] ); ?>" />
-							<button class="button button-small" type="submit" name="dw_action" value="update_font">به‌روزرسانی</button>
-							<button class="button button-small" type="submit" name="dw_action" value="delete_font">حذف</button>
+							<button class="button button-small" type="submit" name="dw_action" value="update_font"><?php esc_html_e( 'Update', 'dashwoo' ); ?></button>
+							<button class="button button-small" type="submit" name="dw_action" value="delete_font"><?php esc_html_e( 'Delete', 'dashwoo' ); ?></button>
 						</form>
 					</td>
 				</tr>

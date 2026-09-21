@@ -5,7 +5,7 @@
  * WooCommerce ships one column: the menu and the section content are stacked. A shop
  * owner usually wants the menu in a smaller card *next to* a bigger content card, and
  * clicking a menu item should replace the content of that second card - including the
- * order detail ("سفارش‌ها → یک سفارش") - without a full page reload.
+ * order detail ("Orders → a single order") - without a full page reload.
  *
  * This class is that shell:
  *   - `render()` draws the shell (progressive enhancement: every link is a real
@@ -112,8 +112,8 @@ class Panel {
 			'gap'          => max( 0, min( 80, (int) dashwoo_get_setting( self::SECTION . '.gap', 24 ) ) ),
 			'sticky'       => dashwoo_is_on( self::SECTION . '.sticky' ),
 			'titles'       => dashwoo_is_on( self::SECTION . '.titles' ),
-			'back_label'   => (string) dashwoo_get_setting( self::SECTION . '.back_label', 'بازگشت به سفارش‌ها' ),
-			'loading_text' => (string) dashwoo_get_setting( self::SECTION . '.loading_text', 'در حال بارگذاری…' ),
+			'back_label'   => (string) dashwoo_get_setting( self::SECTION . '.back_label', __( 'Back to orders', 'dashwoo' ) ),
+			'loading_text' => (string) dashwoo_get_setting( self::SECTION . '.loading_text', __( 'Loading…', 'dashwoo' ) ),
 			'sync_url'     => dashwoo_is_on( self::SECTION . '.sync_url' ),
 			'mobile'       => $mobile,
 			'icons'        => dashwoo_is_on( self::SECTION . '.icons' ),
@@ -310,7 +310,7 @@ class Panel {
 		$label    = isset( $views[ $view ]['label'] ) ? (string) $views[ $view ]['label'] : '';
 
 		if ( '' === $label && self::ORDER_VIEW === $view ) {
-			$label = 'جزئیات سفارش';
+			$label = __( 'Order details', 'dashwoo' );
 		}
 
 		$order_id = self::ORDER_VIEW === $view ? max( 0, (int) ( $args['order_id'] ?? self::requested_order( $args ) ) ) : 0;
@@ -460,7 +460,7 @@ class Panel {
 		}
 
 		if ( 'native' === $source ) {
-			return Sections::unavailable( 'این بخش روی این فروشگاه محتوایی ندارد.' );
+			return Sections::unavailable( __( 'This section has no content on this store.', 'dashwoo' ) );
 		}
 
 		if ( self::ORDER_VIEW === $view ) {
@@ -597,7 +597,7 @@ class Panel {
 		if ( 'modal' === $mode ) {
 			$html .= '<div class="dw-acc__panel-modal" data-dw-panel-modal hidden>'
 				. '<div class="dw-acc__panel-modal-box" role="dialog" aria-modal="true">'
-				. '<button type="button" class="dw-acc__panel-modal-close" data-dw-panel-close aria-label="بستن">' . Icon_Renderer::render( array( 'icon' => 'close', 'size' => 22 ) ) . '</button>'
+				. '<button type="button" class="dw-acc__panel-modal-close" data-dw-panel-close aria-label="' . esc_attr__( 'Close', 'dashwoo' ) . '">' . Icon_Renderer::render( array( 'icon' => 'close', 'size' => 22 ) ) . '</button>'
 				. '<div class="dw-acc__panel-modal-body" data-dw-panel-modal-body></div>'
 				. '</div></div>';
 		}
@@ -637,7 +637,7 @@ class Panel {
 			'id'      => self::ORDER_VIEW,
 			'url'     => '',
 			'slug'    => self::ORDER_VIEW,
-			'label'   => 'جزئیات سفارش',
+			'label'   => __( 'Order details', 'dashwoo' ),
 			'dynamic' => true,
 		);
 

@@ -10,7 +10,7 @@ namespace DashWoo\Widgets;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * جزئیات حساب
+ * Account details
  */
 class Account_Details_Widget extends Account_Endpoint_Widget_Base {
 
@@ -29,7 +29,7 @@ class Account_Details_Widget extends Account_Endpoint_Widget_Base {
 	 * @return string
 	 */
 	public function get_title() {
-		return 'DashWoo — جزئیات حساب';
+		return __( 'DashWoo — Account details', 'dashwoo' );
 	}
 
 	/**

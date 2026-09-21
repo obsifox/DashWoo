@@ -18,33 +18,33 @@ $dw_degraded = $dw_report['degraded'] ?? array();
 ?>
 	<div class="dw-grid dw-grid--2">
 		<div class="dw-card">
-			<h2>خلاصه بررسی</h2>
+			<h2><?php esc_html_e( 'Check summary', 'dashwoo' ); ?></h2>
 			<p class="dw-kpi">
-				<span class="dw-pill dw-pill--ok">✓ <?php echo (int) ( $dw_summary['ok'] ?? 0 ); ?> فعال</span>
-				<span class="dw-pill dw-pill--info">ℹ <?php echo (int) ( $dw_summary['notice'] ?? 0 ); ?> اطلاع</span>
-				<span class="dw-pill dw-pill--warn">⚠ <?php echo (int) ( $dw_summary['warning'] ?? 0 ); ?> هشدار</span>
-				<span class="dw-pill dw-pill--err">✕ <?php echo (int) ( $dw_summary['error'] ?? 0 ); ?> خطا</span>
-				<span class="dw-pill">– <?php echo (int) ( $dw_summary['na'] ?? 0 ); ?> نامرتبط</span>
+				<span class="dw-pill dw-pill--ok">✓ <?php echo (int) ( $dw_summary['ok'] ?? 0 ); ?> <?php esc_html_e( 'passed', 'dashwoo' ); ?></span>
+				<span class="dw-pill dw-pill--info">ℹ <?php echo (int) ( $dw_summary['notice'] ?? 0 ); ?> <?php esc_html_e( 'informational', 'dashwoo' ); ?></span>
+				<span class="dw-pill dw-pill--warn">⚠ <?php echo (int) ( $dw_summary['warning'] ?? 0 ); ?> <?php esc_html_e( 'warnings', 'dashwoo' ); ?></span>
+				<span class="dw-pill dw-pill--err">✕ <?php echo (int) ( $dw_summary['error'] ?? 0 ); ?> <?php esc_html_e( 'errors', 'dashwoo' ); ?></span>
+				<span class="dw-pill">– <?php echo (int) ( $dw_summary['na'] ?? 0 ); ?> <?php esc_html_e( 'not relevant', 'dashwoo' ); ?></span>
 			</p>
 			<p class="description">
-				علامت <strong>ℹ</strong> یعنی «این قابلیت روی این هاست نیست، ولی DashWoo به آن نیازی ندارد» —
-				مانند <code>zip</code> یا <code>gd</code>. این موارد نه خطا هستند و نه روی حالت سازگاری اثر دارند.
+				<?php esc_html_e( 'The <strong>ℹ</strong> mark means “this capability is missing on the host, but DashWoo does not need it” —', 'dashwoo' ); ?>
+				<?php esc_html_e( 'like <code>zip</code> or <code>gd</code>. Those are neither errors nor do they touch the compatibility mode.', 'dashwoo' ); ?>
 			</p>
-			<p class="description">حالت جاری: <strong><?php echo 'compatibility' === $context['mode'] ? 'Compatibility Mode' : 'Full Override'; ?></strong>
-				— آخرین بررسی: <?php echo esc_html( isset( $dw_report['generated_at'] ) ? gmdate( 'Y-m-d H:i', (int) $dw_report['generated_at'] ) : '—' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Current mode:', 'dashwoo' ); ?> <strong><?php echo 'compatibility' === $context['mode'] ? 'Compatibility Mode' : 'Full Override'; ?></strong>
+				— <?php esc_html_e( 'last check:', 'dashwoo' ); ?> <?php echo esc_html( isset( $dw_report['generated_at'] ) ? gmdate( 'Y-m-d H:i', (int) $dw_report['generated_at'] ) : '—' ); ?></p>
 
 			<form method="post" action="<?php echo esc_url( $context['action_url'] ); ?>">
 				<?php wp_nonce_field( 'dashwoo_action' ); ?>
 				<input type="hidden" name="action" value="dashwoo_action" />
 				<input type="hidden" name="dw_action" value="recheck" />
-				<button class="button button-primary" type="submit">بررسی مجدد محیط</button>
+				<button class="button button-primary" type="submit"><?php esc_html_e( 'Run the environment check again', 'dashwoo' ); ?></button>
 			</form>
 		</div>
 
 		<div class="dw-card">
-			<h2>قابلیت‌های غیرفعال</h2>
+			<h2><?php esc_html_e( 'Switched-off capabilities', 'dashwoo' ); ?></h2>
 			<?php if ( ! $dw_degraded ) : ?>
-				<p><span class="dw-pill dw-pill--ok">همه قابلیت‌ها فعال هستند</span></p>
+				<p><span class="dw-pill dw-pill--ok"><?php esc_html_e( 'every capability is available', 'dashwoo' ); ?></span></p>
 			<?php else : ?>
 				<ul class="dw-list">
 					<?php foreach ( (array) $dw_degraded as $dw_feature ) : ?>
@@ -56,10 +56,10 @@ $dw_degraded = $dw_report['degraded'] ?? array();
 	</div>
 
 	<div class="dw-card">
-		<h2>جزئیات بررسی</h2>
+		<h2><?php esc_html_e( 'Check details', 'dashwoo' ); ?></h2>
 		<table class="widefat striped">
 			<thead>
-				<tr><th style="width:40px">وضعیت</th><th>آداپتر</th><th>بررسی</th><th>جزئیات</th></tr>
+				<tr><th style="width:40px"><?php esc_html_e( 'Status', 'dashwoo' ); ?></th><th><?php esc_html_e( 'Adapter', 'dashwoo' ); ?></th><th><?php esc_html_e( 'Check', 'dashwoo' ); ?></th><th><?php esc_html_e( 'Details', 'dashwoo' ); ?></th></tr>
 			</thead>
 			<tbody>
 			<?php foreach ( (array) $dw_checks as $dw_check ) : ?>
@@ -109,35 +109,35 @@ $dw_degraded = $dw_report['degraded'] ?? array();
 	}
 	?>
 	<div class="dw-card">
-		<h2>تشخیص محیط (برای پشتیبانی هاست)</h2>
+		<h2><?php esc_html_e( 'Environment diagnostics (for the host\'s support)', 'dashwoo' ); ?></h2>
 		<p class="description">
-			این متن، واقعیت‌های خام سرور است: نسخهٔ PHP، افزونه‌های نصب‌شده، توابع بسته‌شده در
-			<code>disable_functions</code>، محدودیت‌های فضای دانلود و قابل‌نوشتن بودن پوشهٔ دارایی‌ها.
-			در صورت نیاز آن را کپی کنید و به پشتیبانی هاست بدهید.
+			<?php esc_html_e( 'This text is the raw truth of the server: the PHP version, the installed extensions, the functions blocked in', 'dashwoo' ); ?>
+			<code>disable_functions</code><?php esc_html_e( ', the download size limits and whether the asset folder is writable.', 'dashwoo' ); ?>
+			<?php esc_html_e( 'Copy it whenever you need it and hand it to your host.', 'dashwoo' ); ?>
 		</p>
 		<textarea class="dw-diagnostics" readonly rows="12" onclick="this.select()"><?php echo esc_textarea( $dw_plain ); ?></textarea>
-		<p class="description">نمایش ماشین‌خوان: <code>GET /wp-json/dashwoo/v1/system/diagnostics</code></p>
+		<p class="description"><?php esc_html_e( 'Machine-readable:', 'dashwoo' ); ?> <code>GET /wp-json/dashwoo/v1/system/diagnostics</code></p>
 	</div>
 
 	<div class="dw-grid dw-grid--2">
 		<div class="dw-card">
-			<h2>همگام‌سازی کیت المنتور</h2>
-			<p class="description">سطح ۳ یکپارچه‌سازی. به‌صورت پیش‌فرض خاموش است و قبل از هر تغییر، نسخه پشتیبان گرفته می‌شود.</p>
+			<h2><?php esc_html_e( 'Elementor kit sync', 'dashwoo' ); ?></h2>
+			<p class="description"><?php esc_html_e( 'Integration level 3. It is off by default and a backup is taken before every change.', 'dashwoo' ); ?></p>
 			<form method="post" action="<?php echo esc_url( $context['action_url'] ); ?>" class="dw-inline">
 				<?php wp_nonce_field( 'dashwoo_action' ); ?>
 				<input type="hidden" name="action" value="dashwoo_action" />
-				<button class="button" type="submit" name="dw_action" value="kit_sync">همگام‌سازی</button>
-				<button class="button" type="submit" name="dw_action" value="kit_revert">بازگردانی از پشتیبان</button>
+				<button class="button" type="submit" name="dw_action" value="kit_sync"><?php esc_html_e( 'Sync', 'dashwoo' ); ?></button>
+				<button class="button" type="submit" name="dw_action" value="kit_revert"><?php esc_html_e( 'Restore from the backup', 'dashwoo' ); ?></button>
 			</form>
 		</div>
 		<div class="dw-card">
-			<h2>کش</h2>
-			<p class="description">فایل‌های تولیدشده در <code>uploads/dashwoo/cache/</code>.</p>
+			<h2><?php esc_html_e( 'Cache', 'dashwoo' ); ?></h2>
+			<p class="description"><?php esc_html_e( 'Generated files in', 'dashwoo' ); ?> <code>uploads/dashwoo/cache/</code>.</p>
 			<form method="post" action="<?php echo esc_url( $context['action_url'] ); ?>" class="dw-inline">
 				<?php wp_nonce_field( 'dashwoo_action' ); ?>
 				<input type="hidden" name="action" value="dashwoo_action" />
-				<button class="button" type="submit" name="dw_action" value="flush_cache">پاک‌سازی کش</button>
-				<button class="button" type="submit" name="dw_action" value="compile">ساخت مجدد توکن‌ها</button>
+				<button class="button" type="submit" name="dw_action" value="flush_cache"><?php esc_html_e( 'Flush the cache', 'dashwoo' ); ?></button>
+				<button class="button" type="submit" name="dw_action" value="compile"><?php esc_html_e( 'Rebuild the tokens', 'dashwoo' ); ?></button>
 			</form>
 		</div>
 	</div>

@@ -101,7 +101,7 @@ class WordPress_Adapter extends Abstract_Adapter {  // Not final: third parties 
 		$this->check(
 			'php',
 			$this->meets( $php, $this->minimum( 'min_php' ) ) ? self::STATUS_OK : self::STATUS_ERROR,
-			sprintf( 'PHP %s (minimum %s)', $php, $this->minimum( 'min_php' ) ),
+			sprintf( __('PHP %s (minimum %s)', 'dashwoo'), $php, $this->minimum( 'min_php' ) ),
 			array(
 				'current'  => $php,
 				'required' => self::MIN_PHP,
@@ -113,7 +113,7 @@ class WordPress_Adapter extends Abstract_Adapter {  // Not final: third parties 
 		$this->check(
 			'wp_core',
 			$this->meets( $wp, $this->minimum( 'min_wp' ) ) ? self::STATUS_OK : self::STATUS_ERROR,
-			sprintf( 'WordPress %s (minimum %s)', $wp ? $wp : 'not detected', $this->minimum( 'min_wp' ) ),
+			sprintf( __('WordPress %s (minimum %s)', 'dashwoo'), $wp ? $wp : __('not detected', 'dashwoo'), $this->minimum( 'min_wp' ) ),
 			array(
 				'current'  => $wp,
 				'required' => self::MIN_WP,
@@ -126,7 +126,7 @@ class WordPress_Adapter extends Abstract_Adapter {  // Not final: third parties 
 		$this->check(
 			'uploads',
 			$writable ? self::STATUS_OK : self::STATUS_ERROR,
-			$writable ? 'uploads/ is writable' : 'uploads/ is NOT writable - assets cannot be stored',
+			$writable ? __('uploads/ is writable', 'dashwoo') : __('uploads/ is NOT writable - assets cannot be stored', 'dashwoo'),
 			array( 'basedir' => isset( $upload['basedir'] ) ? $upload['basedir'] : '' )
 		);
 		$this->capability( 'uploads', $writable );
@@ -135,7 +135,7 @@ class WordPress_Adapter extends Abstract_Adapter {  // Not final: third parties 
 		$this->check(
 			'rest',
 			$rest ? self::STATUS_OK : self::STATUS_ERROR,
-			$rest ? 'REST API available' : 'REST API unavailable'
+			$rest ? __('REST API available', 'dashwoo') : __('REST API unavailable', 'dashwoo')
 		);
 		$this->capability( 'rest', $rest );
 
@@ -146,13 +146,13 @@ class WordPress_Adapter extends Abstract_Adapter {  // Not final: third parties 
 			'htaccess',
 			$nginx ? self::STATUS_WARNING : self::STATUS_OK,
 			$nginx
-				? 'Nginx detected: .htaccess rules are ignored, deny PHP execution manually'
-				: 'Apache detected: .htaccess guard applies to uploads/dashwoo/',
+				? __('Nginx detected: .htaccess rules are ignored, deny PHP execution manually', 'dashwoo')
+				: __('Apache detected: .htaccess guard applies to uploads/dashwoo/', 'dashwoo'),
 			array( 'server' => $server )
 		);
 		$this->capability( 'htaccess_guard', ! $nginx );
 
-		$this->check( 'multisite', self::STATUS_NA, is_multisite() ? 'Multisite: per-site settings' : 'Single site' );
+		$this->check( 'multisite', self::STATUS_NA, is_multisite() ? __('Multisite: per-site settings', 'dashwoo') : __('Single site', 'dashwoo') );
 		$this->capability( 'multisite', (bool) is_multisite() );
 	}
 }

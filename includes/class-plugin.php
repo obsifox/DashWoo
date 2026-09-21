@@ -138,7 +138,7 @@ final class Plugin {
 
 		$definitions = $this->definitions();
 		if ( ! isset( $definitions[ $id ] ) ) {
-			throw new \InvalidArgumentException( sprintf( 'Unknown DashWoo service: %s', $id ) );
+			throw new \InvalidArgumentException( sprintf( __('Unknown DashWoo service: %s', 'dashwoo'), $id ) );
 		}
 
 		$this->resolved[ $id ] = call_user_func( $definitions[ $id ] );
@@ -169,7 +169,8 @@ final class Plugin {
 		}
 		$this->booted = true;
 
-		load_plugin_textdomain( DASHWOO_TEXTDOMAIN, false, dirname( DASHWOO_BASENAME ) . '/languages' );
+		// 0. Language: the catalogue must be ready before anything renders a string.
+		\DashWoo\I18n\Language::boot();
 
 		// 1. Environment first: everything else may depend on the compatibility mode.
 		$this->get( 'compatibility' )->boot();

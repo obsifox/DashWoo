@@ -103,24 +103,24 @@ class Asset_Adapter extends Abstract_Adapter {  // Not final: third parties may 
 
 		if ( $works ) {
 			$result['message'] = sprintf(
-				'GD available (%s)%s - optional helper for server-side thumbnails',
-				$formats ? implode( ', ', $formats ) : 'no format readers detected',
-				$imagick ? '; Imagick also present' : ''
+				__('GD available (%s)%s - optional helper for server-side thumbnails', 'dashwoo'),
+				$formats ? implode( ', ', $formats ) : __('no format readers detected', 'dashwoo'),
+				$imagick ? __('; Imagick also present', 'dashwoo') : ''
 			);
 
 			return $result;
 		}
 
 		if ( ! $loaded ) {
-			$result['message'] = 'GD not installed (php-gd): optional, DashWoo generates no thumbnails and needs no image functions';
-			$result['hint']    = 'DashWoo بدون GD هم کامل کار می‌کند. اگر در ووکامرس یا «سلامت سایت» هم هشدار GD می‌بینید، از هاست بخواهید افزونهٔ php-gd را نصب/فعال کند (برای تغییر اندازهٔ تصاویر محصولات).';
+			$result['message'] = __('GD not installed (php-gd): optional, DashWoo generates no thumbnails and needs no image functions', 'dashwoo');
+			$result['hint']    = __( 'DashWoo works fully without GD. If you also see a GD warning in WooCommerce or in Site Health, ask your host to install or enable the php-gd extension (needed to resize product images).', 'dashwoo' );
 
 			return $result;
 		}
 
 		// Loaded but unusable: usually disable_functions.
-		$result['message'] = 'GD is loaded but its image functions are unavailable (blocked by disable_functions?) - optional for DashWoo';
-		$result['hint']    = 'افزونهٔ GD روی سرور نصب است، اما توابع تصویری آن (مثل imagecreatetruecolor) در disable_functions بسته شده‌اند. از هاست بخواهید این توابع را باز کند. DashWoo به آن نیازی ندارد.';
+		$result['message'] = __('GD is loaded but its image functions are unavailable (blocked by disable_functions?) - optional for DashWoo', 'dashwoo');
+		$result['hint']    = __( 'The GD extension is installed on this server, but its image functions (such as imagecreatetruecolor) are blocked by disable_functions. Ask your host to open those functions. DashWoo does not need them.', 'dashwoo' );
 
 		return $result;
 	}
@@ -137,7 +137,7 @@ class Asset_Adapter extends Abstract_Adapter {  // Not final: third parties may 
 		$this->check(
 			'storage_dir',
 			(self::STATUS_OK),
-			'Asset storage: ' . $base,
+			__('Asset storage: ', 'dashwoo') . $base,
 			array( 'path' => $base )
 		);
 		$this->capability( 'asset_storage', true );
@@ -157,14 +157,14 @@ class Asset_Adapter extends Abstract_Adapter {  // Not final: third parties may 
 			'zip',
 			$zip ? self::STATUS_OK : self::STATUS_NOTICE,
 			$zip
-				? 'ZipArchive available (optional helper for packaged export/import)'
-				: 'ZipArchive not available (php-zip): optional, DashWoo installs and serves assets without it',
+				? __('ZipArchive available (optional helper for packaged export/import)', 'dashwoo')
+				: __('ZipArchive not available (php-zip): optional, DashWoo installs and serves assets without it', 'dashwoo'),
 			array(
 				'available' => $zip,
 				'required'  => false,
 				'hint'      => $zip
 					? ''
-					: 'این مورد اختیاری است و مشکلی ایجاد نمی‌کند. اگر می‌خواهید بستهٔ دارایی‌ها را zip بگیرید، از هاست بخواهید افزونهٔ php-zip را فعال کند.',
+					: __( 'This one is optional and breaks nothing. If you want to download the asset bundle as a zip, ask your host to enable the php-zip extension.', 'dashwoo' ),
 			)
 		);
 		$this->capability( 'zip', $zip );
@@ -191,7 +191,7 @@ class Asset_Adapter extends Abstract_Adapter {  // Not final: third parties may 
 		$this->check(
 			'svg_sanitizer',
 			$svg_ok ? self::STATUS_OK : self::STATUS_WARNING,
-			$svg_ok ? 'SVG sanitizer ready (wp_kses allow-list)' : 'SVG sanitizer unavailable - SVG uploads blocked'
+			$svg_ok ? __('SVG sanitizer ready (wp_kses allow-list)', 'dashwoo') : __('SVG sanitizer unavailable - SVG uploads blocked', 'dashwoo')
 		);
 		$this->capability( 'svg_sanitizer', $svg_ok );
 
@@ -199,14 +199,14 @@ class Asset_Adapter extends Abstract_Adapter {  // Not final: third parties may 
 		$this->check(
 			'css_variation',
 			$variation ? self::STATUS_OK : self::STATUS_WARNING,
-			$variation ? 'Variable fonts + font-variation-settings supported' : 'Inline CSS API unavailable'
+			$variation ? __('Variable fonts + font-variation-settings supported', 'dashwoo') : __('Inline CSS API unavailable', 'dashwoo')
 		);
 		$this->capability( 'variable_fonts', $variation );
 
 		$this->check(
 			'cdn_free',
 			self::STATUS_OK,
-			'CDN-free mode: all fonts/icons are served from the local uploads directory'
+			__('CDN-free mode: all fonts/icons are served from the local uploads directory', 'dashwoo')
 		);
 		$this->capability( 'cdn_free', true );
 	}

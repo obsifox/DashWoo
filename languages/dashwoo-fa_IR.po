@@ -6,4149 +6,4155 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Domain: dashwoo\n"
+"Language: fa_IR\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language-Team: DashWoo <translate@dashwoo.dev>\n"
 "X-Generator: dashwoo/tools/i18n/build-catalogue.py\n"
 
-# DashWoo source strings (English is the source language).
+# Persian (fa_IR) translation of DashWoo.
+# # Every string is written in English in the source and translated here, so the plugin
+# # runs in English on an English site and in Persian on a Persian one.
+# # Machine-readable plural forms: nplurals=2; plural=(n > 1);
 
 
 #: includes/compatibility/adapters/class-woocommerce-adapter.php:271
 msgid " (%d not in the audit list)"
-msgstr ""
+msgstr " (%d مورد بیرون از فهرست بررسی)"
 
 #: includes/account/class-elementor-bridge.php:695
 msgid " (requires Elementor)"
-msgstr ""
+msgstr " (نیازمند المنتور)"
 
 #: includes/account/class-elementor-bridge.php:687
 msgid " (version "
-msgstr ""
+msgstr " (نسخهٔ "
 
 #: includes/account/class-elementor-bridge.php:694
 msgid " widgets"
-msgstr ""
+msgstr " ابزارک ثبت می‌شود"
 
 #: includes/admin/views/assets.php:49
 msgid " — Persian"
-msgstr ""
+msgstr "فارسی"
 
 #: includes/account/class-renderer.php:268
 msgid "\" aria-label=\"Account menu\" data-dw-nav-list=\"1\">"
-msgstr ""
+msgstr "\" aria-label=\"منوی حساب کاربری\" data-dw-nav-list=\"1\">"
 
 #: includes/account/class-sections.php:911
 msgid "\">Edit "
-msgstr ""
+msgstr "\">ویرایش "
 
 #: includes/account/class-preview.php:81
 msgid "$1,250,000"
-msgstr ""
+msgstr "۱٬۲۵۰٬۰۰۰ تومان"
 
 #: includes/account/class-preview.php:83
 msgid "$2,490,000"
-msgstr ""
+msgstr "۲٬۴۹۰٬۰۰۰ تومان"
 
 #: includes/account/class-preview.php:280
 msgid "$600,000"
-msgstr ""
+msgstr "۶۰۰٬۰۰۰ تومان"
 
 #: includes/account/class-preview.php:275
 msgid "$650,000"
-msgstr ""
+msgstr "۶۵۰٬۰۰۰ تومان"
 
 #: includes/account/class-preview.php:82
 msgid "$850,000"
-msgstr ""
+msgstr "۸۵۰٬۰۰۰ تومان"
 
 #: includes/compatibility/adapters/class-woocommerce-adapter.php:269
 msgid "%d WooCommerce features declared compatible%s"
-msgstr ""
+msgstr "%d امکان ووکامرس سازگار اعلام شد%s"
 
 #: includes/admin/class-admin.php:633
 msgid "%d cache files were removed."
-msgstr ""
+msgstr "%d فایل کش حذف شد."
 
 #: includes/capabilities/class-capabilities.php:527
 msgid "%d days ago"
-msgstr ""
+msgstr "%d روز پیش"
 
 #: includes/capabilities/class-capabilities.php:524
 msgid "%d hours ago"
-msgstr ""
+msgstr "%d ساعت پیش"
 
 #: includes/capabilities/class-capabilities.php:521
 msgid "%d minutes ago"
-msgstr ""
+msgstr "%d دقیقه پیش"
 
 #: includes/account/class-profile.php:221
 msgid "%s · Orders: %d"
-msgstr ""
+msgstr "%s · سفارش‌ها: %d"
 
 #: includes/account/class-renderer.php:562 includes/account/class-sections.php:908
 msgid ", "
-msgstr ""
+msgstr "، "
 
 #: includes/admin/views/system-status.php:115
 msgid ", the download size limits and whether the asset folder is writable."
-msgstr ""
+msgstr "، محدودیت‌های فضای دانلود و قابل‌نوشتن بودن پوشهٔ دارایی‌ها."
 
 #: includes/account/class-preview.php:132 includes/account/class-preview.php:133
 msgid "12 Sample Street, Unit 3, Tehran"
-msgstr ""
+msgstr "تهران، خیابان نمونه، پلاک ۱۲، واحد ۳"
 
 #: includes/account/class-preview.php:83
 msgid "2026-06-30"
-msgstr ""
+msgstr "۱۴۰۵/۰۴/۰۹"
 
 #: includes/account/class-preview.php:82
 msgid "2026-07-19"
-msgstr ""
+msgstr "۱۴۰۵/۰۵/۲۸"
 
 #: includes/account/class-preview.php:81
 msgid "2026-08-03"
-msgstr ""
+msgstr "۱۴۰۵/۰۶/۱۲"
 
 #: includes/compatibility/adapters/class-asset-adapter.php:108
 msgid "; Imagick also present"
-msgstr ""
+msgstr "؛ Imagick هم نصب است"
 
 #: includes/account/class-elementor-bridge.php:639
 msgid "<h3 style=\"margin-top:0\">Build the layout with Elementor</h3>"
-msgstr ""
+msgstr "<h3 style=\"margin-top:0\">ساخت چیدمان با المنتور</h3>"
 
 #: includes/account/class-elementor-bridge.php:658
 msgid "<h4>Elementor readiness</h4><ul style=\"margin:0;padding-inline-start:18px\">"
-msgstr ""
+msgstr "<h4>وضعیت آماده‌بودن المنتور</h4><ul style=\"margin:0;padding-inline-start:18px\">"
 
 #: includes/account/class-elementor-bridge.php:653
 msgid "<p><a class=\"button button-primary\" href=\"%s\">Build / rebuild the account layout in Elementor</a></p>"
-msgstr ""
+msgstr "<p><a class=\"button button-primary\" href=\"%s\">ساخت / بازسازی چیدمان حساب کاربری در المنتور</a></p>"
 
 #: includes/account/class-elementor-bridge.php:643
 msgid "<p>My Account page: <a href=\"%s\" target=\"_blank\" rel=\"noopener\">%s</a></p>"
-msgstr ""
+msgstr "<p>صفحهٔ حساب کاربری: <a href=\"%s\" target=\"_blank\" rel=\"noopener\">%s</a></p>"
 
 #: includes/account/class-elementor-bridge.php:649
 msgid "<p>With one click the whole account layout (menu + dashboard + profile + orders) is built from DashWoo widgets inside the page and the Elementor editor opens; after that every part can be moved, removed or redesigned.</p>"
-msgstr ""
+msgstr "<p>با یک کلیک، چیدمان کامل حساب کاربری (منو + پیشخوان + پروفایل + سفارش‌ها) به شکل ابزارک‌های DashWoo داخل صفحه ساخته می‌شود و ویرایشگر المنتور باز می‌شود؛ بعد از آن هر بخش را می‌توانید جابه‌جا، حذف یا بازطراحی کنید.</p>"
 
 #: includes/account/class-endpoints.php:554
 msgid "A Material Symbols icon name (for example receipt_long, download, credit_card). Leave it empty to use the DashWoo default."
-msgstr ""
+msgstr "نام آیکون Material Symbols (مثلاً receipt_long، download، credit_card). خالی باشد، آیکون پیش‌فرض DashWoo استفاده می‌شود."
 
 #: includes/assets/fonts/class-font-manager.php:129
 msgid "A font family name is required."
-msgstr ""
+msgstr "نام خانوادهٔ قلم الزامی است."
 
 #: includes/settings/class-sections.php:659
 msgid "A menu card next to a bigger content card; clicking a section (orders, downloads…) swaps the content of the second card - without reloading the page. Order details open inside that same card too."
-msgstr ""
+msgstr "یک کارت منو کنار یک کارت محتوای بزرگ‌تر؛ با کلیک روی هر بخش (سفارش‌ها، دانلودها…) محتوای کارت دوم عوض می‌شود - بدون بارگذاری دوبارهٔ صفحه. جزئیات یک سفارش هم داخل همان کارت باز می‌شود."
 
 #: includes/account/class-templates.php:81
 msgid "A single order"
-msgstr ""
+msgstr "جزئیات یک سفارش"
 
 #: includes/account/class-endpoints.php:565
 msgid "A smaller number comes first. Log out is always last."
-msgstr ""
+msgstr "عدد کوچک‌تر بالاتر می‌آید. خروج همیشه آخر است."
 
 #: includes/assets/class-asset-manager.php:560
 msgid "ABC 123 — sample text"
-msgstr ""
+msgstr "ABC ۱۲۳ — نمونه متن"
 
 #: includes/settings/class-sections.php:1756
 msgid "AJAX loading"
-msgstr ""
+msgstr "بارگذاری AJAX"
 
 #: includes/settings/class-sections.php:145
 msgid "API and logs"
-msgstr ""
+msgstr "API و گزارش"
 
 #: includes/capabilities/class-capabilities.php:145
 msgid "AVIF support"
-msgstr ""
+msgstr "پشتیبانی AVIF"
 
 #: includes/settings/class-sections.php:1535
 msgid "Above the field"
-msgstr ""
+msgstr "بالای فیلد"
 
 #: includes/settings/class-sections.php:1259
 msgid "Accent"
-msgstr ""
+msgstr "تأکیدی"
 
 #: includes/settings/class-sections.php:818 includes/widgets/class-style-controls.php:41
 msgid "Accent colour"
-msgstr ""
+msgstr "رنگ تأکید"
 
 #: includes/settings/class-sections.php:825 includes/widgets/class-style-controls.php:47
 msgid "Accent colour (hover)"
-msgstr ""
+msgstr "رنگ تأکید (هاور)"
 
 #: includes/settings/class-sections.php:808
 msgid "Accent colour, corner radius and the size of the account cards. The colours are injected as CSS variables, so they match the DashWoo tokens."
-msgstr ""
+msgstr "رنگ تأکید، گردی گوشه‌ها و ابعاد کارت‌های حساب کاربری. رنگ‌ها به‌صورت متغیر CSS تزریق می‌شوند، پس با توکن‌های DashWoo هم‌خوان‌اند."
 
 #: includes/admin/class-admin.php:308 includes/admin/class-admin.php:363 includes/admin/class-admin.php:459
 msgid "Access denied."
-msgstr ""
+msgstr "دسترسی مجاز نیست."
 
 #: includes/widgets/class-account-widget-base.php:70
 msgid "Account"
-msgstr ""
+msgstr "حساب"
 
 #: includes/settings/class-sections.php:858
 msgid "Account area background"
-msgstr ""
+msgstr "پس‌زمینهٔ ناحیهٔ حساب"
 
 #: includes/account/class-endpoints.php:84
 msgid "Account dashboard"
-msgstr ""
+msgstr "پیشخوان حساب"
 
 #: includes/account/class-endpoints.php:114 includes/account/class-sections.php:948 includes/account/class-templates.php:118 includes/settings/class-sections.php:708
 msgid "Account details"
-msgstr ""
+msgstr "جزئیات حساب"
 
 #: includes/widgets/class-account-forms-widget.php:71
 msgid "Account details (display name)"
-msgstr ""
+msgstr "جزئیات حساب (نام نمایشی)"
 
 #: includes/settings/class-sections.php:626
 msgid "Account details template"
-msgstr ""
+msgstr "قالب جزئیات حساب"
 
 #: includes/settings/class-sections.php:132
 msgid "Account layout"
-msgstr ""
+msgstr "چیدمان حساب"
 
 #: includes/account/class-templates.php:49
 msgid "Account menu"
-msgstr ""
+msgstr "منوی حساب"
 
 #: includes/settings/class-sections.php:577
 msgid "Account menu template"
-msgstr ""
+msgstr "قالب منوی حساب"
 
 #: includes/settings/class-sections.php:549
 msgid "Account sections"
-msgstr ""
+msgstr "بخش‌های حساب کاربری"
 
 #: includes/widgets/class-account-widget-base.php:148
 msgid "Action button"
-msgstr ""
+msgstr "دکمهٔ اقدام"
 
 #: includes/admin/views/assets.php:106
 msgid "Actions"
-msgstr ""
+msgstr "عملیات"
 
 #: includes/settings/class-sections.php:1835
 msgid "Active"
-msgstr ""
+msgstr "فعال"
 
 #: includes/widgets/class-style-controls.php:213
 msgid "Active item background"
-msgstr ""
+msgstr "رنگ پس‌زمینهٔ آیتم فعال"
 
 #: includes/account/class-elementor-bridge.php:719
 msgid "Active mode: "
-msgstr ""
+msgstr "حالت فعال: "
 
 #: includes/settings/class-sections.php:407
 msgid "Active weights"
-msgstr ""
+msgstr "وزن‌های فعال"
 
 #: includes/admin/views/system-status.php:62
 msgid "Adapter"
-msgstr ""
+msgstr "آداپتور"
 
 #: includes/admin/views/assets.php:39
 msgid "Add a font from Google Fonts"
-msgstr ""
+msgstr "افزودن فونت از"
 
 #: includes/settings/class-sections.php:1096
 msgid "Add the fonts to the Elementor list"
-msgstr ""
+msgstr "افزودن فونت‌ها به لیست المنتور"
 
 #: includes/compatibility/class-woocommerce-features.php:199
 msgid "Address autocomplete"
-msgstr ""
+msgstr "تکمیل خودکار آدرس"
 
 #: includes/account/class-templates.php:104
 msgid "Address card"
-msgstr ""
+msgstr "کارت آدرس"
 
 #: includes/account/class-endpoints.php:102 includes/account/class-templates.php:101 includes/settings/class-sections.php:706 includes/widgets/class-account-forms-widget.php:72
 msgid "Addresses"
-msgstr ""
+msgstr "آدرس‌ها"
 
 #: includes/settings/class-sections.php:612
 msgid "Addresses template"
-msgstr ""
+msgstr "قالب آدرس‌ها"
 
 #: includes/admin/views/dashboard.php:61
 msgid "After the download no request is made to any external service."
-msgstr ""
+msgstr "بارگذاری می‌شوند. پس از دانلود، هیچ درخواستی به سرویس‌های بیرونی زده نمی‌شود."
 
 #: includes/admin/views/assets.php:62
 msgid "After the download the files live in"
-msgstr ""
+msgstr "پس از دانلود، فایل‌ها در"
 
 #: includes/widgets/class-account-nav-widget.php:133
 msgid "After the label"
-msgstr ""
+msgstr "بعد از عنوان"
 
 #: includes/assets/icons/class-icon-renderer.php:285 includes/settings/class-sections.php:1225
 msgid "After the text"
-msgstr ""
+msgstr "بعد از متن"
 
 #: includes/widgets/class-icon-widget.php:245 includes/widgets/class-style-controls.php:135
 msgid "Alignment"
-msgstr ""
+msgstr "تراز"
 
 #: includes/settings/class-sections.php:1802
 msgid "Allow SVG uploads"
-msgstr ""
+msgstr "اجازه آپلود SVG"
 
 #: includes/settings/class-sections.php:1025
 msgid "Allow downloading from Google Fonts"
-msgstr ""
+msgstr "اجازه دانلود از Google Fonts"
 
 #: includes/settings/class-sections.php:1066
 msgid "Allow font uploads"
-msgstr ""
+msgstr "اجازه آپلود فونت"
 
 #: includes/settings/class-sections.php:1072
 msgid "Allowed extensions"
-msgstr ""
+msgstr "پسوندهای مجاز"
 
 #: includes/settings/class-sections.php:1808
 msgid "Always sanitise"
-msgstr ""
+msgstr "پاک‌سازی اجباری"
 
 #: includes/settings/class-sections.php:164
 msgid "An overview of the system status, the assets and the notices."
-msgstr ""
+msgstr "نمای کلی وضعیت سیستم، دارایی‌ها و اعلان‌ها."
 
 #: includes/compatibility/class-woocommerce-features.php:107
 msgid "Analytics"
-msgstr ""
+msgstr "تحلیل‌ها"
 
 #: includes/compatibility/adapters/class-wordpress-adapter.php:150
 msgid "Apache detected: .htaccess guard applies to uploads/dashwoo/"
-msgstr ""
+msgstr "آپاچی شناسایی شد: محافظ .htaccess روی uploads/dashwoo/ اعمال می‌شود"
 
 #: includes/settings/class-sections.php:812
 msgid "Apply the DashWoo style to the account page"
-msgstr ""
+msgstr "اعمال سبک DashWoo روی صفحهٔ حساب"
 
 #: includes/capabilities/class-capabilities.php:202
 msgid "Apply the tokens and the default settings to every site in the network"
-msgstr ""
+msgstr "اعمال توکن‌ها و تنظیمات پیش‌فرض روی همهٔ سایت‌های شبکه"
 
 #: includes/settings/class-sections.php:1044
 msgid "Arabic"
-msgstr ""
+msgstr "عربی"
 
 #: includes/settings/class-sections.php:1732
 msgid "Archive and product list pagination."
-msgstr ""
+msgstr "صفحه‌بندی آرشیو و لیست محصولات."
 
 #: includes/widgets/class-style-controls.php:67
 msgid "Area background color"
-msgstr ""
+msgstr "رنگ پس‌زمینهٔ ناحیه"
 
 #: includes/widgets/class-account-widget-base.php:147
 msgid "Arrows"
-msgstr ""
+msgstr "فلش‌ها"
 
 #: includes/capabilities/class-capabilities.php:190
 msgid "Ask your host to install the php-gd or php-imagick extension to enable this."
-msgstr ""
+msgstr "برای فعال شدن، از هاست بخواهید افزونهٔ php-gd یا php-imagick را نصب کند."
 
 #: includes/capabilities/class-capabilities.php:197
 msgid "Ask your host to install the php-zip extension to enable this."
-msgstr ""
+msgstr "برای فعال شدن، از هاست بخواهید افزونهٔ php-zip را نصب کند."
 
 #: includes/capabilities/class-capabilities.php:155
 msgid "Asset folder is writable"
-msgstr ""
+msgstr "قابل‌نوشتن بودن پوشهٔ دارایی‌ها"
 
 #: includes/assets/class-asset-manager.php:464 includes/rest/class-router.php:657
 msgid "Asset not found."
-msgstr ""
+msgstr "دارایی پیدا نشد."
 
 #: includes/compatibility/adapters/class-asset-adapter.php:140
 msgid "Asset storage: "
-msgstr ""
+msgstr "محل نگهداری دارایی‌ها: "
 
 #: includes/settings/class-sections.php:50
 msgid "Assets"
-msgstr ""
+msgstr "دارایی‌ها"
 
 #: includes/settings/class-sections.php:1680
 msgid "Auto-dismiss time (seconds)"
-msgstr ""
+msgstr "زمان بستن خودکار (ثانیه)"
 
 #: includes/settings/class-sections.php:692 includes/widgets/class-account-panel-widget.php:133
 msgid "Automatic (WooCommerce, and the DashWoo template when it has none)"
-msgstr ""
+msgstr "خودکار (ووکامرس، و در نبودِ آن قالب DashWoo)"
 
 #: includes/settings/class-sections.php:864
 msgid "Automatic DashWoo CSS"
-msgstr ""
+msgstr "CSS خودکار DashWoo"
 
 #: includes/settings/class-sections.php:333
 msgid "Automatic asset updates"
-msgstr ""
+msgstr "به‌روزرسانی خودکار دارایی‌ها"
 
 #: includes/widgets/class-style-controls.php:150
 msgid "Automatic with the DashWoo tokens"
-msgstr ""
+msgstr "خودکار با توکن‌های DashWoo"
 
 #: includes/widgets/class-account-endpoint-widget-base.php:187
 msgid "Automatic: WooCommerce content, and the DashWoo template when it has none"
-msgstr ""
+msgstr "خودکار: محتوای ووکامرس، و در نبودِ آن قالب DashWoo"
 
 #: includes/widgets/class-account-profile-widget.php:81 includes/widgets/class-account-widget-base.php:146
 msgid "Avatar"
-msgstr ""
+msgstr "آواتار"
 
 #: includes/settings/class-sections.php:840 includes/widgets/class-account-profile-widget.php:91
 msgid "Avatar size (px)"
-msgstr ""
+msgstr "اندازه آواتار (px)"
 
 #: includes/widgets/class-account-panel-widget.php:237
 msgid "Back button label"
-msgstr ""
+msgstr "متن دکمهٔ بازگشت"
 
 #: includes/settings/class-sections.php:753
 msgid "Back button label (from order details)"
-msgstr ""
+msgstr "متن دکمهٔ بازگشت (از جزئیات سفارش)"
 
 #: includes/account/class-panel.php:115 includes/account/class-sections.php:560 includes/settings/class-sections.php:755 includes/widgets/class-account-panel-widget.php:239
 msgid "Back to orders"
-msgstr ""
+msgstr "بازگشت به سفارش‌ها"
 
 #: includes/settings/class-sections.php:941
 msgid "Back to the account page after signing in"
-msgstr ""
+msgstr "بازگشت به صفحهٔ حساب بعد از ورود"
 
 #: includes/settings/class-sections.php:1889
 msgid "Back up before syncing"
-msgstr ""
+msgstr "تهیه نسخه پشتیبان قبل از همگام‌سازی"
 
 #: includes/settings/class-sections.php:1277
 msgid "Background"
-msgstr ""
+msgstr "پس‌زمینه"
 
 #: includes/settings/class-sections.php:1708
 msgid "Background opacity (0-1)"
-msgstr ""
+msgstr "شفافیت پس‌زمینه (0-1)"
 
 #: includes/design-system/class-tokens.php:70
 msgid "Badge"
-msgstr ""
+msgstr "نشان"
 
 #: includes/settings/class-sections.php:1620
 msgid "Badges"
-msgstr ""
+msgstr "نشان‌ها"
 
 #: includes/settings/class-sections.php:379
 msgid "Base fonts and a responsive scale with full Persian support."
-msgstr ""
+msgstr "فونت‌های پایه و مقیاس ریسپانسیو با پشتیبانی کامل فارسی."
 
 #: includes/settings/class-sections.php:424
 msgid "Base size — desktop (px)"
-msgstr ""
+msgstr "اندازه پایه — دسکتاپ (px)"
 
 #: includes/settings/class-sections.php:442
 msgid "Base size — mobile (px)"
-msgstr ""
+msgstr "اندازه پایه — موبایل (px)"
 
 #: includes/settings/class-sections.php:433
 msgid "Base size — tablet (px)"
-msgstr ""
+msgstr "اندازه پایه — تبلت (px)"
 
 #: includes/widgets/class-account-nav-widget.php:132
 msgid "Before the label"
-msgstr ""
+msgstr "قبل از عنوان"
 
 #: includes/assets/icons/class-icon-renderer.php:284 includes/settings/class-sections.php:1224
 msgid "Before the text"
-msgstr ""
+msgstr "قبل از متن"
 
 #: includes/settings/class-sections.php:328
 msgid "Beta"
-msgstr ""
+msgstr "بتا"
 
 #: includes/account/class-sections.php:882
 msgid "Billing address"
-msgstr ""
+msgstr "آدرس صورتحساب"
 
 #: includes/account/class-sections.php:1182 includes/settings/class-sections.php:927 includes/widgets/class-account-forms-widget.php:99
 msgid "Billing email"
-msgstr ""
+msgstr "ایمیل صورتحساب"
 
 #: includes/compatibility/class-woocommerce-features.php:155
 msgid "Block email editor"
-msgstr ""
+msgstr "ویرایشگر بلوکی ایمیل"
 
 #: includes/assets/icons/class-material-provider.php:177
 msgid "Blocked non allow-listed icon host: %s"
-msgstr ""
+msgstr "میزبان مجازنشده برای آیکون‌ها مسدود شد: %s"
 
 #: includes/settings/class-sections.php:395
 msgid "Body font"
-msgstr ""
+msgstr "فونت متن"
 
 #: includes/widgets/class-style-controls.php:130
 msgid "Bold"
-msgstr ""
+msgstr "بولد"
 
 #: includes/design-system/class-tokens.php:65 includes/settings/class-sections.php:1289
 msgid "Border"
-msgstr ""
+msgstr "حاشیه"
 
 #: includes/widgets/class-style-controls.php:72
 msgid "Border color"
-msgstr ""
+msgstr "رنگ حاشیه"
 
 #: includes/settings/class-sections.php:1416
 msgid "Border width and style."
-msgstr ""
+msgstr "ضخامت و سبک حاشیه."
 
 #: includes/settings/class-sections.php:1413
 msgid "Borders"
-msgstr ""
+msgstr "حاشیه‌ها"
 
 #: includes/settings/class-sections.php:675 includes/widgets/class-account-panel-widget.php:112
 msgid "Both cards, no automatic swapping"
-msgstr ""
+msgstr "هر دو کارت، بدون جابه‌جایی خودکار"
 
 #: includes/settings/class-sections.php:1668
 msgid "Bottom of the page"
-msgstr ""
+msgstr "پایین صفحه"
 
 #: includes/account/class-account.php:113 includes/settings/class-sections.php:540
 msgid "Breadcrumb"
-msgstr ""
+msgstr "مسیر راهنما (breadcrumb)"
 
 #: includes/account/class-sections.php:104
 msgid "Browse the shop"
-msgstr ""
+msgstr "خرید از فروشگاه"
 
 #: includes/settings/class-sections.php:992
 msgid "Build the DashWoo layout automatically"
-msgstr ""
+msgstr "ساخت خودکار چیدمان DashWoo"
 
 #: includes/account/class-elementor-bridge.php:617
 msgid "Build the layout with DashWoo"
-msgstr ""
+msgstr "ساخت چیدمان با DashWoo"
 
 #: includes/account/class-templates.php:147 includes/design-system/class-tokens.php:66
 msgid "Button"
-msgstr ""
+msgstr "دکمه"
 
 #: includes/settings/class-sections.php:401
 msgid "Button font"
-msgstr ""
+msgstr "فونت دکمه‌ها"
 
 #: includes/settings/class-sections.php:1443
 msgid "Buttons"
-msgstr ""
+msgstr "دکمه‌ها"
 
 #: includes/admin/views/dashboard.php:59
 msgid "CDN status"
-msgstr ""
+msgstr "وضعیت"
 
 #: includes/compatibility/adapters/class-asset-adapter.php:209
 msgid "CDN-free mode: all fonts/icons are served from the local uploads directory"
-msgstr ""
+msgstr "حالت بدون CDN: همهٔ قلم‌ها و آیکون‌ها از پوشهٔ بارگذاری محلی سرو می‌شوند"
 
 #: includes/compatibility/adapters/class-elementor-adapter.php:153
 msgid "CSS custom properties supported by the frontend"
-msgstr ""
+msgstr "متغیرهای CSS در بخش کاربری پشتیبانی می‌شوند"
 
 #: includes/compatibility/adapters/class-elementor-adapter.php:153
 msgid "CSS custom properties unavailable"
-msgstr ""
+msgstr "متغیرهای CSS در دسترس نیستند"
 
 #: includes/settings/class-sections.php:881
 msgid "CSS variables (accent colour, radius, menu width) for your own styling. If you do not want any of them, switch this off as well."
-msgstr ""
+msgstr "متغیرهای CSS (رنگ تأکید، گردی، عرض منو) برای استفاده در استایل خودتان. اگر هیچ‌کدام را نمی‌خواهید این را هم خاموش کنید."
 
 #: includes/assets/fonts/class-google-fonts-provider.php:262 includes/assets/icons/class-material-provider.php:168
 msgid "CSS2 responded with %d."
-msgstr ""
+msgstr "پاسخ CSS2 با کد %d برگشت."
 
 #: includes/admin/views/system-status.php:134
 msgid "Cache"
-msgstr ""
+msgstr "کش"
 
 #: includes/settings/class-sections.php:237
 msgid "Cache lifetime (seconds)"
-msgstr ""
+msgstr "مدت کش (ثانیه)"
 
 #: includes/account/class-sections.php:1207
 msgid "Cancelled"
-msgstr ""
+msgstr "لغوشده"
 
 #: includes/assets/class-asset-manager.php:279
 msgid "Cannot read the uploaded file."
-msgstr ""
+msgstr "فایل بارگذاری‌شده خوانده نشد."
 
 #: includes/support/class-http.php:187
 msgid "Cannot write %s"
-msgstr ""
+msgstr "نوشتن %s ممکن نیست"
 
 #: includes/settings/class-sections.php:144
 msgid "Capabilities"
-msgstr ""
+msgstr "قابلیت‌ها"
 
 #: includes/capabilities/class-capabilities.php:279
 msgid "Capabilities re-checked: features changed automatically."
-msgstr ""
+msgstr "قابلیت‌ها دوباره بررسی شد: امکان‌ها خودکار تغییر کردند."
 
 #: includes/admin/views/capabilities.php:117
 msgid "Capability"
-msgstr ""
+msgstr "قابلیت"
 
 #: includes/account/class-templates.php:113 includes/account/class-templates.php:121 includes/account/class-templates.php:129 includes/design-system/class-tokens.php:68
 msgid "Card"
-msgstr ""
+msgstr "کارت"
 
 #: includes/account/class-templates.php:95
 msgid "Card grid"
-msgstr ""
+msgstr "شبکهٔ کارتی"
 
 #: includes/widgets/class-account-dashboard-widget.php:120
 msgid "Card layout"
-msgstr ""
+msgstr "چیدمان کارت"
 
 #: includes/widgets/class-style-controls.php:86
 msgid "Card padding"
-msgstr ""
+msgstr "فاصلهٔ داخلی کارت‌ها"
 
 #: includes/widgets/class-style-controls.php:62
 msgid "Card surface color"
-msgstr ""
+msgstr "رنگ سطح کارت"
 
 #: includes/settings/class-sections.php:1545
 msgid "Cards"
-msgstr ""
+msgstr "کارت‌ها"
 
 #: includes/settings/class-sections.php:506
 msgid "Cards + side menu"
-msgstr ""
+msgstr "کارت‌ها + منوی کنار"
 
 #: includes/compatibility/class-woocommerce-features.php:99
 msgid "Cart and Checkout blocks"
-msgstr ""
+msgstr "بلوک‌های سبد و تسویه"
 
 #: includes/settings/class-sections.php:1593
 msgid "Cart and list tables."
-msgstr ""
+msgstr "جدول‌های سبد خرید و لیست‌ها."
 
 #: includes/settings/class-sections.php:1603
 msgid "Cell padding (px)"
-msgstr ""
+msgstr "پدینگ سلول (px)"
 
 #: includes/widgets/class-account-nav-widget.php:171 includes/widgets/class-icon-widget.php:253 includes/widgets/class-style-controls.php:141
 msgid "Center"
-msgstr ""
+msgstr "وسط"
 
 #: includes/account/class-sections.php:1087 includes/widgets/class-account-forms-widget.php:73
 msgid "Change password"
-msgstr ""
+msgstr "تغییر گذرواژه"
 
 #: includes/account/class-sections.php:1090
 msgid "Change the password in the WooCommerce form"
-msgstr ""
+msgstr "تغییر گذرواژه در فرم ووکامرس"
 
 #: includes/settings/class-sections.php:323
 msgid "Channel"
-msgstr ""
+msgstr "کانال"
 
 #: includes/admin/views/system-status.php:62
 msgid "Check"
-msgstr ""
+msgstr "بررسی"
 
 #: includes/admin/views/system-status.php:59
 msgid "Check details"
-msgstr ""
+msgstr "جزئیات بررسی"
 
 #: includes/admin/class-admin.php:603
 msgid "Check finished: %d features are switched off automatically because the host capability is missing."
-msgstr ""
+msgstr "بررسی انجام شد: %d ویژگی به‌خاطر نبود قابلیت هاست خودکار خاموش است."
 
 #: includes/admin/class-admin.php:613
 msgid "Check finished: %d passed, %d warnings, %d errors."
-msgstr ""
+msgstr "بررسی انجام شد: %d موفق، %d هشدار، %d خطا."
 
 #: includes/admin/class-admin.php:604
 msgid "Check finished: every DashWoo feature is active."
-msgstr ""
+msgstr "بررسی انجام شد: همهٔ ویژگی‌های DashWoo فعال‌اند."
 
 #: includes/settings/class-sections.php:339
 msgid "Check interval (hours)"
-msgstr ""
+msgstr "فاصله بررسی (ساعت)"
 
 #: includes/admin/views/system-status.php:21
 msgid "Check summary"
-msgstr ""
+msgstr "خلاصه بررسی"
 
 #: includes/compatibility/class-woocommerce-features.php:111
 msgid "Checkout rate limiting"
-msgstr ""
+msgstr "محدودیت نرخ تسویه"
 
 #: includes/widgets/class-account-profile-widget.php:110
 msgid "City"
-msgstr ""
+msgstr "شهر"
 
 #: includes/compatibility/class-woocommerce-features.php:183
 msgid "Clear empty sessions"
-msgstr ""
+msgstr "حذف نشست‌های خالی"
 
 #: includes/admin/views/logs.php:19
 msgid "Clear the logs"
-msgstr ""
+msgstr "پاک کردن گزارش‌ها"
 
 #: includes/account/class-panel.php:600
 msgid "Close"
-msgstr ""
+msgstr "بستن"
 
 #: includes/assets/icons/class-icon-renderer.php:276 includes/widgets/class-icon-widget.php:234
 msgid "Color"
-msgstr ""
+msgstr "رنگ"
 
 #: includes/widgets/class-style-controls.php:146
 msgid "Color mode"
-msgstr ""
+msgstr "حالت رنگی"
 
 #: includes/design-system/class-tokens.php:58 includes/settings/class-sections.php:1234 includes/widgets/class-style-controls.php:249
 msgid "Colors"
-msgstr ""
+msgstr "رنگ‌ها"
 
 #: includes/account/class-templates.php:130
 msgid "Compact"
-msgstr ""
+msgstr "جمع‌وجور"
 
 #: includes/widgets/class-account-profile-widget.php:72
 msgid "Compact (one line)"
-msgstr ""
+msgstr "فشرده (یک خط)"
 
 #: includes/account/class-templates.php:74
 msgid "Compact list"
-msgstr ""
+msgstr "فهرست جمع‌وجور"
 
 #: includes/admin/class-admin.php:702
 msgid "Compatibility check: %1$d passed, %2$d warnings, %3$d errors."
-msgstr ""
+msgstr "بررسی سازگاری: %1$d موفق، %2$d هشدار، %3$d خطا."
 
 #: includes/admin/views/capabilities.php:161
 msgid "Compatibility declaration for the WooCommerce features"
-msgstr ""
+msgstr "اعلان سازگاری با ویژگی‌های ووکامرس"
 
 #: includes/settings/class-sections.php:211
 msgid "Compatible — co-exist with themes and plugins"
-msgstr ""
+msgstr "Compatible — همزیستی با قالب/افزونه‌ها"
 
 #: includes/account/class-sections.php:1206
 msgid "Completed"
-msgstr ""
+msgstr "تکمیل‌شده"
 
 #: includes/settings/class-sections.php:129
 msgid "Components"
-msgstr ""
+msgstr "کامپوننت‌ها"
 
 #: includes/capabilities/class-capabilities.php:193
 msgid "Compressed bundle (zip)"
-msgstr ""
+msgstr "بستهٔ فشرده (zip)"
 
 #: includes/widgets/class-account-endpoint-widget-base.php:183 includes/widgets/class-account-panel-widget.php:129
 msgid "Content source"
-msgstr ""
+msgstr "منبع محتوا"
 
 #: includes/admin/views/logs.php:23
 msgid "Context"
-msgstr ""
+msgstr "زمینه"
 
 #: includes/settings/class-sections.php:1772
 msgid "Convert to WebP"
-msgstr ""
+msgstr "تبدیل به WebP"
 
 #: includes/capabilities/class-capabilities.php:188
 msgid "Convert uploaded images to WebP/AVIF automatically and build a lighter version"
-msgstr ""
+msgstr "تبدیل خودکار تصاویر بارگذاری‌شده به WebP/AVIF و ساخت نسخهٔ کم‌حجم"
 
 #: includes/admin/views/system-status.php:116
 msgid "Copy it whenever you need it and hand it to your host."
-msgstr ""
+msgstr "در صورت نیاز آن را کپی کنید و به پشتیبانی هاست بدهید."
 
 #: includes/settings/class-sections.php:1341 includes/widgets/class-style-controls.php:77
 msgid "Corner radius"
-msgstr ""
+msgstr "شعاع گوشه‌ها"
 
 #: includes/settings/class-sections.php:831
 msgid "Corner radius (px)"
-msgstr ""
+msgstr "گردی گوشه‌ها (px)"
 
 #: includes/settings/class-sections.php:1344
 msgid "Corner rounding."
-msgstr ""
+msgstr "گردی گوشه‌ها."
 
 #: includes/admin/views/dashboard.php:49
 msgid "Count"
-msgstr ""
+msgstr "تعداد"
 
 #: includes/widgets/class-account-widget-base.php:144
 msgid "Counter"
-msgstr ""
+msgstr "شمارنده"
 
 #: includes/widgets/class-account-nav-widget.php:142
 msgid "Counter (orders / downloads)"
-msgstr ""
+msgstr "شمارنده (سفارش‌ها / دانلودها)"
 
 #: includes/settings/class-sections.php:788
 msgid "Counters in the menu"
-msgstr ""
+msgstr "شمارنده در منو"
 
 #: includes/admin/views/system-status.php:33
 msgid "Current mode:"
-msgstr ""
+msgstr "حالت جاری:"
 
 #: includes/settings/class-sections.php:1828
 msgid "Custom CSS/JS"
-msgstr ""
+msgstr "CSS/JS سفارشی"
 
 #: includes/assets/icons/class-icon-renderer.php:229 includes/settings/class-sections.php:1132
 msgid "Custom SVG"
-msgstr ""
+msgstr "SVG اختصاصی"
 
 #: includes/settings/class-sections.php:1059
 msgid "Custom font"
-msgstr ""
+msgstr "فونت سفارشی"
 
 #: includes/widgets/class-account-widget-base.php:236
 msgid "Custom label"
-msgstr ""
+msgstr "عنوان دلخواه"
 
 #: includes/widgets/class-account-widget-base.php:273
 msgid "Custom link"
-msgstr ""
+msgstr "لینک دلخواه"
 
 #: includes/account/class-preview.php:145
 msgid "Customer"
-msgstr ""
+msgstr "مشتری"
 
 #: includes/compatibility/class-woocommerce-features.php:147
 msgid "Customer review request"
-msgstr ""
+msgstr "درخواست نظر مشتری"
 
 #: includes/settings/class-sections.php:955
 msgid "Customers who are not signed in see this message and the sign-in button instead of an empty page."
-msgstr ""
+msgstr "برای کاربران وارد‌نشده، به‌جای صفحهٔ خالی همین پیام و دکمهٔ ورود نمایش داده می‌شود."
 
 #: includes/capabilities/class-capabilities.php:121
 msgid "DOM (php-xml)"
-msgstr ""
+msgstr "DOM (php-xml)"
 
 #: includes/settings/class-sections.php:1721 includes/widgets/class-style-controls.php:152
 msgid "Dark"
-msgstr ""
+msgstr "تیره"
 
 #: includes/support/class-http.php:108
 msgid "DashWoo blocked a request to a non allow-listed host: %s"
-msgstr ""
+msgstr "DashWoo درخواست به میزبان مجازنشده را مسدود کرد: %s"
 
 #: includes/admin/views/capabilities.php:63
 msgid "DashWoo features and their automatic state"
-msgstr ""
+msgstr "ویژگی‌های DashWoo و وضعیت خودکار آن‌ها"
 
 #: includes/admin/views/partial-nav.php:45
 msgid "DashWoo groups"
-msgstr ""
+msgstr "گروه‌های"
 
 #: includes/widgets/class-icon-widget.php:42
 msgid "DashWoo icon"
-msgstr ""
+msgstr "آیکون DashWoo"
 
 #: includes/assets/icons/class-material-provider.php:141
 msgid "DashWoo is disabled."
-msgstr ""
+msgstr "DashWoo خاموش است."
 
 #: includes/settings/class-sections.php:226
 msgid "DashWoo is written in English and ships a complete Persian translation. “Follow the site language” uses whatever the WordPress install is set to, so a Persian site shows Persian; pick a language here to force one for DashWoo alone."
-msgstr ""
+msgstr "DashWoo به زبان انگلیسی نوشته شده و ترجمهٔ کامل فارسی را همراه دارد. گزینهٔ «از زبان سایت پیروی کند» همان زبانی را می‌آورد که وردپرس روی آن تنظیم است؛ پس سایت فارسی، فارسی دیده می‌شود. اگر می‌خواهید فقط DashWoo زبان دیگری داشته باشد، همین‌جا انتخاب کنید."
 
 #: includes/admin/views/capabilities.php:65
 msgid "DashWoo never depends on a host capability that is optional: when the host does not have something,"
-msgstr ""
+msgstr "هیچ‌گاه به قابلیت‌های اختیاری هاست وابسته نیست: اگر هاست چیزی را نداشته باشد،"
 
 #: includes/widgets/class-account-forms-widget.php:110
 msgid "DashWoo only saves the display name; email, password and addresses still go through WooCommerce's own form and validation. Every section links to it from this widget."
-msgstr ""
+msgstr "DashWoo فقط «نام نمایشی» را ذخیره می‌کند؛ ایمیل، گذرواژه و آدرس‌ها همچنان با فرم و اعتبارسنجی خود ووکامرس ذخیره می‌شوند. لینک‌های هر بخش در همان ویجت هست."
 
 #: includes/widgets/class-account-endpoint-widget-base.php:201
 msgid "DashWoo settings default"
-msgstr ""
+msgstr "پیش‌فرض تنظیمات DashWoo"
 
 #: includes/account/class-account.php:281
 msgid "DashWoo shortcuts and My Account widgets: account menu, cards, forms and a drop-in replacement for WooCommerce's default navigation"
-msgstr ""
+msgstr "میان‌بر و ویجت‌های حساب کاربری DashWoo: منوی حساب، کارت‌ها، فرم‌ها و جایگزینی ناوبری پیش‌فرض ووکامرس"
 
 #: includes/widgets/class-account-endpoint-widget-base.php:189
 msgid "DashWoo template only"
-msgstr ""
+msgstr "فقط قالب DashWoo"
 
 #: includes/settings/class-sections.php:694 includes/widgets/class-account-panel-widget.php:135
 msgid "DashWoo templates only"
-msgstr ""
+msgstr "فقط قالب‌های DashWoo"
 
 #: includes/account/class-elementor-bridge.php:692
 msgid "DashWoo widgets"
-msgstr ""
+msgstr "ابزارک‌های DashWoo"
 
 #: includes/compatibility/adapters/class-asset-adapter.php:116
 msgid "DashWoo works fully without GD. If you also see a GD warning in WooCommerce or in Site Health, ask your host to install or enable the php-gd extension (needed to resize product images)."
-msgstr ""
+msgstr "DashWoo بدون GD هم کامل کار می‌کند. اگر در ووکامرس یا «سلامت سایت» هم هشدار GD می‌بینید، از هاست بخواهید افزونهٔ php-gd را نصب/فعال کند (برای تغییر اندازهٔ تصاویر محصولات)."
 
 #: includes/widgets/class-account-addresses-widget.php:32
 msgid "DashWoo — Account addresses"
-msgstr ""
+msgstr "DashWoo — آدرس‌های حساب"
 
 #: includes/widgets/class-account-dashboard-widget.php:32
 msgid "DashWoo — Account dashboard"
-msgstr ""
+msgstr "DashWoo — پیشخوان حساب"
 
 #: includes/widgets/class-account-details-widget.php:32
 msgid "DashWoo — Account details"
-msgstr ""
+msgstr "DashWoo — جزئیات حساب"
 
 #: includes/widgets/class-account-downloads-widget.php:32
 msgid "DashWoo — Account downloads"
-msgstr ""
+msgstr "DashWoo — دانلودهای حساب"
 
 #: includes/widgets/class-account-forms-widget.php:32
 msgid "DashWoo — Account forms"
-msgstr ""
+msgstr "DashWoo — فرم‌های حساب"
 
 #: includes/widgets/class-account-nav-widget.php:38
 msgid "DashWoo — Account menu"
-msgstr ""
+msgstr "DashWoo — منوی حساب کاربری"
 
 #: includes/widgets/class-account-orders-widget.php:32
 msgid "DashWoo — Account orders"
-msgstr ""
+msgstr "DashWoo — سفارش‌های حساب"
 
 #: includes/widgets/class-account-profile-widget.php:32
 msgid "DashWoo — Customer profile"
-msgstr ""
+msgstr "DashWoo — پروفایل کاربر"
 
 #: includes/widgets/class-account-logout-widget.php:32
 msgid "DashWoo — Log out"
-msgstr ""
+msgstr "DashWoo — خروج از حساب"
 
 #: includes/widgets/class-account-payment-widget.php:32
 msgid "DashWoo — Payment methods"
-msgstr ""
+msgstr "DashWoo — روش‌های پرداخت"
 
 #: includes/widgets/class-account-order-widget.php:36
 msgid "DashWoo — Single order"
-msgstr ""
+msgstr "DashWoo — جزئیات یک سفارش"
 
 #: includes/widgets/class-account-panel-widget.php:40
 msgid "DashWoo — Two-column account panel"
-msgstr ""
+msgstr "DashWoo — پنل دوستونهٔ حساب کاربری"
 
 #: includes/account/class-templates.php:60 includes/admin/class-admin.php:87 includes/settings/class-sections.php:30 includes/settings/class-sections.php:160 includes/settings/class-sections.php:703 includes/widgets/class-account-panel-widget.php:58
 #: … 1 more places
 msgid "Dashboard"
-msgstr ""
+msgstr "پیشخوان"
 
 #: includes/settings/class-sections.php:174
 msgid "Dashboard notice text"
-msgstr ""
+msgstr "متن اعلان داشبورد"
 
 #: includes/settings/class-sections.php:584
 msgid "Dashboard template"
-msgstr ""
+msgstr "قالب پیشخوان"
 
 #: includes/account/class-sections.php:257 includes/account/class-sections.php:272
 msgid "Date"
-msgstr ""
+msgstr "تاریخ"
 
 #: includes/settings/class-sections.php:250
 msgid "Debug"
-msgstr ""
+msgstr "اشکال‌زدایی"
 
 #: includes/admin/views/capabilities.php:173
 msgid "Declared in this request:"
-msgstr ""
+msgstr "اعلام‌شده در این درخواست:"
 
 #: includes/admin/views/assets.php:106 includes/widgets/class-style-controls.php:126 includes/widgets/class-style-controls.php:139
 msgid "Default"
-msgstr ""
+msgstr "پیش‌فرض"
 
 #: includes/account/class-templates.php:200
 msgid "Default (%s)"
-msgstr ""
+msgstr "پیش‌فرض (%s)"
 
 #: includes/settings/class-sections.php:885
 msgid "Default block spacing (px)"
-msgstr ""
+msgstr "فاصلهٔ پیش‌فرض بلوک‌ها (px)"
 
 #: includes/settings/class-sections.php:1184
 msgid "Default colour"
-msgstr ""
+msgstr "رنگ پیش‌فرض"
 
 #: includes/admin/class-admin.php:565
 msgid "Default font set."
-msgstr ""
+msgstr "فونت پیش‌فرض تنظیم شد."
 
 #: includes/settings/class-sections.php:499
 msgid "Default layout"
-msgstr ""
+msgstr "چیدمان پیش‌فرض"
 
 #: includes/settings/class-sections.php:1220
 msgid "Default position"
-msgstr ""
+msgstr "موقعیت پیش‌فرض"
 
 #: includes/settings/class-sections.php:1126
 msgid "Default provider"
-msgstr ""
+msgstr "ارائه‌دهنده پیش‌فرض"
 
 #: includes/settings/class-sections.php:699 includes/widgets/class-account-panel-widget.php:143
 msgid "Default section"
-msgstr ""
+msgstr "بخش پیش‌فرض"
 
 #: includes/settings/class-sections.php:1190
 msgid "Default size (px)"
-msgstr ""
+msgstr "اندازه پیش‌فرض (px)"
 
 #: includes/settings/class-sections.php:1940
 msgid "Defer the platform scripts"
-msgstr ""
+msgstr "defer اسکریپت‌های پلتفرم"
 
 #: includes/compatibility/class-woocommerce-features.php:143
 msgid "Deferred transactional emails"
-msgstr ""
+msgstr "ایمیل‌های تراکنشی معوق"
 
 #: includes/admin/views/assets.php:129
 msgid "Delete"
-msgstr ""
+msgstr "حذف"
 
 #: includes/settings/class-sections.php:258
 msgid "Delete data when the plugin is deleted"
-msgstr ""
+msgstr "حذف داده‌ها هنگام حذف افزونه"
 
 #: includes/settings/class-sections.php:35
 msgid "Design"
-msgstr ""
+msgstr "طراحی"
 
 #: includes/settings/class-sections.php:128
 msgid "Design foundation"
-msgstr ""
+msgstr "پایهٔ طراحی"
 
 #: includes/widgets/class-account-widget-base.php:188
 msgid "Desktop only (hidden on tablet and mobile)"
-msgstr ""
+msgstr "فقط دسکتاپ (پنهان در تبلت و موبایل)"
 
 #: includes/account/class-sections.php:260 includes/admin/views/capabilities.php:119 includes/admin/views/system-status.php:62
 msgid "Details"
-msgstr ""
+msgstr "جزئیات"
 
 #: includes/settings/class-sections.php:1674
 msgid "Dismissible"
-msgstr ""
+msgstr "قابل بستن"
 
 #: includes/settings/class-sections.php:669 includes/widgets/class-account-profile-widget.php:67
 msgid "Display mode"
-msgstr ""
+msgstr "حالت نمایش"
 
 #: includes/account/class-sections.php:955 includes/account/class-sections.php:1178
 msgid "Display name"
-msgstr ""
+msgstr "نام نمایشی"
 
 #: includes/settings/class-sections.php:924 includes/widgets/class-account-forms-widget.php:96
 msgid "Display name (savable)"
-msgstr ""
+msgstr "نام نمایشی (قابل ذخیره)"
 
 #: includes/account/class-form-adapter.php:182
 msgid "Display name saved."
-msgstr ""
+msgstr "نام نمایشی ذخیره شد."
 
 #: includes/widgets/class-account-nav-widget.php:180
 msgid "Divider between the items"
-msgstr ""
+msgstr "خط جداکننده بین آیتم‌ها"
 
 #: includes/account/class-sections.php:814 includes/account/class-sections.php:840 includes/admin/views/assets.php:95
 msgid "Download"
-msgstr ""
+msgstr "دانلود"
 
 #: includes/admin/views/assets.php:94
 msgid "Download again"
-msgstr ""
+msgstr "دانلود مجدد"
 
 #: includes/admin/views/assets.php:61
 msgid "Download and store it locally"
-msgstr ""
+msgstr "دانلود و ذخیره محلی"
 
 #: includes/assets/fonts/class-google-fonts-provider.php:238
 msgid "Downloading Google Fonts is disabled in the settings."
-msgstr ""
+msgstr "دانلود گوگل‌فونت در تنظیمات خاموش است."
 
 #: includes/account/class-endpoints.php:96 includes/account/class-templates.php:91 includes/settings/class-sections.php:705
 msgid "Downloads"
-msgstr ""
+msgstr "دانلودها"
 
 #: includes/settings/class-sections.php:605
 msgid "Downloads template"
-msgstr ""
+msgstr "قالب دانلودها"
 
 #: includes/account/class-sections.php:1210
 msgid "Draft"
-msgstr ""
+msgstr "پیش‌نویس"
 
 #: includes/settings/class-sections.php:1698
 msgid "Drawer side"
-msgstr ""
+msgstr "سمت Drawer"
 
 #: includes/account/class-sections.php:910
 msgid "Edit "
-msgstr ""
+msgstr "ویرایش "
 
 #: includes/account/class-sections.php:1139
 msgid "Edit everything in the WooCommerce form"
-msgstr ""
+msgstr "ویرایش کامل در فرم ووکامرس"
 
 #: includes/widgets/class-account-profile-widget.php:121
 msgid "Edit profile button"
-msgstr ""
+msgstr "دکمهٔ ویرایش پروفایل"
 
 #: includes/account/class-sections.php:961
 msgid "Edit the details in the WooCommerce form"
-msgstr ""
+msgstr "ویرایش جزئیات در فرم ووکامرس"
 
 #: includes/settings/class-sections.php:56 includes/settings/class-sections.php:1865
 msgid "Elementor"
-msgstr ""
+msgstr "المنتور"
 
 #: includes/compatibility/adapters/class-elementor-adapter.php:124
 msgid "Elementor %s (minimum %s)"
-msgstr ""
+msgstr "المنتور %s (کمینه %s)"
 
 #: includes/design-system/elementor/class-tokens-integration.php:268
 msgid "Elementor Kit API is unavailable."
-msgstr ""
+msgstr "API کیت المنتور در دسترس نیست."
 
 #: includes/compatibility/adapters/class-elementor-adapter.php:137
 msgid "Elementor Pro %s detected"
-msgstr ""
+msgstr "المنتور پرو %s شناسایی شد"
 
 #: includes/compatibility/adapters/class-elementor-adapter.php:137
 msgid "Elementor Pro not installed (optional)"
-msgstr ""
+msgstr "المنتور پرو نصب نیست (اختیاری)"
 
 #: includes/settings/class-sections.php:216
 msgid "Elementor integration"
-msgstr ""
+msgstr "یکپارچه‌سازی با المنتور"
 
 #: includes/compatibility/adapters/class-elementor-adapter.php:113
 msgid "Elementor is active"
-msgstr ""
+msgstr "المنتور فعال است"
 
 #: includes/compatibility/adapters/class-elementor-adapter.php:113
 msgid "Elementor is not active - visual controls disabled"
-msgstr ""
+msgstr "المنتور فعال نیست - کنترل‌های ظاهری خاموش‌اند"
 
 #: includes/account/class-elementor-bridge.php:688
 msgid "Elementor is not active; the widgets only show up in the panel when Elementor is on."
-msgstr ""
+msgstr "المنتور فعال نیست؛ ابزارک‌ها فقط وقتی المنتور روشن باشد در پنل دیده می‌شوند."
 
 #: includes/design-system/elementor/class-tokens-integration.php:262
 msgid "Elementor is not available."
-msgstr ""
+msgstr "المنتور در دسترس نیست."
 
 #: includes/admin/views/system-status.php:124
 msgid "Elementor kit sync"
-msgstr ""
+msgstr "همگام‌سازی کیت المنتور"
 
 #: includes/settings/class-sections.php:986
 msgid "Elementor only: navigation and content from DashWoo widgets"
-msgstr ""
+msgstr "کاملاً المنتور: ناوبری و محتوا از ویجت‌های DashWoo"
 
 #: includes/account/class-elementor-bridge.php:684
 msgid "Elementor plugin"
-msgstr ""
+msgstr "افزونهٔ المنتور"
 
 #: includes/compatibility/adapters/class-elementor-adapter.php:125
 msgid "Elementor version not detected"
-msgstr ""
+msgstr "نسخهٔ المنتور شناسایی نشد"
 
 #: includes/account/class-sections.php:956 includes/account/class-sections.php:1181 includes/widgets/class-account-profile-widget.php:108
 msgid "Email"
-msgstr ""
+msgstr "ایمیل"
 
 #: includes/compatibility/class-woocommerce-features.php:151
 msgid "Email improvements"
-msgstr ""
+msgstr "بهبود ایمیل‌ها"
 
 #: includes/account/class-sections.php:1138
 msgid "Email, password and addresses are saved with WooCommerce's own validation."
-msgstr ""
+msgstr "ایمیل، گذرواژه و آدرس‌ها با اعتبارسنجی خود ووکامرس ذخیره می‌شوند."
 
 #: includes/widgets/class-account-widget-base.php:266
 msgid "Empty = the real counter (orders/downloads)."
-msgstr ""
+msgstr "خالی = شمارندهٔ واقعی (سفارش‌ها/دانلودها)."
 
 #: includes/support/class-http.php:163
 msgid "Empty response body for %s"
-msgstr ""
+msgstr "بدنهٔ پاسخ برای %s خالی است"
 
 #: includes/settings/class-sections.php:200
 msgid "Enable DashWoo"
-msgstr ""
+msgstr "فعال‌سازی DashWoo"
 
 #: includes/settings/class-sections.php:564
 msgid "Enable template selection"
-msgstr ""
+msgstr "فعال‌سازی انتخاب قالب"
 
 #: includes/settings/class-sections.php:1955
 msgid "Enable the REST API"
-msgstr ""
+msgstr "فعال‌سازی REST"
 
 #: includes/widgets/class-account-nav-widget.php:172 includes/widgets/class-icon-widget.php:257 includes/widgets/class-style-controls.php:142
 msgid "End"
-msgstr ""
+msgstr "پایان"
 
 #: includes/i18n/class-language.php:90
 msgid "English"
-msgstr ""
+msgstr "انگلیسی"
 
 #: includes/admin/views/dashboard.php:22
 msgid "Environment compatibility"
-msgstr ""
+msgstr "سازگاری محیط"
 
 #: includes/admin/views/system-status.php:112
 msgid "Environment diagnostics (for the host's support)"
-msgstr ""
+msgstr "تشخیص محیط (برای پشتیبانی هاست)"
 
 #: includes/settings/class-sections.php:253 includes/settings/class-sections.php:1307
 msgid "Error"
-msgstr ""
+msgstr "خطا"
 
 #: includes/settings/class-sections.php:358
 msgid "Event logging"
-msgstr ""
+msgstr "ثبت رویداد"
 
 #: includes/admin/views/dashboard.php:61
 msgid "Every font and icon is loaded from"
-msgstr ""
+msgstr "همه فونت‌ها و آیکون‌ها از"
 
 #: includes/settings/class-sections.php:186
 msgid "Every optional DashWoo feature. When the host is missing what a feature needs, the feature stays off and switches itself on as soon as the capability appears."
-msgstr ""
+msgstr "هر ویژگی اختیاری DashWoo. اگر هاست قابلیت لازم را نداشته باشد، ویژگی خودش خاموش می‌ماند و به‌محض فراهم شدن، خودکار روشن می‌شود."
 
 #: includes/admin/views/settings.php:157
 msgid "Every subgroup of"
-msgstr ""
+msgstr "همهٔ زیرگروه‌های"
 
 #: includes/account/class-account.php:282
 msgid "Every widget shows an “off” notice in the editor and the DashWoo styling is not applied"
-msgstr ""
+msgstr "همهٔ ویجت‌ها پیام «خاموش است» را در ویرایشگر نشان می‌دهند و سبک DashWoo اعمال نمی‌شود"
 
 #: includes/widgets/class-account-widget-base.php:173
 msgid "Everybody"
-msgstr ""
+msgstr "همهٔ بازدیدکنندگان"
 
 #: includes/compatibility/adapters/class-elementor-adapter.php:161
 msgid "Experiments API available"
-msgstr ""
+msgstr "API آزمایش‌ها در دسترس است"
 
 #: includes/compatibility/adapters/class-elementor-adapter.php:161
 msgid "Experiments API unavailable"
-msgstr ""
+msgstr "API آزمایش‌ها در دسترس نیست"
 
 #: includes/capabilities/class-capabilities.php:195
 msgid "Export a backup bundle with settings + assets in a single zip file"
-msgstr ""
+msgstr "برون‌ریزی بستهٔ پشتیبان شامل تنظیمات + دارایی‌ها در یک فایل zip"
 
 #: includes/assets/class-asset-manager.php:273
 msgid "Extension \".%s\" is not allowed for %s assets."
-msgstr ""
+msgstr "پسوند «.%s» برای دارایی‌های %s مجاز نیست."
 
 #: includes/widgets/class-style-controls.php:131
 msgid "Extra Bold"
-msgstr ""
+msgstr "خیلی بولد"
 
 #: includes/account/class-sections.php:1209
 msgid "Failed"
-msgstr ""
+msgstr "ناموفق"
 
 #: includes/admin/views/capabilities.php:72
 msgid "Feature"
-msgstr ""
+msgstr "ویژگی"
 
 #: includes/settings/class-sections.php:183
 msgid "Features"
-msgstr ""
+msgstr "ویژگی‌ها"
 
 #: includes/admin/views/capabilities.php:43
 msgid "Features that are on"
-msgstr ""
+msgstr "ویژگی‌های فعال"
 
 #: includes/settings/class-sections.php:1507
 msgid "Field height (px)"
-msgstr ""
+msgstr "ارتفاع فیلد (px)"
 
 #: includes/settings/class-sections.php:1516
 msgid "Field radius (px)"
-msgstr ""
+msgstr "گردی فیلد (px)"
 
 #: includes/account/class-sections.php:834 includes/account/class-sections.php:838
 msgid "File"
-msgstr ""
+msgstr "فایل"
 
 #: includes/assets/class-asset-manager.php:265
 msgid "File is bigger than the %s limit."
-msgstr ""
+msgstr "حجم فایل از حد %s بیشتر است."
 
 #: includes/support/class-http.php:168
 msgid "File is larger than the %d byte limit."
-msgstr ""
+msgstr "فایل از حد %d بایت بزرگ‌تر است."
 
 #: includes/account/class-sections.php:773
 msgid "Files: %d"
-msgstr ""
+msgstr "فایل‌ها: %d"
 
 #: includes/assets/icons/class-icon-renderer.php:254 includes/widgets/class-icon-widget.php:160
 msgid "Fill"
-msgstr ""
+msgstr "پرشدگی"
 
 #: includes/settings/class-sections.php:1157
 msgid "Fill (0-1)"
-msgstr ""
+msgstr "پرشدگی (0 تا 1)"
 
 #: includes/account/class-sections.php:1179 includes/settings/class-sections.php:925 includes/widgets/class-account-forms-widget.php:97 includes/widgets/class-account-profile-widget.php:112
 msgid "First name"
-msgstr ""
+msgstr "نام"
 
 #: includes/widgets/class-account-panel-widget.php:111
 msgid "Floating window (for order details)"
-msgstr ""
+msgstr "پنجرهٔ شناور (برای جزئیات سفارش)"
 
 #: includes/settings/class-sections.php:674
 msgid "Floating window for details"
-msgstr ""
+msgstr "پنجرهٔ شناور برای جزئیات"
 
 #: includes/settings/class-sections.php:1694
 msgid "Floating windows, the cart and the tooltip widget."
-msgstr ""
+msgstr "پنجره‌های شناور، سبد خرید، ابزارک Tooltip."
 
 #: includes/admin/views/system-status.php:139
 msgid "Flush the cache"
-msgstr ""
+msgstr "پاک‌سازی کش"
 
 #: includes/settings/class-sections.php:1525
 msgid "Focus ring"
-msgstr ""
+msgstr "حلقه فوکوس"
 
 #: includes/i18n/class-language.php:89
 msgid "Follow the site language"
-msgstr ""
+msgstr "از زبان سایت پیروی کند"
 
 #: includes/assets/fonts/class-google-fonts-provider.php:243
 msgid "Font \"%s\" is not in the DashWoo catalogue."
-msgstr ""
+msgstr "قلم «%s» در فهرست DashWoo نیست."
 
 #: includes/assets/fonts/class-google-fonts-provider.php:415
 msgid "Font \"%s\" is not installed."
-msgstr ""
+msgstr "قلم «%s» نصب نشده است."
 
 #: includes/admin/class-admin.php:543
 msgid "Font deleted."
-msgstr ""
+msgstr "فونت حذف شد."
 
 #: includes/settings/class-sections.php:136
 msgid "Font families"
-msgstr ""
+msgstr "خانواده‌های فونت"
 
 #: includes/admin/views/assets.php:45
 msgid "Font family"
-msgstr ""
+msgstr "فونت"
 
 #: includes/admin/views/assets.php:72
 msgid "Font family name"
-msgstr ""
+msgstr "نام خانوادگی فونت"
 
 #: includes/settings/class-sections.php:1089
 msgid "Font management"
-msgstr ""
+msgstr "مدیریت فونت‌ها"
 
 #: includes/admin/class-admin.php:543
 msgid "Font not found."
-msgstr ""
+msgstr "فونت یافت نشد."
 
 #: includes/assets/fonts/class-font-manager.php:297
 msgid "Font not installed."
-msgstr ""
+msgstr "قلم نصب نشده است."
 
 #: includes/design-system/class-tokens.php:60 includes/widgets/class-style-controls.php:104
 msgid "Font size"
-msgstr ""
+msgstr "اندازه فونت"
 
 #: includes/admin/class-admin.php:535
 msgid "Font updated."
-msgstr ""
+msgstr "فونت به‌روزرسانی شد."
 
 #: includes/settings/class-sections.php:1477 includes/widgets/class-style-controls.php:122
 msgid "Font weight"
-msgstr ""
+msgstr "وزن فونت"
 
 #: includes/admin/views/assets.php:19 includes/design-system/class-tokens.php:59
 msgid "Fonts"
-msgstr ""
+msgstr "فونت‌ها"
 
 #: includes/settings/class-sections.php:45
 msgid "Fonts and icons"
-msgstr ""
+msgstr "فونت و آیکون"
 
 #: includes/settings/class-sections.php:1857
 msgid "Footer"
-msgstr ""
+msgstr "فوتر"
 
 #: includes/settings/class-sections.php:552
 msgid "For every WooCommerce endpoint: visibility, label, icon and order. The list is read from WooCommerce itself, so any section an other plugin adds shows up here too."
-msgstr ""
+msgstr "برای هر بخش ووکامرس: نمایش/عدم نمایش، عنوان، آیکون و ترتیب. این فهرست از خود ووکامرس خوانده می‌شود، پس اگر افزونه‌ای بخشی اضافه کند، همین‌جا ظاهر می‌شود."
 
 #: includes/widgets/class-account-widget-base.php:247
 msgid "For example: receipt_long — empty = the section's default icon."
-msgstr ""
+msgstr "مثلاً: receipt_long — خالی = آیکون پیش‌فرض بخش."
 
 #: includes/widgets/class-account-widget-base.php:275
 msgid "For items outside the account area (such as “Support”)."
-msgstr ""
+msgstr "برای آیتم‌های خارج از حساب کاربری (مثلاً «پشتیبانی»)."
 
 #: includes/settings/class-sections.php:1002
 msgid "For use in any page or builder; it prints the same layout inside the page."
-msgstr ""
+msgstr "برای استفاده در هر برگه یا هر سازنده‌ای؛ همان چیدمان را داخل صفحه چاپ می‌کند."
 
 #: includes/widgets/class-account-widget-base.php:169
 msgid "For whom"
-msgstr ""
+msgstr "برای چه کسانی"
 
 #: includes/settings/class-sections.php:1916
 msgid "Force font-display: swap"
-msgstr ""
+msgstr "اجبار font-display: swap"
 
 #: includes/widgets/class-account-forms-widget.php:61
 msgid "Form"
-msgstr ""
+msgstr "فرم"
 
 #: includes/widgets/class-account-forms-widget.php:82
 msgid "Form title"
-msgstr ""
+msgstr "عنوان فرم"
 
 #: includes/widgets/class-account-forms-widget.php:67
 msgid "Form type"
-msgstr ""
+msgstr "نوع فرم"
 
 #: includes/account/class-templates.php:135 includes/settings/class-sections.php:1500
 msgid "Forms"
-msgstr ""
+msgstr "فرم‌ها"
 
 #: includes/settings/class-sections.php:913
 msgid "Forms and behaviour"
-msgstr ""
+msgstr "فرم‌ها و رفتار"
 
 #: includes/settings/class-sections.php:133
 msgid "Forms and pages"
-msgstr ""
+msgstr "فرم‌ها و صفحه‌ها"
 
 #: includes/settings/class-sections.php:640
 msgid "Forms template"
-msgstr ""
+msgstr "قالب فرم‌ها"
 
 #: includes/widgets/class-account-dashboard-widget.php:111 includes/widgets/class-account-nav-widget.php:205
 msgid "Four columns"
-msgstr ""
+msgstr "چهار ستون"
 
 #: includes/account/class-preview.php:293
 msgid "Free"
-msgstr ""
+msgstr "رایگان"
 
 #: includes/compatibility/class-woocommerce-features.php:175
 msgid "Fulfillments"
-msgstr ""
+msgstr "تکمیل سفارش"
 
 #: includes/settings/class-sections.php:210
 msgid "Full Override — full control over templates"
-msgstr ""
+msgstr "Full Override — کنترل کامل قالب‌ها"
 
 #: includes/admin/views/dashboard.php:26
 msgid "Full report"
-msgstr ""
+msgstr "گزارش کامل"
 
 #: includes/compatibility/adapters/class-asset-adapter.php:106
 msgid "GD available (%s)%s - optional helper for server-side thumbnails"
-msgstr ""
+msgstr "GD در دسترس است (%s)%s - کمک اختیاری برای تصویرهای بندانگشتی سمت سرور"
 
 #: includes/capabilities/class-capabilities.php:85
 msgid "GD image library (php-gd)"
-msgstr ""
+msgstr "کتابخانهٔ تصویر GD (php-gd)"
 
 #: includes/compatibility/adapters/class-asset-adapter.php:122
 msgid "GD is loaded but its image functions are unavailable (blocked by disable_functions?) - optional for DashWoo"
-msgstr ""
+msgstr "GD بارگذاری شده اما توابع تصویری‌اش در دسترس نیست (مسدودشده با disable_functions؟) - برای DashWoo اختیاری است"
 
 #: includes/compatibility/adapters/class-asset-adapter.php:115
 msgid "GD not installed (php-gd): optional, DashWoo generates no thumbnails and needs no image functions"
-msgstr ""
+msgstr "GD نصب نیست (php-gd): اختیاری؛ DashWoo تصویر بندانگشتی نمی‌سازد و به توابع تصویری نیازی ندارد"
 
 #: includes/capabilities/class-capabilities.php:147
 msgid "GD supports AVIF"
-msgstr ""
+msgstr "GD از AVIF پشتیبانی می‌کند"
 
 #: includes/capabilities/class-capabilities.php:139
 msgid "GD supports WebP"
-msgstr ""
+msgstr "GD از WebP پشتیبانی می‌کند"
 
 #: includes/settings/class-sections.php:732 includes/widgets/class-account-panel-widget.php:195
 msgid "Gap between the cards (px)"
-msgstr ""
+msgstr "فاصلهٔ دو کارت (px)"
 
 #: includes/widgets/class-style-controls.php:203
 msgid "Gap between the menu items"
-msgstr ""
+msgstr "فاصلهٔ بین آیتم‌های منو"
 
 #: includes/widgets/class-style-controls.php:95
 msgid "Gap between the parts"
-msgstr ""
+msgstr "فاصلهٔ بین اجزا"
 
 #: includes/settings/class-sections.php:142 includes/settings/class-sections.php:192 includes/settings/class-sections.php:2097
 msgid "General"
-msgstr ""
+msgstr "عمومی"
 
 #: includes/admin/views/system-status.php:135
 msgid "Generated files in"
-msgstr ""
+msgstr "فایل‌های تولیدشده در"
 
 #: includes/settings/class-sections.php:126 includes/widgets/class-account-nav-widget.php:170 includes/widgets/class-icon-widget.php:249 includes/widgets/class-style-controls.php:140
 msgid "Getting started"
-msgstr ""
+msgstr "شروع"
 
 #: includes/compatibility/adapters/class-elementor-adapter.php:145
 msgid "Global Kit API reachable (optional token sync)"
-msgstr ""
+msgstr "API کیت سراسری در دسترس است (همگام‌سازی اختیاری توکن‌ها)"
 
 #: includes/settings/class-sections.php:196
 msgid "Global switch, render mode, language and cache."
-msgstr ""
+msgstr "فعال‌سازی کلی، حالت رندر، زبان و کش."
 
 #: includes/account/class-sections.php:1156
 msgid "Go to my account dashboard"
-msgstr ""
+msgstr "رفتن به پیشخوان حساب"
 
 #: includes/settings/class-sections.php:1018
 msgid "Google Fonts"
-msgstr ""
+msgstr "گوگل فونت"
 
 #: includes/assets/icons/class-icon-renderer.php:261 includes/widgets/class-icon-widget.php:170
 msgid "Grade"
-msgstr ""
+msgstr "درجه"
 
 #: includes/settings/class-sections.php:1166
 msgid "Grade (-25 to 200)"
-msgstr ""
+msgstr "Grade (-25 تا 200)"
 
 #: includes/account/class-templates.php:138
 msgid "Grid"
-msgstr ""
+msgstr "شبکه‌ای"
 
 #: includes/settings/class-sections.php:952
 msgid "Guest message"
-msgstr ""
+msgstr "پیام مهمان‌ها"
 
 #: includes/account/class-profile.php:215
 msgid "Guest — sign in to see your orders and downloads."
-msgstr ""
+msgstr "مهمان — برای دیدن سفارش‌ها و دانلودها وارد شوید."
 
 #: includes/compatibility/class-woocommerce-features.php:135
 msgid "HPOS datastore caching"
-msgstr ""
+msgstr "کش انبارش سفارش‌ها"
 
 #: includes/compatibility/class-woocommerce-features.php:131
 msgid "HPOS full-text search indexes"
-msgstr ""
+msgstr "ایندکس‌های HPOS"
 
 #: includes/compatibility/adapters/class-woocommerce-adapter.php:201
 msgid "HPOS not applicable"
-msgstr ""
+msgstr "HPOS کاربرد ندارد"
 
 #: includes/compatibility/adapters/class-woocommerce-adapter.php:201
 msgid "HPOS-capable WooCommerce detected"
-msgstr ""
+msgstr "ووکامرس پشتیبان HPOS شناسایی شد"
 
 #: includes/settings/class-sections.php:1858
 msgid "Header"
-msgstr ""
+msgstr "هدر"
 
 #: includes/settings/class-sections.php:389
 msgid "Heading font"
-msgstr ""
+msgstr "فونت تیترها"
 
 #: includes/widgets/class-account-widget-base.php:190
 msgid "Hidden on mobile"
-msgstr ""
+msgstr "پنهان در موبایل"
 
 #: includes/widgets/class-account-widget-base.php:189
 msgid "Hidden on tablet"
-msgstr ""
+msgstr "پنهان در تبلت"
 
 #: includes/settings/class-sections.php:1895
 msgid "Hide WooCommerce's default widgets in Elementor"
-msgstr ""
+msgstr "پنهان‌سازی ابزارک‌های پیش‌فرض ووکامرس در المنتور"
 
 #: includes/widgets/class-account-widget-base.php:183
 msgid "Hide on"
-msgstr ""
+msgstr "پنهان در"
 
 #: includes/compatibility/class-woocommerce-features.php:95
 msgid "High-Performance Order Storage (HPOS)"
-msgstr ""
+msgstr "انبارش سفارش‌های پرفورمنس (HPOS)"
 
 #: includes/widgets/class-account-dashboard-widget.php:124
 msgid "Horizontal (avatar next to the text)"
-msgstr ""
+msgstr "افقی (آواتار کنار متن)"
 
 #: includes/widgets/class-account-panel-widget.php:211
 msgid "Horizontal menu tabs"
-msgstr ""
+msgstr "تب‌های افقی منو"
 
 #: includes/widgets/class-account-profile-widget.php:73
 msgid "Horizontal next to the content"
-msgstr ""
+msgstr "افقی کنار محتوا"
 
 #: includes/settings/class-sections.php:1450
 msgid "Horizontal padding (px)"
-msgstr ""
+msgstr "پدینگ افقی (px)"
 
 #: includes/account/class-templates.php:53 includes/widgets/class-account-nav-widget.php:108
 msgid "Horizontal tabs"
-msgstr ""
+msgstr "نوار تب افقی"
 
 #: includes/settings/class-sections.php:777
 msgid "Horizontal tabs for the menu"
-msgstr ""
+msgstr "تب‌های افقی برای منو"
 
 #: includes/admin/class-admin.php:239 includes/admin/views/capabilities.php:111
 msgid "Host capabilities"
-msgstr ""
+msgstr "قابلیت‌های هاست"
 
 #: includes/admin/views/capabilities.php:39
 msgid "Host capabilities found"
-msgstr ""
+msgstr "قابلیت‌های موجود هاست"
 
 #: includes/widgets/class-style-controls.php:219
 msgid "Hover background"
-msgstr ""
+msgstr "رنگ پس‌زمینهٔ هاور"
 
 #: includes/widgets/class-account-panel-widget.php:106
 msgid "How sections open"
-msgstr ""
+msgstr "حالت باز شدن بخش‌ها"
 
 #: includes/settings/class-sections.php:916
 msgid "How the forms behave and what replaces WooCommerce's default templates."
-msgstr ""
+msgstr "رفتار فرم‌ها و اینکه چه چیزی جای قالب‌های پیش‌فرض ووکامرس را بگیرد."
 
 #: includes/settings/class-sections.php:985
 msgid "Hybrid: DashWoo navigation + WooCommerce content"
-msgstr ""
+msgstr "ترکیبی: ناوبری DashWoo + محتوای ووکامرس"
 
 #: includes/widgets/class-icon-widget.php:69 includes/widgets/class-icon-widget.php:83
 msgid "Icon"
-msgstr ""
+msgstr "آیکون"
 
 #: includes/widgets/class-account-widget-base.php:245
 msgid "Icon (icon name)"
-msgstr ""
+msgstr "آیکون (نام آیکون)"
 
 #: includes/account/class-endpoints.php:551
 msgid "Icon for “%s”"
-msgstr ""
+msgstr "آیکون «%s»"
 
 #: includes/assets/icons/class-icon-renderer.php:234
 msgid "Icon name (ligature)"
-msgstr ""
+msgstr "نام آیکون (ligature)"
 
 #: includes/assets/icons/class-icon-renderer.php:286 includes/settings/class-sections.php:1226
 msgid "Icon only"
-msgstr ""
+msgstr "فقط آیکون"
 
 #: includes/widgets/class-account-nav-widget.php:128
 msgid "Icon position"
-msgstr ""
+msgstr "جای آیکون"
 
 #: includes/assets/icons/class-icon-renderer.php:224
 msgid "Icon provider"
-msgstr ""
+msgstr "ارائه‌دهنده آیکون"
 
 #: includes/widgets/class-style-controls.php:113
 msgid "Icon size"
-msgstr ""
+msgstr "اندازهٔ آیکون"
 
 #: includes/admin/class-admin.php:586
 msgid "Icon style removed."
-msgstr ""
+msgstr "سبک آیکون حذف شد."
 
 #: includes/admin/views/dashboard.php:31
 msgid "Icon styles:"
-msgstr ""
+msgstr "سبک‌های آیکون:"
 
 #: includes/settings/class-sections.php:1201
 msgid "Icon widget"
-msgstr ""
+msgstr "ابزارک آیکون"
 
 #: includes/admin/views/assets.php:20 includes/settings/class-sections.php:137 includes/settings/class-sections.php:1119 includes/widgets/class-account-endpoint-widget-base.php:209 includes/widgets/class-account-nav-widget.php:119 includes/widgets/class-account-widget-base.php:141
 msgid "Icons"
-msgstr ""
+msgstr "آیکون‌ها"
 
 #: includes/settings/class-sections.php:782
 msgid "Icons in the menu"
-msgstr ""
+msgstr "آیکون در منو"
 
 #: includes/capabilities/class-capabilities.php:186
 msgid "Image processing and optimisation"
-msgstr ""
+msgstr "پردازش و بهینه‌سازی تصاویر"
 
 #: includes/settings/class-sections.php:1570
 msgid "Image ratio"
-msgstr ""
+msgstr "نسبت تصویر"
 
 #: includes/admin/views/assets.php:21 includes/settings/class-sections.php:1765
 msgid "Images"
-msgstr ""
+msgstr "تصاویر"
 
 #: includes/capabilities/class-capabilities.php:189
 msgid "Images are stored untouched (every common format is supported)"
-msgstr ""
+msgstr "تصاویر بدون تغییر ذخیره می‌شوند (همهٔ فرمت‌های اصلی پشتیبانی می‌شوند)"
 
 #: includes/capabilities/class-capabilities.php:97
 msgid "Imagick (php-imagick)"
-msgstr ""
+msgstr "Imagick (php-imagick)"
 
 #: includes/rest/class-router.php:384
 msgid "Import failed."
-msgstr ""
+msgstr "درون‌ریزی انجام نشد."
 
 #: includes/settings/class-sections.php:677
 msgid "In floating mode the order details open in a window on top of the page."
-msgstr ""
+msgstr "در حالت شناور، جزئیات سفارش در یک پنجرهٔ روی صفحه باز می‌شود."
 
 #: includes/admin/views/settings.php:143
 msgid "In this group"
-msgstr ""
+msgstr "در این گروه"
 
 #: includes/settings/class-sections.php:988
 msgid "In “Elementor only”, only pages that were actually built with Elementor step aside from the default template; if the page is not an Elementor page yet, DashWoo does not overstep and the WooCommerce template stays."
-msgstr ""
+msgstr "در حالت «کاملاً المنتور» فقط صفحه‌هایی که با المنتور ساخته شده‌اند قالب پیش‌فرض را کنار می‌گذارند؛ اگر صفحه هنوز المنتوری نباشد، DashWoo تخطی نمی‌کند و همان قالب ووکامرس می‌ماند."
 
 #: includes/admin/views/capabilities.php:175
 msgid "Incompatible:"
-msgstr ""
+msgstr "ناسازگار:"
 
 #: includes/settings/class-sections.php:251
 msgid "Info"
-msgstr ""
+msgstr "اطلاع"
 
 #: includes/widgets/class-account-profile-widget.php:103
 msgid "Information rows"
-msgstr ""
+msgstr "خطوط اطلاعات"
 
 #: includes/settings/class-sections.php:878
 msgid "Inject the colour and size variables"
-msgstr ""
+msgstr "تزریق متغیرهای رنگ و اندازه"
 
 #: includes/settings/class-sections.php:1669
 msgid "Inline"
-msgstr ""
+msgstr "در محل"
 
 #: includes/compatibility/adapters/class-asset-adapter.php:202
 msgid "Inline CSS API unavailable"
-msgstr ""
+msgstr "API درج CSS در دسترس نیست"
 
 #: includes/settings/class-sections.php:1922
 msgid "Inline the tokens (removes an extra request)"
-msgstr ""
+msgstr "تزریق inline توکن‌ها (حذف درخواست اضافه)"
 
 #: includes/settings/class-sections.php:934
 msgid "Inline validation (HTML5)"
-msgstr ""
+msgstr "اعتبارسنجی درجا (HTML5)"
 
 #: includes/design-system/class-tokens.php:67
 msgid "Input"
-msgstr ""
+msgstr "ورودی"
 
 #: includes/settings/class-sections.php:1503
 msgid "Input fields and their validation states."
-msgstr ""
+msgstr "فیلدهای ورودی و حالت‌های اعتبارسنجی."
 
 #: includes/settings/class-sections.php:1536
 msgid "Inside the field"
-msgstr ""
+msgstr "داخل فیلد"
 
 #: includes/settings/class-sections.php:1872
 msgid "Integration level"
-msgstr ""
+msgstr "سطح یکپارچه‌سازی"
 
 #: includes/admin/views/system-status.php:125
 msgid "Integration level 3. It is off by default and a backup is taken before every change."
-msgstr ""
+msgstr "سطح ۳ یکپارچه‌سازی. به‌صورت پیش‌فرض خاموش است و قبل از هر تغییر، نسخه پشتیبان گرفته می‌شود."
 
 #: includes/settings/class-sections.php:140
 msgid "Integrations"
-msgstr ""
+msgstr "یکپارچه‌سازی"
 
 #: includes/assets/fonts/class-font-manager.php:137
 msgid "Invalid font slug."
-msgstr ""
+msgstr "نامک قلم نامعتبر است."
 
 #: includes/account/class-elementor-bridge.php:718
 msgid "It is on “native”; set it to “Elementor” to hand the page over to Elementor."
-msgstr ""
+msgstr "روی «بومی» است؛ برای واگذاری صفحه به المنتور، حالت را روی «المنتور» بگذارید."
 
 #: includes/account/class-form-adapter.php:166
 msgid "It was not saved; please try again."
-msgstr ""
+msgstr "ذخیره نشد؛ دوباره تلاش کنید."
 
 #: includes/account/class-sections.php:593 includes/account/class-sections.php:600
 msgid "Item"
-msgstr ""
+msgstr "کالا"
 
 #: includes/widgets/class-account-nav-widget.php:166
 msgid "Item alignment"
-msgstr ""
+msgstr "ترازبندی آیتم‌ها"
 
 #: includes/widgets/class-account-nav-widget.php:152
 msgid "Item size"
-msgstr ""
+msgstr "اندازهٔ آیتم‌ها"
 
 #: includes/widgets/class-account-nav-widget.php:220 includes/widgets/class-account-panel-widget.php:252
 msgid "Items"
-msgstr ""
+msgstr "آیتم‌ها"
 
 #: includes/account/class-templates.php:86
 msgid "Items only"
-msgstr ""
+msgstr "فقط اقلام"
 
 #: includes/settings/class-sections.php:1108 includes/settings/class-sections.php:1747
 msgid "Items per page"
-msgstr ""
+msgstr "تعداد در هر صفحه"
 
 #: includes/settings/class-sections.php:794 includes/widgets/class-account-panel-widget.php:153
 msgid "Items per section"
-msgstr ""
+msgstr "تعداد آیتم در هر بخش"
 
 #: includes/account/class-preview.php:292
 msgid "Items subtotal"
-msgstr ""
+msgstr "جمع اقلام"
 
 #: includes/account/class-templates.php:85
 msgid "Items table"
-msgstr ""
+msgstr "جدول اقلام"
 
 #: includes/account/class-renderer.php:502
 msgid "Items: %d"
-msgstr ""
+msgstr "آیتم‌ها: %d"
 
 #: includes/settings/class-sections.php:1853
 msgid "JS loading location"
-msgstr ""
+msgstr "محل بارگذاری JS"
 
 #: includes/settings/class-sections.php:1051
 msgid "Keep unicode-range"
-msgstr ""
+msgstr "حفظ unicode-range"
 
 #: includes/settings/class-sections.php:233
 msgid "Keeps the layout right-to-left for Persian and Arabic. It follows the site direction as well, so a Persian WordPress gets RTL even when this is off."
-msgstr ""
+msgstr "چیدمان را برای فارسی و عربی راست‌به‌چپ نگه می‌دارد. جهت سایت هم به‌طور خودکار رعایت می‌شود، پس وردپرس فارسی حتی با خاموش بودن این گزینه RTL می‌ماند."
 
 #: includes/compatibility/adapters/class-elementor-adapter.php:145
 msgid "Kit API unavailable"
-msgstr ""
+msgstr "API کیت المنتور در دسترس نیست"
 
 #: includes/design-system/elementor/class-tokens-integration.php:265
 msgid "Kit sync is disabled in the settings."
-msgstr ""
+msgstr "همگام‌سازی کیت در تنظیمات خاموش است."
 
 #: includes/admin/views/assets.php:105
 msgid "Label"
-msgstr ""
+msgstr "نام"
 
 #: includes/account/class-endpoints.php:543
 msgid "Label for “%s”"
-msgstr ""
+msgstr "عنوان «%s»"
 
 #: includes/settings/class-sections.php:1531
 msgid "Label position"
-msgstr ""
+msgstr "موقعیت برچسب"
 
 #: includes/settings/class-sections.php:1366 includes/settings/class-sections.php:1405 includes/widgets/class-account-nav-widget.php:158
 msgid "Large"
-msgstr ""
+msgstr "بزرگ"
 
 #: includes/widgets/class-account-profile-widget.php:71
 msgid "Large card"
-msgstr ""
+msgstr "کارت بزرگ"
 
 #: includes/admin/views/capabilities.php:51
 msgid "Last automatic check"
-msgstr ""
+msgstr "آخرین بررسی خودکار"
 
 #: includes/admin/views/assets.php:106
 msgid "Last change"
-msgstr ""
+msgstr "آخرین تغییر"
 
 #: includes/account/class-sections.php:1180 includes/settings/class-sections.php:926 includes/widgets/class-account-forms-widget.php:98 includes/widgets/class-account-profile-widget.php:113
 msgid "Last name"
-msgstr ""
+msgstr "نام خانوادگی"
 
 #: includes/settings/class-sections.php:1045
 msgid "Latin"
-msgstr ""
+msgstr "لاتین"
 
 #: includes/settings/class-sections.php:1046
 msgid "Latin Extended"
-msgstr ""
+msgstr "لاتین گسترده"
 
 #: includes/widgets/class-account-nav-widget.php:103
 msgid "Layout"
-msgstr ""
+msgstr "چیدمان"
 
 #: includes/settings/class-sections.php:485
 msgid "Layout and sections"
-msgstr ""
+msgstr "چیدمان و بخش‌ها"
 
 #: includes/widgets/class-account-panel-widget.php:165
 msgid "Layout of the two cards"
-msgstr ""
+msgstr "چیدمان دو کارت"
 
 #: includes/account/class-renderer.php:596
 msgid "Layout preview in the Elementor editor"
-msgstr ""
+msgstr "پیش‌نمایش چیدمان در ویرایشگر المنتور"
 
 #: includes/widgets/class-account-panel-widget.php:253
 msgid "Leave it empty to show every active account section. As soon as you add an item you decide its order, label, icon and visibility yourself."
-msgstr ""
+msgstr "خالی بگذارید تا همهٔ بخش‌های فعال حساب کاربری نمایش داده شود. با افزودن آیتم، ترتیب/عنوان/آیکون/نمایش هر آیتم را خودتان تعیین می‌کنید."
 
 #: includes/widgets/class-account-nav-widget.php:221
 msgid "Leave it empty to show every section WooCommerce has (that is switched on in the DashWoo settings) in the default order. As soon as you add an item, this list replaces the automatic one: order, label, icon, counter, visibility and even custom links (such as “Support”) are all set in this table."
-msgstr ""
+msgstr "خالی بگذارید تا همهٔ بخش‌هایی که ووکامرس دارد (و در تنظیمات DashWoo روشن است) با ترتیب پیش‌فرض نمایش داده شود. با افزودن آیتم، همین فهرست جای فهرست خودکار را می‌گیرد: ترتیب، عنوان، آیکون، شمارنده، پنهان‌کردن و حتی لینک‌های دلخواه (مثل «پشتیبانی») در همین جدول قابل تنظیم است."
 
 #: includes/widgets/class-account-endpoint-widget-base.php:176
 msgid "Leave it empty to show no heading."
-msgstr ""
+msgstr "خالی بگذارید تا عنوانی نمایش داده نشود."
 
 #: includes/widgets/class-account-widget-base.php:238
 msgid "Leave it empty to use the label from WooCommerce or from the settings."
-msgstr ""
+msgstr "خالی بگذارید تا عنوان خود ووکامرس/تنظیمات استفاده شود."
 
 #: includes/settings/class-sections.php:718 includes/settings/class-sections.php:1703 includes/widgets/class-account-panel-widget.php:176
 msgid "Left"
-msgstr ""
+msgstr "چپ"
 
 #: includes/compatibility/adapters/class-woocommerce-adapter.php:193
 msgid "Legacy [woocommerce] shortcodes in use"
-msgstr ""
+msgstr "کدهای کوتاه قدیمی [woocommerce] در حال استفاده‌اند"
 
 #: includes/settings/class-sections.php:460
 msgid "Letter spacing (em)"
-msgstr ""
+msgstr "فاصله حروف (em)"
 
 #: includes/admin/views/logs.php:23
 msgid "Level"
-msgstr ""
+msgstr "سطح"
 
 #: includes/settings/class-sections.php:1876
 msgid "Level 1 — CSS Variables (recommended)"
-msgstr ""
+msgstr "سطح ۱ — CSS Variables (پیشنهادی)"
 
 #: includes/settings/class-sections.php:1877
 msgid "Level 2 — Token Picker in the widgets"
-msgstr ""
+msgstr "سطح ۲ — Token Picker در ابزارک‌ها"
 
 #: includes/settings/class-sections.php:1878
 msgid "Level 3 — Sync with the Global Kit"
-msgstr ""
+msgstr "سطح ۳ — همگام‌سازی با Global Kit"
 
 #: includes/settings/class-sections.php:139
 msgid "Library"
-msgstr ""
+msgstr "کتابخانه"
 
 #: includes/settings/class-sections.php:1582
 msgid "Lift on hover"
-msgstr ""
+msgstr "بالا آمدن در هاور"
 
 #: includes/settings/class-sections.php:1722
 msgid "Light"
-msgstr ""
+msgstr "روشن"
 
 #: includes/design-system/class-tokens.php:61 includes/settings/class-sections.php:451
 msgid "Line height"
-msgstr ""
+msgstr "ارتفاع خط"
 
 #: includes/widgets/class-icon-widget.php:123
 msgid "Link"
-msgstr ""
+msgstr "لینک"
 
 #: includes/widgets/class-account-profile-widget.php:124
 msgid "Links to the WooCommerce account edit form."
-msgstr ""
+msgstr "لینک به فرم ویرایش حساب ووکامرس."
 
 #: includes/settings/class-sections.php:821
 msgid "Links, the active card and the buttons use this colour."
-msgstr ""
+msgstr "لینک‌ها، کارت فعال و دکمه‌ها از این رنگ استفاده می‌کنند."
 
 #: includes/widgets/class-style-controls.php:44
 msgid "Links, the active item and the buttons."
-msgstr ""
+msgstr "لینک‌ها، آیتم فعال و دکمه‌ها."
 
 #: includes/account/class-templates.php:94
 msgid "List"
-msgstr ""
+msgstr "فهرست"
 
 #: includes/settings/class-sections.php:1742
 msgid "Load more (AJAX)"
-msgstr ""
+msgstr "بارگذاری بیشتر (AJAX)"
 
 #: includes/settings/class-sections.php:759
 msgid "Loading text"
-msgstr ""
+msgstr "متن حالت بارگذاری"
 
 #: includes/account/class-account.php:203 includes/account/class-panel.php:116 includes/settings/class-sections.php:761
 msgid "Loading…"
-msgstr ""
+msgstr "در حال بارگذاری…"
 
 #: includes/admin/views/dashboard.php:29
 msgid "Local fonts"
-msgstr ""
+msgstr "فونت‌های محلی"
 
 #: includes/account/class-sections.php:1164
 msgid "Log in"
-msgstr ""
+msgstr "ورود"
 
 #: includes/settings/class-sections.php:246
 msgid "Log level"
-msgstr ""
+msgstr "سطح لاگ"
 
 #: includes/account/class-endpoints.php:120 includes/account/class-sections.php:983 includes/account/class-templates.php:144
 msgid "Log out"
-msgstr ""
+msgstr "خروج از حساب"
 
 #: includes/settings/class-sections.php:647
 msgid "Logout template"
-msgstr ""
+msgstr "قالب خروج"
 
 #: includes/admin/views/logs.php:15 includes/settings/class-sections.php:350
 msgid "Logs"
-msgstr ""
+msgstr "گزارش‌ها"
 
 #: includes/settings/class-sections.php:805
 msgid "Look and colors"
-msgstr ""
+msgstr "ظاهر و رنگ‌ها"
 
 #: includes/compatibility/class-woocommerce-features.php:179
 msgid "MCP integration"
-msgstr ""
+msgstr "یکپارچه‌سازی MCP"
 
 #: includes/admin/views/system-status.php:119
 msgid "Machine-readable:"
-msgstr ""
+msgstr "نمایش ماشین‌خوان:"
 
 #: includes/widgets/class-account-widget-base.php:263
 msgid "Manual counter"
-msgstr ""
+msgstr "شمارنده دستی"
 
 #: includes/settings/class-sections.php:902
 msgid "Mark size (px)"
-msgstr ""
+msgstr "اندازهٔ نشان (px)"
 
 #: includes/compatibility/class-woocommerce-features.php:115
 msgid "Marketplace"
-msgstr ""
+msgstr "مارکت‌پلیس"
 
 #: includes/settings/class-sections.php:898
 msgid "Matches the DashWoo brand identity (the SVG files inside the plugin)."
-msgstr ""
+msgstr "متناسب با هویت برند DashWoo (فایل‌های SVG داخل افزونه)."
 
 #: includes/settings/class-sections.php:1131
 msgid "Material Icons"
-msgstr ""
+msgstr "متریال آیکونز"
 
 #: includes/assets/icons/class-icon-renderer.php:228
 msgid "Material Icons (classic)"
-msgstr ""
+msgstr "Material Icons (کلاسیک)"
 
 #: includes/settings/class-sections.php:1130
 msgid "Material Symbols"
-msgstr ""
+msgstr "متریال سیمبلز"
 
 #: includes/settings/class-sections.php:1122
 msgid "Material Symbols (variable font) and classic Material Icons."
-msgstr ""
+msgstr "Material Symbols (فونت متغیر) و Material Icons کلاسیک."
 
 #: includes/assets/icons/class-icon-renderer.php:227
 msgid "Material Symbols (variable)"
-msgstr ""
+msgstr "Material Symbols (متغیر)"
 
 #: includes/admin/views/assets.php:80
 msgid "Material Symbols and Material Icons"
-msgstr ""
+msgstr "Material Symbols و Material Icons"
 
 #: includes/admin/views/assets.php:82
 msgid "Material Symbols is a <strong>variable font</strong>: one WOFF2 file is downloaded for every style and"
-msgstr ""
+msgstr "Material Symbols یک <strong>فونت متغیر</strong> است: برای هر سبک فقط یک فایل WOFF2 دانلود می‌شود و"
 
 #: includes/settings/class-sections.php:364
 msgid "Maximum rows"
-msgstr ""
+msgstr "حداکثر ردیف"
 
 #: includes/settings/class-sections.php:1078 includes/settings/class-sections.php:1778
 msgid "Maximum size (MB)"
-msgstr ""
+msgstr "حداکثر حجم (MB)"
 
 #: includes/settings/class-sections.php:1031
 msgid "Maximum size per file (MB)"
-msgstr ""
+msgstr "حداکثر حجم هر فایل (MB)"
 
 #: includes/admin/class-admin.php:218
 msgid "Media Library"
-msgstr ""
+msgstr "کتابخانهٔ رسانه"
 
 #: includes/settings/class-sections.php:1357 includes/settings/class-sections.php:1399 includes/widgets/class-account-nav-widget.php:157 includes/widgets/class-style-controls.php:128
 msgid "Medium"
-msgstr ""
+msgstr "متوسط"
 
 #: includes/widgets/class-style-controls.php:252
 msgid "Menu"
-msgstr ""
+msgstr "منو"
 
 #: includes/widgets/class-account-panel-widget.php:247
 msgid "Menu card items"
-msgstr ""
+msgstr "آیتم‌های کارت منو"
 
 #: includes/settings/class-sections.php:713 includes/widgets/class-account-panel-widget.php:171
 msgid "Menu card position"
-msgstr ""
+msgstr "جای کارت منو"
 
 #: includes/settings/class-sections.php:723 includes/widgets/class-account-panel-widget.php:184
 msgid "Menu card width (px)"
-msgstr ""
+msgstr "عرض کارت منو (px)"
 
 #: includes/widgets/class-style-controls.php:174
 msgid "Menu column width (two-column layout)"
-msgstr ""
+msgstr "عرض ستون منو (چیدمان دوستونه)"
 
 #: includes/settings/class-sections.php:1006
 msgid "Menu filter priority"
-msgstr ""
+msgstr "اولویت فیلتر منو"
 
 #: includes/widgets/class-account-nav-widget.php:215
 msgid "Menu items"
-msgstr ""
+msgstr "آیتم‌های منو"
 
 #: includes/widgets/class-account-nav-widget.php:97
 msgid "Menu shape and behaviour"
-msgstr ""
+msgstr "شکل و رفتار منو"
 
 #: includes/admin/views/logs.php:23
 msgid "Message"
-msgstr ""
+msgstr "پیام"
 
 #: includes/widgets/class-account-widget-base.php:143
 msgid "Meta next to the title (count, date…)"
-msgstr ""
+msgstr "اطلاعات کنار عنوان (تعداد، تاریخ…)"
 
 #: includes/settings/class-sections.php:1928
 msgid "Minify the generated CSS"
-msgstr ""
+msgstr "فشرده‌سازی CSS تولیدشده"
 
 #: includes/settings/class-sections.php:292
 msgid "Minimum Elementor"
-msgstr ""
+msgstr "حداقل المنتور"
 
 #: includes/settings/class-sections.php:274
 msgid "Minimum PHP"
-msgstr ""
+msgstr "حداقل PHP"
 
 #: includes/settings/class-sections.php:286
 msgid "Minimum WooCommerce"
-msgstr ""
+msgstr "حداقل ووکامرس"
 
 #: includes/settings/class-sections.php:280
 msgid "Minimum WordPress"
-msgstr ""
+msgstr "حداقل وردپرس"
 
 #: includes/widgets/class-style-controls.php:225
 msgid "Minimum height of the content card"
-msgstr ""
+msgstr "کمترین ارتفاع کارت محتوا"
 
 #: includes/settings/class-sections.php:772 includes/widgets/class-account-panel-widget.php:206
 msgid "Mobile behaviour"
-msgstr ""
+msgstr "رفتار در موبایل"
 
 #: includes/settings/class-sections.php:1691
 msgid "Modal and Drawer"
-msgstr ""
+msgstr "Modal و Drawer"
 
 #: includes/settings/class-sections.php:980
 msgid "Mode"
-msgstr ""
+msgstr "حالت"
 
 #: includes/compatibility/adapters/class-wordpress-adapter.php:155
 msgid "Multisite: per-site settings"
-msgstr ""
+msgstr "چندسایتی: تنظیمات هر سایت"
 
 #: includes/settings/class-sections.php:1271
 msgid "Muted text"
-msgstr ""
+msgstr "متن کم‌رنگ"
 
 #: includes/widgets/class-style-controls.php:57
 msgid "Muted text color"
-msgstr ""
+msgstr "رنگ متن کم‌رنگ"
 
 #: includes/settings/class-sections.php:40
 msgid "My Account"
-msgstr ""
+msgstr "حساب کاربری"
 
 #: includes/account/class-account.php:279
 msgid "My Account pack"
-msgstr ""
+msgstr "پک حساب کاربری"
 
 #: includes/settings/class-sections.php:492
 msgid "My Account pack enabled"
-msgstr ""
+msgstr "فعال بودن پک حساب کاربری"
 
 #: includes/account/class-elementor-bridge.php:541
 msgid "My Account — DashWoo"
-msgstr ""
+msgstr "حساب کاربری — DashWoo"
 
 #: includes/account/class-sections.php:1118
 msgid "My account details"
-msgstr ""
+msgstr "جزئیات حساب من"
 
 #: includes/account/class-sections.php:880
 msgid "My addresses"
-msgstr ""
+msgstr "آدرس‌های من"
 
 #: includes/account/class-sections.php:744
 msgid "My downloads"
-msgstr ""
+msgstr "دانلودهای من"
 
 #: includes/account/class-elementor-bridge.php:350 includes/account/class-sections.php:107
 msgid "My orders"
-msgstr ""
+msgstr "سفارش‌های من"
 
 #: includes/account/class-sections.php:957
 msgid "Name"
-msgstr ""
+msgstr "نام"
 
 #: includes/admin/views/capabilities.php:74
 msgid "Needs capability"
-msgstr ""
+msgstr "نیازمند قابلیت"
 
 #: includes/capabilities/class-capabilities.php:200
 msgid "Network defaults"
-msgstr ""
+msgstr "پیش‌فرض‌های شبکه"
 
 #: includes/settings/class-sections.php:871
 msgid "Neutralising reset (while automatic CSS is off)"
-msgstr ""
+msgstr "ریست خنثی‌سازی (وقتی CSS خودکار خاموش است)"
 
 #: includes/compatibility/class-woocommerce-features.php:203
 msgid "New product editor"
-msgstr ""
+msgstr "ویرایشگر جدید محصول"
 
 #: includes/compatibility/adapters/class-wordpress-adapter.php:149
 msgid "Nginx detected: .htaccess rules are ignored, deny PHP execution manually"
-msgstr ""
+msgstr "Nginx شناسایی شد: قواعد .htaccess نادیده گرفته می‌شوند؛ اجرای PHP را دستی مسدود کنید"
 
 #: includes/widgets/class-account-widget-base.php:199
 msgid "No DashWoo styling (this element only)"
-msgstr ""
+msgstr "بدون استایل DashWoo (فقط همین المان)"
 
 #: includes/design-system/elementor/class-tokens-integration.php:323
 msgid "No Kit backup available."
-msgstr ""
+msgstr "هیچ پشتیبان کیت در دسترس نیست."
 
 #: includes/design-system/elementor/class-tokens-integration.php:274
 msgid "No active Elementor Kit found."
-msgstr ""
+msgstr "کیت فعال المنتور پیدا نشد."
 
 #: includes/admin/views/assets.php:111
 msgid "No asset is registered yet."
-msgstr ""
+msgstr "هنوز دارایی‌ای ثبت نشده است."
 
 #: includes/account/class-sections.php:1265
 msgid "No content was found for “%s” (neither from WooCommerce nor from a DashWoo shortcut)."
-msgstr ""
+msgstr "برای بخش «%s» محتوایی پیدا نشد (نه از ووکامرس و نه میان‌بر DashWoo)."
 
 #: includes/admin/class-admin.php:726
 msgid "No file was selected."
-msgstr ""
+msgstr "فایلی انتخاب نشده است."
 
 #: includes/assets/fonts/class-google-fonts-provider.php:333
 msgid "No font file could be downloaded."
-msgstr ""
+msgstr "هیچ فایل قلمی دانلود نشد."
 
 #: includes/assets/fonts/class-font-manager.php:140
 msgid "No font files supplied."
-msgstr ""
+msgstr "هیچ فایل قلمی فرستاده نشد."
 
 #: includes/settings/class-sections.php:1537
 msgid "No label"
-msgstr ""
+msgstr "بدون برچسب"
 
 #: includes/assets/icons/class-material-provider.php:174
 msgid "No woff2 source found in the icon CSS."
-msgstr ""
+msgstr "منبع woff2 در CSS آیکون‌ها پیدا نشد."
 
 #: includes/account/class-sections.php:908
 msgid "Not added yet."
-msgstr ""
+msgstr "هنوز ثبت نشده است."
 
 #: includes/design-system/class-tokens.php:71 includes/settings/class-sections.php:1301
 msgid "Notice"
-msgstr ""
+msgstr "هشدار"
 
 #: includes/settings/class-sections.php:1656
 msgid "Notices"
-msgstr ""
+msgstr "هشدارها"
 
 #: includes/account/class-sections.php:256 includes/account/class-sections.php:271
 msgid "Number"
-msgstr ""
+msgstr "شماره"
 
 #: includes/widgets/class-account-dashboard-widget.php:104
 msgid "Number of card columns"
-msgstr ""
+msgstr "تعداد ستون کارت‌ها"
 
 #: includes/widgets/class-style-controls.php:184
 msgid "Number of columns"
-msgstr ""
+msgstr "تعداد ستون‌ها"
 
 #: includes/widgets/class-account-nav-widget.php:198
 msgid "Number of columns (card layout)"
-msgstr ""
+msgstr "تعداد ستون (چیدمان کارتی)"
 
 #: includes/settings/class-sections.php:512
 msgid "Number of shortcut card columns"
-msgstr ""
+msgstr "تعداد ستون کارت‌های میان‌بر"
 
 #: includes/settings/class-sections.php:1740
 msgid "Numbers"
-msgstr ""
+msgstr "شماره‌ها"
 
 #: includes/admin/views/capabilities.php:22
 msgid "Off automatically (host capability missing)"
-msgstr ""
+msgstr "خودکار خاموش (قابلیت هاست نیست)"
 
 #: includes/admin/views/capabilities.php:21
 msgid "Off by your choice"
-msgstr ""
+msgstr "خاموش با انتخاب شما"
 
 #: includes/admin/views/capabilities.php:20 includes/admin/views/settings.php:65 includes/widgets/class-style-controls.php:151
 msgid "On"
-msgstr ""
+msgstr "فعال"
 
 #: includes/account/class-sections.php:1205
 msgid "On hold"
-msgstr ""
+msgstr "در انتظار بررسی"
 
 #: includes/widgets/class-account-dashboard-widget.php:108 includes/widgets/class-account-nav-widget.php:202
 msgid "One column"
-msgstr ""
+msgstr "یک ستون"
 
 #: includes/account/class-preview.php:304
 msgid "Online payment (sample)"
-msgstr ""
+msgstr "پرداخت آنلاین (نمونه)"
 
 #: includes/settings/class-sections.php:530
 msgid "Only for orders and downloads, which are counted through WooCommerce's public API."
-msgstr ""
+msgstr "فقط برای سفارش‌ها و دانلودها که با API عمومی ووکامرس شمرده می‌شوند."
 
 #: includes/widgets/class-account-nav-widget.php:145
 msgid "Only for the items DashWoo can count through the public API."
-msgstr ""
+msgstr "فقط برای مواردی که DashWoo می‌تواند با API عمومی بشمارد."
 
 #: includes/capabilities/class-capabilities.php:204
 msgid "Only meaningful on multisite installs."
-msgstr ""
+msgstr "فقط روی نصب‌های چندسایتی معنا دارد."
 
 #: includes/settings/class-sections.php:874
 msgid "Only removes the browser defaults (list, margin, box-sizing) so you start from a clean slate; it adds nothing that looks like DashWoo."
-msgstr ""
+msgstr "فقط پیش‌فرض‌های مرورگر را کنار می‌زند (لیست، حاشیه، اندازهٔ جعبه) تا از صفر تمیز شروع کنید؛ هیچ ظاهری از DashWoo اضافه نمی‌کند."
 
 #: includes/settings/class-sections.php:930
 msgid "Only the display name is saved by DashWoo; the other fields are display-only and their editing goes to the WooCommerce form."
-msgstr ""
+msgstr "فقط «نام نمایشی» توسط DashWoo ذخیره می‌شود؛ بقیه فقط نمایشی‌اند و ویرایششان به فرم ووکامرس می‌رود."
 
 #: includes/account/class-sections.php:930
 msgid "Open the WooCommerce payment section"
-msgstr ""
+msgstr "باز کردن بخش پرداخت ووکامرس"
 
 #: includes/assets/icons/class-icon-renderer.php:269 includes/widgets/class-icon-widget.php:187
 msgid "Optical Size"
-msgstr ""
+msgstr "اندازهٔ نوری"
 
 #: includes/settings/class-sections.php:1175
 msgid "Optical Size (20 to 48)"
-msgstr ""
+msgstr "Optical Size (20 تا 48)"
 
 #: includes/settings/class-sections.php:1906
 msgid "Optimise how assets load."
-msgstr ""
+msgstr "بهینه‌سازی بارگذاری دارایی‌ها."
 
 #: includes/capabilities/class-capabilities.php:148
 msgid "Optional and very new; nothing breaks without it."
-msgstr ""
+msgstr "اختیاری و کاملاً جدید؛ اگر نبود هیچ چیز از کار نمی‌افتد."
 
 #: includes/capabilities/class-capabilities.php:92
 msgid "Optional. DashWoo uses it to convert images automatically (WebP/AVIF); everything else works without it."
-msgstr ""
+msgstr "اختیاری. DashWoo برای تبدیل خودکار تصاویر (WebP/AVIF) از آن استفاده می‌کند؛ بقیهٔ کارها بدون آن هم انجام می‌شود."
 
 #: includes/capabilities/class-capabilities.php:116
 msgid "Optional. DashWoo's network features are only available on a multisite install."
-msgstr ""
+msgstr "اختیاری. ویژگی‌های شبکه‌ای DashWoo فقط وقتی این نصب چندسایتی باشد فعال می‌شوند."
 
 #: includes/capabilities/class-capabilities.php:140
 msgid "Optional. Improves the quality and the file size of compressed images."
-msgstr ""
+msgstr "اختیاری. کیفیت/حجم تصاویر فشرده را بهتر می‌کند."
 
 #: includes/capabilities/class-capabilities.php:108
 msgid "Optional. Only needed for the compressed backup bundle; the JSON export always works."
-msgstr ""
+msgstr "اختیاری. فقط برای بستهٔ پشتیبان فشرده لازم است؛ برون‌ریزی JSON همیشه کار می‌کند."
 
 #: includes/capabilities/class-capabilities.php:100
 msgid "Optional. The GD alternative for image processing; either one of the two is enough."
-msgstr ""
+msgstr "اختیاری. جایگزین GD برای پردازش تصویر؛ اگر یکی از این دو باشد کافی است."
 
 #: includes/widgets/class-account-order-widget.php:54
 msgid "Order"
-msgstr ""
+msgstr "سفارش"
 
 #: includes/account/class-sections.php:337
 msgid "Order #%1$s — %2$s — %3$s"
-msgstr ""
+msgstr "سفارش #%1$s — %2$s — %3$s"
 
 #: includes/account/class-sections.php:394
 msgid "Order #%s"
-msgstr ""
+msgstr "سفارش #%s"
 
 #: includes/widgets/class-account-order-widget.php:98
 msgid "Order ID"
-msgstr ""
+msgstr "شناسهٔ سفارش"
 
 #: includes/compatibility/class-woocommerce-features.php:123
 msgid "Order attribution"
-msgstr ""
+msgstr "اسناد سفارش"
 
 #: includes/account/class-templates.php:73
 msgid "Order card"
-msgstr ""
+msgstr "کارت سفارش"
 
 #: includes/widgets/class-account-profile-widget.php:111
 msgid "Order count"
-msgstr ""
+msgstr "تعداد سفارش"
 
 #: includes/account/class-panel.php:313 includes/account/class-panel.php:640
 msgid "Order details"
-msgstr ""
+msgstr "جزئیات سفارش"
 
 #: includes/account/class-endpoints.php:559
 msgid "Order of “%s”"
-msgstr ""
+msgstr "ترتیب «%s»"
 
 #: includes/account/class-preview.php:294
 msgid "Order total"
-msgstr ""
+msgstr "مبلغ پرداختی"
 
 #: includes/compatibility/class-woocommerce-features.php:119
 msgid "Order withdrawal"
-msgstr ""
+msgstr "انصراف از سفارش"
 
 #: includes/settings/class-sections.php:527
 msgid "Order/download counter"
-msgstr ""
+msgstr "شمارنده سفارش/دانلود"
 
 #: includes/account/class-endpoints.php:90 includes/account/class-templates.php:70 includes/settings/class-sections.php:704
 msgid "Orders"
-msgstr ""
+msgstr "سفارش‌ها"
 
 #: includes/settings/class-sections.php:591
 msgid "Orders list template"
-msgstr ""
+msgstr "قالب فهرست سفارش‌ها"
 
 #: includes/account/class-sections.php:190 includes/account/class-sections.php:220 includes/account/class-sections.php:253 includes/account/class-sections.php:293 includes/account/class-sections.php:1050
 msgid "Orders: %d"
-msgstr ""
+msgstr "سفارش‌ها: %d"
 
 #: includes/settings/class-sections.php:1141
 msgid "Outlined"
-msgstr ""
+msgstr "خطی"
 
 #: includes/admin/views/capabilities.php:180
 msgid "Outside the DashWoo audit list:"
-msgstr ""
+msgstr "خارج از فهرست ممیزی"
 
 #: includes/design-system/class-tokens.php:72
 msgid "Overlay"
-msgstr ""
+msgstr "لایه شناور"
 
 #: includes/compatibility/adapters/class-wordpress-adapter.php:104
 msgid "PHP %s (minimum %s)"
-msgstr ""
+msgstr "پی‌اچ‌پی %s (کمینه %s)"
 
 #: includes/compatibility/class-woocommerce-features.php:171
 msgid "POS staff"
-msgstr ""
+msgstr "کارکنان POS"
 
 #: includes/settings/class-sections.php:1552
 msgid "Padding (px)"
-msgstr ""
+msgstr "پدینگ (px)"
 
 #: includes/widgets/class-style-controls.php:193
 msgid "Padding of every menu item"
-msgstr ""
+msgstr "فاصلهٔ داخلی هر آیتم منو"
 
 #: includes/design-system/class-tokens.php:73 includes/settings/class-sections.php:1729
 msgid "Pagination"
-msgstr ""
+msgstr "صفحه‌بندی"
 
 #: includes/widgets/class-account-panel-widget.php:58
 msgid "Panel"
-msgstr ""
+msgstr "پنل"
 
 #: includes/widgets/class-account-panel-widget.php:100
 msgid "Panel behaviour"
-msgstr ""
+msgstr "رفتار پنل"
 
 #: includes/account/class-sections.php:1162
 msgid "Password"
-msgstr ""
+msgstr "گذرواژه"
 
 #: includes/account/class-sections.php:566
 msgid "Pay for order"
-msgstr ""
+msgstr "پرداخت سفارش"
 
 #: includes/account/class-endpoints.php:108 includes/account/class-sections.php:927 includes/account/class-templates.php:110 includes/settings/class-sections.php:707
 msgid "Payment methods"
-msgstr ""
+msgstr "روش‌های پرداخت"
 
 #: includes/settings/class-sections.php:619
 msgid "Payment methods template"
-msgstr ""
+msgstr "قالب روش‌های پرداخت"
 
 #: includes/account/class-sections.php:1203
 msgid "Pending payment"
-msgstr ""
+msgstr "در انتظار پرداخت"
 
 #: includes/settings/class-sections.php:1903
 msgid "Performance"
-msgstr ""
+msgstr "عملکرد"
 
 #: includes/settings/class-sections.php:143
 msgid "Performance and delivery"
-msgstr ""
+msgstr "کارایی و تحویل"
 
 #: includes/i18n/class-language.php:91
 msgid "Persian"
-msgstr ""
+msgstr "فارسی"
 
 #: includes/account/class-sections.php:1183 includes/settings/class-sections.php:928 includes/widgets/class-account-forms-widget.php:100 includes/widgets/class-account-profile-widget.php:109
 msgid "Phone"
-msgstr ""
+msgstr "تلفن"
 
 #: includes/settings/class-sections.php:560
 msgid "Pick a template for every account section (list, table, timeline, cards…). Any template can be overridden by a file in your theme: wp-content/themes/<theme>/dashwoo/account/orders--table.php"
-msgstr ""
+msgstr "برای هر بخش حساب کاربری یک قالب انتخاب کنید (فهرست، جدول، خط زمانی، کارتی…). هر قالبی را می‌توان با یک فایل در پوسته بازنویسی کرد: wp-content/themes/<پوسته>/dashwoo/account/orders--table.php"
 
 #: includes/settings/class-sections.php:1375
 msgid "Pill"
-msgstr ""
+msgstr "قرصی"
 
 #: includes/account/class-templates.php:148
 msgid "Plain link (bare)"
-msgstr ""
+msgstr "لینک ساده (خام)"
 
 #: includes/account/class-templates.php:105
 msgid "Plain list"
-msgstr ""
+msgstr "فهرست ساده"
 
 #: includes/settings/class-sections.php:1768
 msgid "Platform image management."
-msgstr ""
+msgstr "مدیریت تصاویر پلتفرم."
 
 #: includes/settings/class-sections.php:222
 msgid "Platform language"
-msgstr ""
+msgstr "زبان پلتفرم"
 
 #: includes/compatibility/class-woocommerce-features.php:167
 msgid "Point of Sale (POS)"
-msgstr ""
+msgstr "فروش حضوری (POS)"
 
 #: includes/assets/icons/class-icon-renderer.php:281 includes/settings/class-sections.php:1663
 msgid "Position"
-msgstr ""
+msgstr "موقعیت"
 
 #: includes/settings/class-sections.php:1208
 msgid "Position control (before/after the text)"
-msgstr ""
+msgstr "کنترل موقعیت (قبل/بعد متن)"
 
 #: includes/settings/class-sections.php:1910
 msgid "Preload the critical fonts"
-msgstr ""
+msgstr "preload فونت‌های حیاتی"
 
 #: includes/settings/class-sections.php:1102
 msgid "Preload the default font"
-msgstr ""
+msgstr "preload فونت پیش‌فرض"
 
 #: includes/settings/class-sections.php:1741
 msgid "Previous/next"
-msgstr ""
+msgstr "قبلی/بعدی"
 
 #: includes/settings/class-sections.php:1241
 msgid "Primary"
-msgstr ""
+msgstr "اصلی"
 
 #: includes/settings/class-sections.php:1247
 msgid "Primary Hover"
-msgstr ""
+msgstr "اصلی در حالت اشاره"
 
 #: includes/settings/class-sections.php:383
 msgid "Primary font"
-msgstr ""
+msgstr "فونت اصلی"
 
 #: includes/account/class-sections.php:1204
 msgid "Processing"
-msgstr ""
+msgstr "در حال پردازش"
 
 #: includes/account/class-sections.php:834 includes/account/class-sections.php:839
 msgid "Product"
-msgstr ""
+msgstr "محصول"
 
 #: includes/compatibility/class-woocommerce-features.php:163
 msgid "Product attributes"
-msgstr ""
+msgstr "ویژگی‌های تصویری"
 
 #: includes/compatibility/class-woocommerce-features.php:103
 msgid "Product block editor"
-msgstr ""
+msgstr "ویرایشگر بلوکی محصول"
 
 #: includes/account/class-templates.php:126 includes/widgets/class-account-profile-widget.php:61
 msgid "Profile card"
-msgstr ""
+msgstr "کارت پروفایل"
 
 #: includes/settings/class-sections.php:633
 msgid "Profile card template"
-msgstr ""
+msgstr "قالب کارت پروفایل"
 
 #: includes/settings/class-sections.php:920 includes/widgets/class-account-forms-widget.php:91
 msgid "Profile form fields"
-msgstr ""
+msgstr "فیلدهای فرم پروفایل"
 
 #: includes/settings/class-sections.php:1951
 msgid "Programmatic access to the settings and the assets."
-msgstr ""
+msgstr "دسترسی برنامه‌نویسی‌شده به تنظیمات و دارایی‌ها."
 
 #: includes/admin/views/assets.php:105
 msgid "Provider"
-msgstr ""
+msgstr "ارائه‌دهنده"
 
 #: includes/account/class-sections.php:594 includes/account/class-sections.php:601
 msgid "Qty"
-msgstr ""
+msgstr "تعداد"
 
 #: includes/compatibility/adapters/class-wordpress-adapter.php:138
 msgid "REST API available"
-msgstr ""
+msgstr "REST API در دسترس است"
 
 #: includes/compatibility/class-woocommerce-features.php:187
 msgid "REST API caching"
-msgstr ""
+msgstr "کش REST API"
 
 #: includes/compatibility/adapters/class-wordpress-adapter.php:138
 msgid "REST API unavailable"
-msgstr ""
+msgstr "REST API در دسترس نیست"
 
 #: includes/settings/class-sections.php:230
 msgid "RTL support"
-msgstr ""
+msgstr "پشتیبانی RTL"
 
 #: includes/design-system/class-tokens.php:63
 msgid "Radius"
-msgstr ""
+msgstr "شعاع"
 
 #: includes/settings/class-sections.php:1468 includes/settings/class-sections.php:1561 includes/settings/class-sections.php:1639
 msgid "Radius (px)"
-msgstr ""
+msgstr "گردی (px)"
 
 #: includes/settings/class-sections.php:304
 msgid "Re-check interval (hours)"
-msgstr ""
+msgstr "فاصله بررسی مجدد (ساعت)"
 
 #: includes/capabilities/class-capabilities.php:107 includes/capabilities/class-capabilities.php:123 includes/capabilities/class-capabilities.php:131
 msgid "Ready"
-msgstr ""
+msgstr "آماده"
 
 #: includes/admin/views/capabilities.php:146
 msgid "Ready-made text for your host"
-msgstr ""
+msgstr "متن آمادهٔ ارسال به هاست"
 
 #: includes/admin/views/dashboard.php:66
 msgid "Rebuild the token CSS"
-msgstr ""
+msgstr "ساخت مجدد CSS توکن‌ها"
 
 #: includes/admin/views/system-status.php:140
 msgid "Rebuild the tokens"
-msgstr ""
+msgstr "ساخت مجدد توکن‌ها"
 
 #: includes/account/class-sections.php:1208
 msgid "Refunded"
-msgstr ""
+msgstr "مسترد‌شده"
 
 #: includes/admin/views/assets.php:101 includes/admin/views/dashboard.php:47
 msgid "Registered assets"
-msgstr ""
+msgstr "دارایی‌های ثبت‌شده"
 
 #: includes/widgets/class-style-controls.php:127
 msgid "Regular"
-msgstr ""
+msgstr "معمولی"
 
 #: includes/account/class-sections.php:1163
 msgid "Remember me"
-msgstr ""
+msgstr "مرا به خاطر بسپار"
 
 #: includes/compatibility/class-woocommerce-features.php:139
 msgid "Remote logging"
-msgstr ""
+msgstr "لاگ‌گیری راه دور"
 
 #: includes/settings/class-sections.php:1820
 msgid "Render inline so it can take a colour"
-msgstr ""
+msgstr "رندر inline برای رنگ‌پذیری"
 
 #: includes/settings/class-sections.php:206
 msgid "Render mode"
-msgstr ""
+msgstr "حالت رندر"
 
 #: includes/settings/class-sections.php:1967
 msgid "Require authentication for writes"
-msgstr ""
+msgstr "اجبار احراز هویت برای نوشتن"
 
 #: includes/settings/class-sections.php:937
 msgid "Required fields render with `required` and the right input type so the browser checks them itself."
-msgstr ""
+msgstr "فیلدهای لازم با required و نوع مناسب رندر می‌شوند تا مرورگر خودش بررسی کند."
 
 #: includes/capabilities/class-capabilities.php:160
 msgid "Required to store fonts, icons and images."
-msgstr ""
+msgstr "برای ذخیرهٔ فونت‌ها، آیکون‌ها و تصاویر لازم است."
 
 #: includes/admin/views/settings.php:124
 msgid "Reset to defaults"
-msgstr ""
+msgstr "بازنشانی به پیش‌فرض"
 
 #: includes/admin/views/system-status.php:130
 msgid "Restore from the backup"
-msgstr ""
+msgstr "بازگردانی از پشتیبان"
 
 #: includes/settings/class-sections.php:1702
 msgid "Right (RTL)"
-msgstr ""
+msgstr "راست (RTL)"
 
 #: includes/settings/class-sections.php:717 includes/widgets/class-account-panel-widget.php:175
 msgid "Right (natural for RTL)"
-msgstr ""
+msgstr "راست (مناسب RTL)"
 
 #: includes/admin/views/capabilities.php:120
 msgid "Role in DashWoo"
-msgstr ""
+msgstr "نقش در"
 
 #: includes/settings/class-sections.php:1142
 msgid "Rounded"
-msgstr ""
+msgstr "گرد"
 
 #: includes/admin/views/capabilities.php:57
 msgid "Run the capability check again"
-msgstr ""
+msgstr "بررسی مجدد قابلیت‌ها"
 
 #: includes/admin/views/system-status.php:40
 msgid "Run the environment check again"
-msgstr ""
+msgstr "بررسی مجدد محیط"
 
 #: includes/compatibility/adapters/class-asset-adapter.php:194
 msgid "SVG sanitizer ready (wp_kses allow-list)"
-msgstr ""
+msgstr "پاک‌ساز SVG آماده است (فهرست مجاز wp_kses)"
 
 #: includes/compatibility/adapters/class-asset-adapter.php:194
 msgid "SVG sanitizer unavailable - SVG uploads blocked"
-msgstr ""
+msgstr "پاک‌ساز SVG در دسترس نیست - بارگذاری SVG مسدود است"
 
 #: includes/settings/class-sections.php:1798
 msgid "SVG upload and sanitising."
-msgstr ""
+msgstr "آپلود و پاک‌سازی SVG."
 
 #: includes/assets/class-asset-manager.php:298
 msgid "SVG uploads are disabled in the settings."
-msgstr ""
+msgstr "بارگذاری SVG در تنظیمات خاموش است."
 
 #: includes/settings/class-sections.php:1627
 msgid "Sale colour"
-msgstr ""
+msgstr "رنگ تخفیف"
 
 #: includes/account/class-preview.php:146 includes/assets/class-asset-manager.php:559
 msgid "Sample"
-msgstr ""
+msgstr "نمونه"
 
 #: includes/account/class-preview.php:273
 msgid "Sample course"
-msgstr ""
+msgstr "دورهٔ آموزشی نمونه"
 
 #: includes/account/class-preview.php:144
 msgid "Sample customer"
-msgstr ""
+msgstr "مشتری نمونه"
 
 #: includes/account/class-preview.php:95 includes/account/class-preview.php:278
 msgid "Sample store theme"
-msgstr ""
+msgstr "قالب فروشگاهی نمونه"
 
 #: includes/capabilities/class-capabilities.php:210
 msgid "Sanitising falls back to WordPress' allow-list (kses)"
-msgstr ""
+msgstr "پاکسازی با فهرست سفید WordPress (kses) انجام می‌شود"
 
 #: includes/compatibility/class-woocommerce-features.php:191
 msgid "Save cart for later"
-msgstr ""
+msgstr "ذخیرهٔ سبد برای بعد"
 
 #: includes/account/class-sections.php:1134
 msgid "Save changes"
-msgstr ""
+msgstr "ذخیره تغییرات"
 
 #: includes/admin/views/settings.php:123
 msgid "Save settings"
-msgstr ""
+msgstr "ذخیره تنظیمات"
 
 #: includes/account/class-form-adapter.php:139
 msgid "Saving is not possible in this environment."
-msgstr ""
+msgstr "امکان ذخیره در این محیط نیست."
 
 #: includes/settings/class-sections.php:1332
 msgid "Scale"
-msgstr ""
+msgstr "مقیاس"
 
 #: includes/settings/class-sections.php:1021
 msgid "Search, download and self-host Google fonts."
-msgstr ""
+msgstr "جست‌وجو، دانلود و میزبانی محلی فونت‌های Google."
 
 #: assets/js/admin.js:10
 msgid "Search…"
-msgstr ""
+msgstr "جست‌وجو…"
 
 #: includes/settings/class-sections.php:1253
 msgid "Secondary"
-msgstr ""
+msgstr "ثانویه"
 
 #: includes/widgets/class-account-widget-base.php:227
 msgid "Section"
-msgstr ""
+msgstr "بخش"
 
 #: includes/settings/class-sections.php:688
 msgid "Section content source"
-msgstr ""
+msgstr "منبع محتوای بخش‌ها"
 
 #: includes/settings/class-sections.php:521
 msgid "Section icons"
-msgstr ""
+msgstr "آیکون بخش‌ها"
 
 #: includes/admin/class-admin.php:507
 msgid "Section reset."
-msgstr ""
+msgstr "بخش بازنشانی شد."
 
 #: includes/widgets/class-account-endpoint-widget-base.php:173
 msgid "Section title"
-msgstr ""
+msgstr "عنوان بخش"
 
 #: includes/admin/views/partial-nav.php:95
 msgid "Sections in this group"
-msgstr ""
+msgstr "بخش‌های این گروه"
 
 #: includes/widgets/class-style-controls.php:129
 msgid "Semi Bold"
-msgstr ""
+msgstr "نیمه‌بولد"
 
 #: includes/account/class-elementor-bridge.php:703
 msgid "Set the My Account page in WooCommerce → Settings → Advanced."
-msgstr ""
+msgstr "در ووکامرس → تنظیمات → پیشرفته، برگهٔ «حساب کاربری» را تعیین کنید."
 
 #: includes/admin/views/capabilities.php:188
 msgid "Set the features by hand"
-msgstr ""
+msgstr "تنظیم دستی ویژگی‌ها"
 
 #: includes/capabilities/class-capabilities.php:203
 msgid "Settings apply to this site only"
-msgstr ""
+msgstr "تنظیمات فقط روی همین سایت اعمال می‌شود"
 
 #: includes/admin/class-admin.php:499
 msgid "Settings saved."
-msgstr ""
+msgstr "تنظیمات ذخیره شد."
 
 #: includes/design-system/class-tokens.php:64
 msgid "Shadow"
-msgstr ""
+msgstr "سایه"
 
 #: includes/settings/class-sections.php:1386
 msgid "Shadows"
-msgstr ""
+msgstr "سایه‌ها"
 
 #: includes/settings/class-sections.php:1143
 msgid "Sharp"
-msgstr ""
+msgstr "تیز"
 
 #: includes/account/class-preview.php:293
 msgid "Shipping"
-msgstr ""
+msgstr "هزینهٔ ارسال"
 
 #: includes/account/class-sections.php:883
 msgid "Shipping address"
-msgstr ""
+msgstr "آدرس ارسال"
 
 #: includes/widgets/class-account-widget-base.php:145
 msgid "Short description"
-msgstr ""
+msgstr "توضیح کوتاه"
 
 #: includes/account/class-templates.php:54 includes/settings/class-sections.php:505 includes/widgets/class-account-nav-widget.php:109
 msgid "Shortcut cards"
-msgstr ""
+msgstr "کارت‌های میان‌بر"
 
 #: includes/account/class-templates.php:65
 msgid "Shortcuts only"
-msgstr ""
+msgstr "فقط میان‌برها"
 
 #: includes/settings/class-sections.php:959
 msgid "Show a title above every section"
-msgstr ""
+msgstr "نمایش عنوان بالای هر بخش"
 
 #: includes/widgets/class-account-widget-base.php:187
 msgid "Show everywhere"
-msgstr ""
+msgstr "همه‌جا نمایش بده"
 
 #: includes/settings/class-sections.php:895
 msgid "Show the DashWoo mark in the welcome card"
-msgstr ""
+msgstr "نمایش نشان DashWoo در کارت خوش‌آمد"
 
 #: includes/settings/class-sections.php:1214
 msgid "Show the Weight/Fill/Grade controls"
-msgstr ""
+msgstr "نمایش کنترل‌های Weight/Fill/Grade"
 
 #: includes/settings/class-sections.php:168
 msgid "Show the active dashboard widgets"
-msgstr ""
+msgstr "نمایش ابزارک‌های فعال"
 
 #: includes/widgets/class-account-dashboard-widget.php:77
 msgid "Show the avatar"
-msgstr ""
+msgstr "نمایش آواتار"
 
 #: includes/settings/class-sections.php:747 includes/widgets/class-account-panel-widget.php:228
 msgid "Show the section title above the content card"
-msgstr ""
+msgstr "نمایش عنوان بخش بالای کارت محتوا"
 
 #: includes/widgets/class-account-dashboard-widget.php:95
 msgid "Show the shortcut cards"
-msgstr ""
+msgstr "نمایش کارت‌های میان‌بر"
 
 #: includes/widgets/class-account-dashboard-widget.php:86
 msgid "Show the summary (email and order count)"
-msgstr ""
+msgstr "نمایش خلاصه (ایمیل و تعداد سفارش)"
 
 #: includes/settings/class-sections.php:663
 msgid "Show the two-column panel in the account area"
-msgstr ""
+msgstr "نمایش پنل دوستونه در ناحیهٔ حساب"
 
 #: includes/widgets/class-account-widget-base.php:134
 msgid "Show this element"
-msgstr ""
+msgstr "نمایش این المان"
 
 #: includes/widgets/class-account-widget-base.php:254
 msgid "Show this item"
-msgstr ""
+msgstr "نمایش این آیتم"
 
 #: includes/account/class-endpoints.php:534
 msgid "Show “%s”"
-msgstr ""
+msgstr "نمایش «%s»"
 
 #: includes/settings/class-sections.php:543
 msgid "Show “My Account ← section” above the content of the inner sections."
-msgstr ""
+msgstr "نمایش «حساب کاربری ← بخش» بالای محتوای بخش‌های داخلی."
 
 #: includes/account/class-templates.php:55 includes/widgets/class-account-nav-widget.php:110
 msgid "Side icon rail"
-msgstr ""
+msgstr "نوار آیکونی کنار"
 
 #: includes/settings/class-sections.php:503
 msgid "Side menu (two columns)"
-msgstr ""
+msgstr "منوی کنار (دو ستون)"
 
 #: includes/settings/class-sections.php:849
 msgid "Side menu width (px)"
-msgstr ""
+msgstr "عرض منوی کنار (px)"
 
 #: includes/account/class-renderer.php:146 includes/account/class-renderer.php:602 includes/widgets/class-account-forms-widget.php:74
 msgid "Sign in"
-msgstr ""
+msgstr "ورود به حساب"
 
 #: includes/account/class-sections.php:421
 msgid "Sign in to see the details of this order."
-msgstr ""
+msgstr "برای دیدن جزئیات سفارش وارد حساب خود شوید."
 
 #: includes/account/class-renderer.php:601 includes/settings/class-sections.php:954
 msgid "Sign in to see your orders, downloads and account details."
-msgstr ""
+msgstr "برای دیدن سفارش‌ها، دانلودها و جزئیات حساب وارد شوید."
 
 #: includes/support/class-http.php:182
 msgid "Signature check failed for %s (expected %s)."
-msgstr ""
+msgstr "بررسی امضا برای %s انجام نشد (انتظار %s)."
 
 #: includes/widgets/class-account-widget-base.php:174
 msgid "Signed-in customers only"
-msgstr ""
+msgstr "فقط کاربران واردشده"
 
 #: includes/settings/class-sections.php:598
 msgid "Single order template"
-msgstr ""
+msgstr "قالب جزئیات یک سفارش"
 
 #: includes/compatibility/adapters/class-wordpress-adapter.php:155
 msgid "Single site"
-msgstr ""
+msgstr "سایت تک"
 
 #: includes/widgets/class-account-widget-base.php:175
 msgid "Site administrators only"
-msgstr ""
+msgstr "فقط مدیران سایت"
 
 #: includes/compatibility/class-woocommerce-features.php:127
 msgid "Site visibility badge"
-msgstr ""
+msgstr "نشان وضعیت فروشگاه"
 
 #: includes/admin/views/assets.php:106 includes/widgets/class-icon-widget.php:216
 msgid "Size"
-msgstr ""
+msgstr "اندازه"
 
 #: includes/assets/icons/class-icon-renderer.php:239
 msgid "Size (px)"
-msgstr ""
+msgstr "اندازه (px)"
 
 #: includes/widgets/class-style-controls.php:250
 msgid "Sizes"
-msgstr ""
+msgstr "اندازه‌ها"
 
 #: includes/compatibility/adapters/class-woocommerce-adapter.php:208
 msgid "Skipped (WooCommerce inactive)"
-msgstr ""
+msgstr "رد شد (ووکامرس فعال نیست)"
 
 #: includes/admin/views/assets.php:105
 msgid "Slug"
-msgstr ""
+msgstr "اسلاگ"
 
 #: includes/settings/class-sections.php:1348 includes/settings/class-sections.php:1393 includes/widgets/class-account-nav-widget.php:156
 msgid "Small"
-msgstr ""
+msgstr "کوچک"
 
 #: includes/settings/class-sections.php:974
 msgid "Source manager enabled"
-msgstr ""
+msgstr "فعال بودن مدیر منبع"
 
 #: includes/design-system/class-tokens.php:62 includes/settings/class-sections.php:1315
 msgid "Spacing"
-msgstr ""
+msgstr "فاصله‌ها"
 
 #: includes/settings/class-sections.php:327
 msgid "Stable"
-msgstr ""
+msgstr "پایدار"
 
 #: includes/settings/class-sections.php:776 includes/widgets/class-account-panel-widget.php:210
 msgid "Stack the two cards"
-msgstr ""
+msgstr "دو کارت روی هم"
 
 #: includes/account/class-templates.php:139 includes/widgets/class-account-dashboard-widget.php:125
 msgid "Stacked"
-msgstr ""
+msgstr "عمودی"
 
 #: includes/admin/views/capabilities.php:73 includes/admin/views/capabilities.php:118
 msgid "State"
-msgstr ""
+msgstr "وضعیت"
 
 #: includes/account/class-sections.php:258 includes/account/class-sections.php:273 includes/admin/views/assets.php:105 includes/admin/views/system-status.php:62
 msgid "Status"
-msgstr ""
+msgstr "وضعیت"
 
 #: includes/account/class-sections.php:680
 msgid "Status: %1$s — Date: %2$s — Total: %3$s"
-msgstr ""
+msgstr "وضعیت: %1$s — تاریخ: %2$s — مبلغ: %3$s"
 
 #: includes/settings/class-sections.php:1612
 msgid "Sticky header"
-msgstr ""
+msgstr "هدر چسبان"
 
 #: includes/settings/class-sections.php:741 includes/widgets/class-account-panel-widget.php:219
 msgid "Sticky menu card while scrolling"
-msgstr ""
+msgstr "چسبیدن کارت منو در اسکرول"
 
 #: includes/settings/class-sections.php:534 includes/widgets/class-account-nav-widget.php:189
 msgid "Sticky menu while scrolling"
-msgstr ""
+msgstr "منوی چسبان در اسکرول"
 
 #: includes/admin/views/dashboard.php:39
 msgid "Storage"
-msgstr ""
+msgstr "فضای ذخیره‌سازی"
 
 #: includes/compatibility/class-woocommerce-features.php:159
 msgid "Store blueprint"
-msgstr ""
+msgstr "بلوپرینت فروشگاه"
 
 #: includes/account/class-preview.php:100
 msgid "Store icon pack"
-msgstr ""
+msgstr "بستهٔ آیکون‌های فروشگاه"
 
 #: includes/account/class-sections.php:929
 msgid "Stored payment methods are managed by WooCommerce. If your gateway supports saved secure payment, that same list is shown here."
-msgstr ""
+msgstr "روش‌های پرداخت ذخیره‌شده توسط ووکامرس مدیریت می‌شود. اگر درگاه شما پرداخت امن ذخیره‌شده را پشتیبانی کند، همان فهرست در این بخش نمایش داده می‌شود."
 
 #: includes/capabilities/class-capabilities.php:207
 msgid "Strict SVG sanitising"
-msgstr ""
+msgstr "پاکسازی دقیق SVG"
 
 #: includes/settings/class-sections.php:1814
 msgid "Strip internal id/class"
-msgstr ""
+msgstr "حذف id/class داخلی"
 
 #: includes/settings/class-sections.php:1597
 msgid "Striped rows"
-msgstr ""
+msgstr "ردیف‌های یک‌درمیان"
 
 #: includes/capabilities/class-capabilities.php:209
 msgid "Structural SVG inspection with DOMDocument on upload"
-msgstr ""
+msgstr "بازرسی ساختاری SVG با DOMDocument هنگام بارگذاری"
 
 #: includes/settings/class-sections.php:1429 includes/settings/class-sections.php:1736 includes/widgets/class-icon-widget.php:208
 msgid "Style"
-msgstr ""
+msgstr "سبک"
 
 #: includes/admin/class-admin.php:586
 msgid "Style not found."
-msgstr ""
+msgstr "سبک یافت نشد."
 
 #: includes/admin/views/partial-nav.php:68
 msgid "Subgroups"
-msgstr ""
+msgstr "زیرگروه‌ها"
 
 #: includes/settings/class-sections.php:1040
 msgid "Subsets"
-msgstr ""
+msgstr "زیرمجموعه‌ها"
 
 #: includes/settings/class-sections.php:1295
 msgid "Success"
-msgstr ""
+msgstr "موفق"
 
 #: includes/account/class-templates.php:84
 msgid "Summary + items"
-msgstr ""
+msgstr "خلاصه + اقلام"
 
 #: includes/settings/class-sections.php:1283
 msgid "Surface"
-msgstr ""
+msgstr "سطح"
 
 #: includes/settings/class-sections.php:673
 msgid "Swap the card content (recommended)"
-msgstr ""
+msgstr "جایگزینی محتوای کارت (پیشنهادی)"
 
 #: includes/widgets/class-account-panel-widget.php:110
 msgid "Swap the content of the big card"
-msgstr ""
+msgstr "جایگزینی محتوای کارت بزرگ"
 
 #: includes/widgets/class-account-panel-widget.php:120
 msgid "Swap without reloading the page"
-msgstr ""
+msgstr "جابه‌جایی بدون بارگذاری صفحه"
 
 #: includes/settings/class-sections.php:681
 msgid "Swap without reloading the page (AJAX)"
-msgstr ""
+msgstr "جابه‌جایی بدون بارگذاری صفحه (AJAX)"
 
 #: includes/settings/class-sections.php:298
 msgid "Switch to Compatibility Mode automatically"
-msgstr ""
+msgstr "سوئیچ خودکار به Compatibility Mode"
 
 #: includes/admin/views/capabilities.php:47
 msgid "Switched off automatically"
-msgstr ""
+msgstr "خودکار خاموش‌شده"
 
 #: includes/admin/views/system-status.php:45
 msgid "Switched-off capabilities"
-msgstr ""
+msgstr "قابلیت‌های غیرفعال"
 
 #: includes/admin/views/system-status.php:129
 msgid "Sync"
-msgstr ""
+msgstr "همگام‌سازی"
 
 #: includes/settings/class-sections.php:1883
 msgid "Sync with the Global Kit"
-msgstr ""
+msgstr "همگام‌سازی با Global Kit"
 
 #: includes/settings/class-sections.php:61
 msgid "System"
-msgstr ""
+msgstr "سیستم"
 
 #: includes/settings/class-sections.php:1659
 msgid "System messages and WooCommerce notices."
-msgstr ""
+msgstr "پیام‌های سیستمی و notice ووکامرس."
 
 #: includes/admin/class-admin.php:228
 msgid "System status"
-msgstr ""
+msgstr "وضعیت سیستم"
 
 #: includes/account/class-templates.php:75 includes/account/class-templates.php:96 includes/design-system/class-tokens.php:69
 msgid "Table"
-msgstr ""
+msgstr "جدول"
 
 #: includes/settings/class-sections.php:1590
 msgid "Tables"
-msgstr ""
+msgstr "جدول‌ها"
 
 #: includes/widgets/class-account-endpoint-widget-base.php:198
 msgid "Template"
-msgstr ""
+msgstr "قالب (Template)"
 
 #: includes/settings/class-sections.php:967
 msgid "Template source"
-msgstr ""
+msgstr "منبع قالب‌ها"
 
 #: includes/account/class-elementor-bridge.php:715
 msgid "Template source mode"
-msgstr ""
+msgstr "حالت منبع قالب"
 
 #: includes/settings/class-sections.php:557
 msgid "Templates"
-msgstr ""
+msgstr "قالب‌ها (Template)"
 
 #: includes/settings/class-sections.php:570
 msgid "Templates folder in the theme"
-msgstr ""
+msgstr "پوشهٔ قالب در پوسته"
 
 #: includes/settings/class-sections.php:1265
 msgid "Text"
-msgstr ""
+msgstr "متن"
 
 #: includes/widgets/class-style-controls.php:52
 msgid "Text color"
-msgstr ""
+msgstr "رنگ متن"
 
 #: includes/admin/views/system-status.php:30
 msgid "The <strong>ℹ</strong> mark means “this capability is missing on the host, but DashWoo does not need it” —"
-msgstr ""
+msgstr "علامت <strong>ℹ</strong> یعنی «این قابلیت روی این هاست نیست، ولی DashWoo به آن نیازی ندارد» —"
 
 #: includes/admin/class-admin.php:659
 msgid "The Elementor kit was restored from the backup."
-msgstr ""
+msgstr "کیت المنتور به نسخه پشتیبان بازگشت."
 
 #: includes/admin/class-admin.php:646
 msgid "The Elementor kit was synced (%d colours)."
-msgstr ""
+msgstr "کیت المنتور همگام شد (%d رنگ)."
 
 #: includes/compatibility/adapters/class-asset-adapter.php:123
 msgid "The GD extension is installed on this server, but its image functions (such as imagecreatetruecolor) are blocked by disable_functions. Ask your host to open those functions. DashWoo does not need them."
-msgstr ""
+msgstr "افزونهٔ GD روی سرور نصب است، اما توابع تصویری آن (مثل imagecreatetruecolor) در disable_functions بسته شده‌اند. از هاست بخواهید این توابع را باز کند. DashWoo به آن نیازی ندارد."
 
 #: includes/settings/class-sections.php:945
 msgid "The My Account page"
-msgstr ""
+msgstr "صفحهٔ حساب کاربری"
 
 #: includes/account/class-elementor-bridge.php:374
 msgid "The My Account page was not found. First assign a page to My Account in WooCommerce → Settings → Advanced."
-msgstr ""
+msgstr "صفحهٔ «حساب کاربری» پیدا نشد. اول در ووکامرس → تنظیمات → پیشرفته یک برگه به حساب کاربری اختصاص دهید."
 
 #: includes/assets/class-asset-manager.php:310
 msgid "The SVG could not be sanitised."
-msgstr ""
+msgstr "پاک‌سازی فایل SVG انجام نشد."
 
 #: includes/account/class-renderer.php:78
 msgid "The WooCommerce My Account page is not created or not published; assign a page to My Account in WooCommerce → Settings → Advanced."
-msgstr ""
+msgstr "صفحهٔ «حساب کاربری» ووکامرس ساخته یا منتشر نشده است؛ در تنظیمات ووکامرس → پیشرفته یک برگه به حساب کاربری اختصاص دهید."
 
 #: includes/account/class-renderer.php:95
 msgid "The account area requires signing in. This part is only shown to signed-in customers and everybody else is sent to the login form."
-msgstr ""
+msgstr "حساب کاربری نیاز به ورود دارد. این بخش فقط برای کاربران وارد‌شده نمایش داده می‌شود و بقیه به شکل ورود هدایت می‌شوند."
 
 #: includes/account/class-elementor-bridge.php:402
 msgid "The account layout was built with DashWoo widgets. The Elementor editor opens now and every part can be moved or changed."
-msgstr ""
+msgstr "چیدمان حساب کاربری با ابزارک‌های DashWoo ساخته شد. الان در ویرایشگر المنتور باز می‌شود و هر بخشش قابل جابه‌جایی و تغییر است."
 
 #: includes/assets/class-asset-manager.php:323
 msgid "The asset could not be written to the uploads directory."
-msgstr ""
+msgstr "دارایی در پوشهٔ بارگذاری ذخیره نشد."
 
 #: includes/settings/class-sections.php:1237
 msgid "The base palette and the semantic colours."
-msgstr ""
+msgstr "پالت پایه و رنگ‌های معنایی."
 
 #: includes/compatibility/adapters/class-woocommerce-adapter.php:256
 msgid "The compatibility notice runs on the before_woocommerce_init hook; if this message stays, WooCommerce registered that feature after the hook."
-msgstr ""
+msgstr "اعلان سازگاری روی قلاب before_woocommerce_init اجرا می‌شود؛ اگر این پیام ماند، یعنی ووکامرس آن ویژگی را بعد از این قلاب ثبت کرده است."
 
 #: includes/widgets/class-account-dashboard-widget.php:70
 msgid "The customer's name is appended automatically after this text."
-msgstr ""
+msgstr "نام کاربر به‌صورت خودکار بعد از این متن می‌آید."
 
 #: includes/settings/class-sections.php:1446
 msgid "The default button settings."
-msgstr ""
+msgstr "تنظیمات پیش‌فرض دکمه."
 
 #: includes/settings/class-sections.php:1204
 msgid "The default controls of the Elementor icon widget."
-msgstr ""
+msgstr "کنترل‌های پیش‌فرض ابزارک آیکون در المنتور."
 
 #: includes/account/class-form-adapter.php:119
 msgid "The display name cannot be empty."
-msgstr ""
+msgstr "نام نمایشی نمی‌تواند خالی باشد."
 
 #: includes/account/class-form-adapter.php:131
 msgid "The display name did not change."
-msgstr ""
+msgstr "نام نمایشی تغییری نکرد."
 
 #: includes/settings/class-sections.php:270
 msgid "The environment check result and the version floors."
-msgstr ""
+msgstr "نتیجه بررسی محیط و آستانه‌های نسخه."
 
 #: includes/capabilities/class-capabilities.php:196
 msgid "The export runs as a JSON file (it works, the assets are simply not included)"
-msgstr ""
+msgstr "برون‌ریزی به‌صورت فایل JSON انجام می‌شود (کار می‌کند، فقط دارایی‌ها همراه آن نیستند)"
 
 #: includes/assets/class-asset-manager.php:292
 msgid "The file signature does not match its type."
-msgstr ""
+msgstr "امضای فایل با نوع آن نمی‌خواند."
 
 #: includes/admin/class-admin.php:778
 msgid "The file “%s” was saved."
-msgstr ""
+msgstr "فایل «%s» با موفقیت ذخیره شد."
 
 #: includes/admin/class-admin.php:522
 msgid "The font %s was downloaded and stored locally."
-msgstr ""
+msgstr "فونت %s با موفقیت دانلود و به‌صورت محلی ذخیره شد."
 
 #: includes/admin/class-admin.php:535
 msgid "The font is already up to date."
-msgstr ""
+msgstr "فونت از قبل به‌روز است."
 
 #: includes/admin/class-admin.php:578
 msgid "The icon font was downloaded (a single variable file)."
-msgstr ""
+msgstr "فونت آیکون دانلود شد (یک فایل متغیر)."
 
 #: includes/settings/class-sections.php:1092
 msgid "The installed fonts, the defaults and the Elementor sync."
-msgstr ""
+msgstr "فهرست فونت‌های نصب‌شده، پیش‌فرض‌ها و همگام‌سازی با المنتور."
 
 #: includes/settings/class-sections.php:354
 msgid "The latest system events (up to 200 rows)."
-msgstr ""
+msgstr "آخرین رویدادهای سیستم (حداکثر ۲۰۰ ردیف)."
 
 #: includes/account/class-elementor-bridge.php:433
 msgid "The layout could not be built; please check that you can write to this page."
-msgstr ""
+msgstr "ساخت چیدمان ممکن نشد؛ دسترسی نوشتن به این برگه را بررسی کنید."
 
 #: includes/settings/class-sections.php:1868
 msgid "The levels of token integration with Elementor."
-msgstr ""
+msgstr "سطوح یکپارچه‌سازی توکن‌ها با المنتور."
 
 #: includes/admin/class-admin.php:667
 msgid "The logs were cleared."
-msgstr ""
+msgstr "گزارش‌ها پاک شد."
 
 #: includes/account/class-elementor-bridge.php:423
 msgid "The page content was replaced with the [dashwoo_account] shortcode. In Elementor you can drop the same shortcode into a Shortcode widget or add DashWoo widgets next to it."
-msgstr ""
+msgstr "محتوای صفحه با شورت‌کد [dashwoo_account] جایگزین شد. با المنتور هم می‌توانید همین شورت‌کد را در یک ویجت شورت‌کد بگذارید یا ابزارک‌های DashWoo را کنارش اضافه کنید."
 
 #: includes/account/class-elementor-bridge.php:710
 msgid "The page has account widgets and can be changed in the Elementor editor."
-msgstr ""
+msgstr "صفحه ابزارک حساب کاربری دارد؛ در ویرایشگر المنتور قابل تغییر است."
 
 #: includes/settings/class-sections.php:946
 msgid "The page the visitor was on"
-msgstr ""
+msgstr "همان صفحه‌ای که کاربر بود"
 
 #: includes/account/class-sections.php:1089
 msgid "The password change is handled by WooCommerce (with the current password confirmation and a notification email) so the account stays secure."
-msgstr ""
+msgstr "تغییر گذرواژه توسط ووکامرس (با تأیید گذرواژهٔ فعلی و ایمیل اطلاع‌رسانی) انجام می‌شود تا امنیت حساب حفظ شود."
 
 #: includes/capabilities/class-capabilities.php:211
 msgid "The php-xml extension is required to enable this."
-msgstr ""
+msgstr "برای فعال شدن، افزونهٔ php-xml لازم است."
 
 #: includes/settings/class-sections.php:1012
 msgid "The priority of DashWoo's hooks on the account menu (smaller = before WooCommerce, larger = after it)."
-msgstr ""
+msgstr "اولویت قلاب‌های DashWoo روی فهرست منوی حساب (کوچک‌تر = زودتر از ووکامرس، بزرگ‌تر = بعد از آن)."
 
 #: includes/settings/class-sections.php:1548
 msgid "The product card and the content card."
-msgstr ""
+msgstr "کارت محصول و کارت محتوا."
 
 #: includes/admin/views/settings.php:53
 msgid "The required host capability is not available."
-msgstr ""
+msgstr "قابلیت لازم روی این هاست موجود نیست."
 
 #: includes/settings/class-sections.php:1623
 msgid "The sale badge, the stock badge and the labels."
-msgstr ""
+msgstr "نشان تخفیف، موجودی و برچسب‌ها."
 
 #: includes/settings/class-sections.php:1318
 msgid "The spacing scale (px)."
-msgstr ""
+msgstr "مقیاس فاصله‌گذاری (px)."
 
 #: includes/settings/class-sections.php:1389
 msgid "The standard shadows."
-msgstr ""
+msgstr "سایه‌های استاندارد."
 
 #: includes/settings/class-sections.php:488
 msgid "The structure of the My Account page: which sections show, in what order and in what layout."
-msgstr ""
+msgstr "ساختار صفحهٔ حساب کاربری: چه بخش‌هایی دیده شوند، با چه ترتیبی و در چه چیدمانی."
 
 #: includes/admin/class-admin.php:625
 msgid "The token CSS was compiled (%d variables, %s)."
-msgstr ""
+msgstr "CSS توکن‌ها ساخته شد (%d متغیر، %s)."
 
 #: includes/assets/class-asset-manager.php:260
 msgid "The uploaded file is empty."
-msgstr ""
+msgstr "فایل بارگذاری‌شده خالی است."
 
 #: includes/assets/class-asset-manager.php:253
 msgid "The uploaded file is not readable."
-msgstr ""
+msgstr "فایل بارگذاری‌شده خوانا نیست."
 
 #: includes/assets/fonts/class-font-manager.php:168
 msgid "The uploaded font files are not readable."
-msgstr ""
+msgstr "فایل‌های قلم بارگذاری‌شده خوانا نیستند."
 
 #: includes/account/class-elementor-bridge.php:694
 msgid "The “DashWoo — My Account” category registers "
-msgstr ""
+msgstr "دستهٔ «DashWoo — حساب کاربری» با "
 
 #: includes/account/class-sections.php:741
 msgid "There is nothing to download."
-msgstr ""
+msgstr "فایلی برای دانلود وجود ندارد."
 
 #: includes/admin/class-admin.php:739
 msgid "This file extension is not allowed."
-msgstr ""
+msgstr "پسوند فایل مجاز نیست."
 
 #: includes/account/class-endpoints.php:546
 msgid "This label is used in the menu, the tabs and the account cards."
-msgstr ""
+msgstr "این عنوان در منو، تب‌ها و کارت‌های حساب کاربری نشان داده می‌شود."
 
 #: includes/account/class-renderer.php:149
 msgid "This message is only shown to administrators."
-msgstr ""
+msgstr "این پیام فقط برای مدیران نمایش داده می‌شود."
 
 #: includes/account/class-elementor-bridge.php:484
 msgid "This needs administrator access."
-msgstr ""
+msgstr "برای این کار دسترسی مدیریت لازم است."
 
 #: includes/compatibility/adapters/class-asset-adapter.php:167
 msgid "This one is optional and breaks nothing. If you want to download the asset bundle as a zip, ask your host to enable the php-zip extension."
-msgstr ""
+msgstr "این مورد اختیاری است و مشکلی ایجاد نمی‌کند. اگر می‌خواهید بستهٔ دارایی‌ها را zip بگیرید، از هاست بخواهید افزونهٔ php-zip را فعال کند."
 
 #: includes/widgets/class-account-widget-base.php:192
 msgid "This option needs a little CSS; with “Automatic DashWoo CSS” switched off you write it yourself with the dw-hide-* classes."
-msgstr ""
+msgstr "این گزینه کمی CSS لازم دارد؛ اگر «CSS خودکار DashWoo» را خاموش کنید، خودتان با کلاس‌های dw-hide-* می‌سازید."
 
 #: includes/account/class-sections.php:436
 msgid "This order does not belong to your account."
-msgstr ""
+msgstr "این سفارش به حساب شما تعلق ندارد."
 
 #: includes/account/class-sections.php:622
 msgid "This order has no items."
-msgstr ""
+msgstr "این سفارش کالایی ندارد."
 
 #: includes/account/class-sections.php:428 includes/account/class-sections.php:462
 msgid "This order was not found."
-msgstr ""
+msgstr "این سفارش پیدا نشد."
 
 #: includes/account/class-elementor-bridge.php:610
 msgid "This page has no DashWoo widget yet. Build the account layout with one click."
-msgstr ""
+msgstr "این برگه هنوز هیچ ابزارک DashWoo ندارد. با یک کلیک چیدمان حساب کاربری را بساز."
 
 #: includes/account/class-elementor-bridge.php:598
 msgid "This page is not set as the WooCommerce My Account page; pick it first in WooCommerce → Settings → Advanced."
-msgstr ""
+msgstr "این برگه به‌عنوان صفحهٔ «حساب کاربری» ووکامرس ثبت نشده است؛ اول در ووکامرس → تنظیمات → پیشرفته آن را تعیین کنید."
 
 #: includes/account/class-account.php:204
 msgid "This section could not be loaded. Please reload the page."
-msgstr ""
+msgstr "بارگذاری این بخش ممکن نشد. صفحه را دوباره باز کنید."
 
 #: includes/account/class-panel.php:463 includes/account/class-renderer.php:662
 msgid "This section has no content on this store."
-msgstr ""
+msgstr "این بخش روی این فروشگاه محتوایی ندارد."
 
 #: includes/admin/views/settings.php:27
 msgid "This section has no settings field; it is managed through the tools below."
-msgstr ""
+msgstr "این بخش فیلد تنظیماتی ندارد؛ از طریق ابزارهای زیر مدیریت می‌شود."
 
 #: includes/widgets/class-account-endpoint-widget-base.php:167
 msgid "This section's content"
-msgstr ""
+msgstr "محتوای این بخش"
 
 #: includes/admin/class-admin.php:578
 msgid "This style is already installed."
-msgstr ""
+msgstr "این سبک از قبل نصب است."
 
 #: includes/admin/views/capabilities.php:112
 msgid "This table is checked automatically every 6 hours and by hand with the button above."
-msgstr ""
+msgstr "این جدول هر ۶ ساعت خودکار و با دکمهٔ بالا دستی بررسی می‌شود."
 
 #: includes/admin/views/system-status.php:114
 msgid "This text is the raw truth of the server: the PHP version, the installed extensions, the functions blocked in"
-msgstr ""
+msgstr "این متن، واقعیت‌های خام سرور است: نسخهٔ PHP، افزونه‌های نصب‌شده، توابع بسته‌شده در"
 
 #: includes/settings/class-sections.php:508
 msgid "This value is used by the “DashWoo built layout” and by the [dashwoo_account] shortcut; inside Elementor every widget stands on its own."
-msgstr ""
+msgstr "این مقدار در «قالب ساختهٔ DashWoo» و در میان‌بر [dashwoo_account] استفاده می‌شود؛ داخل المنتور هر ویجت مستقل است."
 
 #: includes/widgets/class-account-dashboard-widget.php:110 includes/widgets/class-account-nav-widget.php:204
 msgid "Three columns"
-msgstr ""
+msgstr "سه ستون"
 
 #: includes/admin/views/logs.php:23
 msgid "Time"
-msgstr ""
+msgstr "زمان"
 
 #: includes/account/class-templates.php:76
 msgid "Timeline"
-msgstr ""
+msgstr "خط زمانی"
 
 #: includes/widgets/class-account-widget-base.php:142
 msgid "Title"
-msgstr ""
+msgstr "عنوان"
 
 #: includes/admin/views/dashboard.php:34
 msgid "Token CSS"
-msgstr ""
+msgstr "توکن‌ها"
 
 #: includes/settings/class-sections.php:1717
 msgid "Tooltip theme"
-msgstr ""
+msgstr "تم Tooltip"
 
 #: includes/settings/class-sections.php:504
 msgid "Top menu (full width)"
-msgstr ""
+msgstr "منوی بالا (تمام‌عرض)"
 
 #: includes/settings/class-sections.php:1667
 msgid "Top of the page"
-msgstr ""
+msgstr "بالای صفحه"
 
 #: includes/account/class-sections.php:259 includes/account/class-sections.php:274 includes/account/class-sections.php:595 includes/account/class-sections.php:602
 msgid "Total"
-msgstr ""
+msgstr "مبلغ"
 
 #: includes/settings/class-sections.php:1489
 msgid "Transition time (ms)"
-msgstr ""
+msgstr "زمان انتقال (ms)"
 
 #: includes/settings/class-sections.php:867
 msgid "Turn it off and DashWoo puts no styling on the account elements at all: the design is entirely yours (Elementor/theme)."
-msgstr ""
+msgstr "خاموش کنید تا DashWoo هیچ استایلی روی عناصر حساب کاربری نگذارد و طراحی کامل با خودتان (المنتور/پوسته) باشد."
 
 #: includes/widgets/class-account-widget-base.php:202
 msgid "Turn it on and this element alone takes no DashWoo styling: the whole design is yours."
-msgstr ""
+msgstr "روشن کنید تا فقط این المان هیچ استایلی از DashWoo نگیرد و همهٔ طراحی را خودتان انجام دهید."
 
 #: includes/settings/class-sections.php:495
 msgid "Turning this off removes the DashWoo account styles and widgets and your theme's default look stays."
-msgstr ""
+msgstr "با خاموش کردن این گزینه، سبک و ویجت‌های حساب کاربری DashWoo کنار می‌روند و ظاهر پیش‌فرض باقی می‌ماند."
 
 #: includes/widgets/class-account-dashboard-widget.php:109 includes/widgets/class-account-nav-widget.php:203 includes/widgets/class-account-panel-widget.php:58
 msgid "Two columns"
-msgstr ""
+msgstr "دو ستون"
 
 #: includes/settings/class-sections.php:656
 msgid "Two-column panel (menu + content)"
-msgstr ""
+msgstr "پنل دوستونه (منو + محتوا)"
 
 #: includes/admin/views/dashboard.php:49
 msgid "Type"
-msgstr ""
+msgstr "نوع"
 
 #: includes/assets/class-asset-manager.php:249
 msgid "Type \"%s\" does not accept uploads."
-msgstr ""
+msgstr "نوع «%s» بارگذاری نمی‌پذیرد."
 
 #: includes/settings/class-sections.php:376
 msgid "Typography"
-msgstr ""
+msgstr "تایپوگرافی"
 
 #: includes/widgets/class-style-controls.php:251
 msgid "Typography and alignment"
-msgstr ""
+msgstr "تایپوگرافی و تراز"
 
 #: includes/support/class-http.php:155
 msgid "Unexpected HTTP status %d for %s"
-msgstr ""
+msgstr "کد وضعیت HTTP غیرمنتظره %d برای %s"
 
 #: includes/settings/class-sections.php:1322
 msgid "Unit"
-msgstr ""
+msgstr "واحد"
 
 #: includes/class-plugin.php:141
 msgid "Unknown DashWoo service: %s"
-msgstr ""
+msgstr "سرویس ناشناختهٔ DashWoo: %s"
 
 #: includes/admin/class-admin.php:673
 msgid "Unknown action."
-msgstr ""
+msgstr "عملیات ناشناخته."
 
 #: includes/assets/icons/class-material-provider.php:146
 msgid "Unknown icon style \"%s\"."
-msgstr ""
+msgstr "سبک آیکون «%s» ناشناخته است."
 
 #: includes/admin/class-admin.php:499 includes/rest/class-router.php:403 includes/rest/class-router.php:424
 msgid "Unknown section."
-msgstr ""
+msgstr "بخش نامعتبر است."
 
 #: includes/admin/views/capabilities.php:179
 msgid "Unknown to WooCommerce:"
-msgstr ""
+msgstr "نامعلوم نزد ووکامرس:"
 
 #: includes/rest/class-router.php:788
 msgid "Unknown view."
-msgstr ""
+msgstr "نمای ناشناخته."
 
 #: includes/account/class-templates.php:56 includes/account/class-templates.php:66 includes/account/class-templates.php:77 includes/account/class-templates.php:87 includes/account/class-templates.php:97 includes/account/class-templates.php:106
 #: … 5 more places
 msgid "Unstyled (plain)"
-msgstr ""
+msgstr "بدون استایل (خام)"
 
 #: includes/admin/views/assets.php:128
 msgid "Update"
-msgstr ""
+msgstr "به‌روزرسانی"
 
 #: includes/settings/class-sections.php:319
 msgid "Update channel and asset metadata handling."
-msgstr ""
+msgstr "کانال به‌روزرسانی و مدیریت متادیتای دارایی‌ها."
 
 #: includes/settings/class-sections.php:765
 msgid "Update the browser URL with every section"
-msgstr ""
+msgstr "تغییر نشانی مرورگر همراه با هر بخش"
 
 #: includes/settings/class-sections.php:315
 msgid "Updates"
-msgstr ""
+msgstr "به‌روزرسانی‌ها"
 
 #: includes/admin/views/assets.php:74
 msgid "Upload"
-msgstr ""
+msgstr "آپلود"
 
 #: includes/admin/views/assets.php:67
 msgid "Upload your own font"
-msgstr ""
+msgstr "آپلود فونت اختصاصی"
 
 #: includes/settings/class-sections.php:1062
 msgid "Upload your own font (woff2/woff/ttf)."
-msgstr ""
+msgstr "آپلود فونت اختصاصی (woff2/woff/ttf)."
 
 #: includes/settings/class-sections.php:1648
 msgid "Uppercase"
-msgstr ""
+msgstr "حروف بزرگ"
 
 #: includes/account/class-elementor-bridge.php:711
 msgid "Use the button above to build the ready-made DashWoo layout inside the page."
-msgstr ""
+msgstr "با دکمهٔ بالا چیدمان آمادهٔ DashWoo را داخل صفحه بسازید."
 
 #: includes/capabilities/class-capabilities.php:124
 msgid "Used for strict SVG sanitising; without it DashWoo falls back to WordPress' own sanitiser."
-msgstr ""
+msgstr "برای پاکسازی دقیق SVG استفاده می‌شود؛ در نبودش DashWoo به پاکسازی WordPress محدود می‌ماند."
 
 #: includes/capabilities/class-capabilities.php:132
 msgid "Used to cut multibyte text correctly in the admin."
-msgstr ""
+msgstr "برای برش صحیح متن فارسی در پیشخوان استفاده می‌شود."
 
 #: includes/account/class-sections.php:1161
 msgid "Username or email"
-msgstr ""
+msgstr "نام کاربری یا ایمیل"
 
 #: includes/settings/class-sections.php:1335
 msgid "Values are separated by commas."
-msgstr ""
+msgstr "مقادیر با کاما جدا می‌شوند."
 
 #: includes/widgets/class-icon-widget.php:135
 msgid "Variable font axes"
-msgstr ""
+msgstr "محورهای فونت متغیر"
 
 #: includes/settings/class-sections.php:1137
 msgid "Variable font style"
-msgstr ""
+msgstr "سبک فونت متغیر"
 
 #: includes/compatibility/adapters/class-asset-adapter.php:202
 msgid "Variable fonts + font-variation-settings supported"
-msgstr ""
+msgstr "قلم‌های متغیر و font-variation-settings پشتیبانی می‌شوند"
 
 #: includes/admin/views/assets.php:105
 msgid "Version"
-msgstr ""
+msgstr "نسخه"
 
 #: includes/settings/class-sections.php:266
 msgid "Version compatibility"
-msgstr ""
+msgstr "سازگاری نسخه‌ها"
 
 #: includes/settings/class-sections.php:1934
 msgid "Version with a content hash"
-msgstr ""
+msgstr "نسخه‌گذاری با hash محتوا"
 
 #: includes/account/class-templates.php:52 includes/widgets/class-account-nav-widget.php:107
 msgid "Vertical list"
-msgstr ""
+msgstr "فهرست عمودی"
 
 #: includes/settings/class-sections.php:1459
 msgid "Vertical padding (px)"
-msgstr ""
+msgstr "پدینگ عمودی (px)"
 
 #: includes/account/class-sections.php:275
 msgid "View"
-msgstr ""
+msgstr "مشاهده"
 
 #: includes/admin/views/capabilities.php:189
 msgid "View the full compatibility report"
-msgstr ""
+msgstr "مشاهدهٔ گزارش کامل سازگاری"
 
 #: includes/admin/class-admin.php:710
 msgid "View the full report"
-msgstr ""
+msgstr "مشاهده گزارش کامل"
 
 #: includes/compatibility/class-compatibility.php:336
 msgid "View the system status"
-msgstr ""
+msgstr "مشاهده وضعیت سیستم"
 
 #: includes/settings/class-sections.php:252
 msgid "Warning"
-msgstr ""
+msgstr "هشدار"
 
 #: includes/capabilities/class-capabilities.php:137
 msgid "WebP support"
-msgstr ""
+msgstr "پشتیبانی WebP"
 
 #: includes/assets/icons/class-icon-renderer.php:246 includes/widgets/class-icon-widget.php:143
 msgid "Weight"
-msgstr ""
+msgstr "وزن"
 
 #: includes/settings/class-sections.php:1148
 msgid "Weight (100-700)"
-msgstr ""
+msgstr "وزن (100 تا 700)"
 
 #: includes/admin/views/assets.php:83
 msgid "Weight / Fill / Grade / Optical Size are set at render time through <code>font-variation-settings</code>."
-msgstr ""
+msgstr "Weight / Fill / Grade / Optical Size در زمان رندر با <code>font-variation-settings</code> تنظیم می‌شوند."
 
 #: includes/admin/views/assets.php:55
 msgid "Weights"
-msgstr ""
+msgstr "وزن‌ها"
 
 #: includes/account/class-renderer.php:527 includes/widgets/class-account-dashboard-widget.php:69 includes/widgets/class-account-dashboard-widget.php:166
 msgid "Welcome"
-msgstr ""
+msgstr "خوش آمدید"
 
 #: includes/account/class-templates.php:63
 msgid "Welcome card + shortcuts"
-msgstr ""
+msgstr "کارت خوش‌آمد + میان‌برها"
 
 #: includes/widgets/class-account-dashboard-widget.php:61
 msgid "Welcome card content"
-msgstr ""
+msgstr "محتوای کارت خوش‌آمد"
 
 #: includes/account/class-templates.php:64
 msgid "Welcome card only"
-msgstr ""
+msgstr "فقط کارت خوش‌آمد"
 
 #: includes/widgets/class-account-dashboard-widget.php:67
 msgid "Welcome text"
-msgstr ""
+msgstr "متن خوش‌آمد"
 
 #: includes/admin/views/capabilities.php:75
 msgid "What happens when it is off"
-msgstr ""
+msgstr "اگر خاموش باشد چه می‌شود"
 
 #: includes/widgets/class-account-panel-widget.php:258
 msgid "What the panel shows"
-msgstr ""
+msgstr "چه چیزی در پنل نمایش داده شود"
 
 #: includes/widgets/class-account-widget-base.php:124
 msgid "What to display"
-msgstr ""
+msgstr "چه چیزی نمایش داده شود"
 
 #: includes/admin/views/capabilities.php:147
 msgid "When a feature stays off automatically, copy this text and send it to your host's support."
-msgstr ""
+msgstr "اگر ویژگی‌ای خودکار خاموش مانده، این متن را کپی کنید و به پشتیبانی هاست بدهید."
 
 #: includes/widgets/class-account-endpoint-widget-base.php:191
 msgid "When another plugin renders content for this section, “automatic” shows that and nothing is re-implemented."
-msgstr ""
+msgstr "اگر افزونه‌ای برای این بخش محتوا می‌سازد، در حالت «خودکار» همان نمایش داده می‌شود و هیچ‌چیز دوباره پیاده‌سازی نمی‌شود."
 
 #: includes/settings/class-sections.php:684
 msgid "When off, the links open the page the classic way (which still works)."
-msgstr ""
+msgstr "اگر خاموش باشد، لینک‌ها مثل قبل صفحه را باز می‌کنند (هنوز هم کار می‌کند)."
 
 #: includes/account/class-endpoints.php:537
 msgid "When off, this item disappears from the account menu (display only; the WooCommerce page itself stays untouched)."
-msgstr ""
+msgstr "اگر خاموش باشد، این مورد از منوی حساب کاربری حذف می‌شود (فقط در نمایش؛ خودِ صفحهٔ ووکامرس دست‌نخورده می‌ماند)."
 
 #: includes/settings/class-sections.php:995
 msgid "When the page has no DashWoo widget yet, the ready-made layout (dashboard + menu + cards) is added to the page content so the page is never blank."
-msgstr ""
+msgstr "اگر صفحه هنوز ویجت DashWoo نداشته باشد، چیدمان آماده (پیشخوان + منو + کارت‌ها) به محتوای صفحه اضافه می‌شود تا صفحه خالی نماند."
 
 #: includes/widgets/class-account-profile-widget.php:84
 msgid "When the site has no Gravatar, the first letter of the name is shown."
-msgstr ""
+msgstr "اگر سایت گراواتار نداشته باشد، حرف اول نام نمایش داده می‌شود."
 
 #: includes/widgets/class-account-order-widget.php:92
 msgid "Which order?"
-msgstr ""
+msgstr "کدام سفارش؟"
 
 #: includes/settings/class-sections.php:970
 msgid "Who builds the account page: WooCommerce templates, DashWoo widgets, or a mix of both. Every mode is reversible and no template file is ever overwritten."
-msgstr ""
+msgstr "چه کسی صفحهٔ حساب را می‌سازد: قالب‌های ووکامرس، ویجت‌های DashWoo یا ترکیبی از هر دو. همهٔ حالت‌ها برگشت‌پذیرند و هیچ فایل قالبی بازنویسی نمی‌شود."
 
 #: includes/settings/class-sections.php:1420
 msgid "Width (px)"
-msgstr ""
+msgstr "ضخامت (px)"
 
 #: includes/compatibility/class-woocommerce-features.php:195
 msgid "Wishlist"
-msgstr ""
+msgstr "لیست علاقه‌مندی"
 
 #: includes/settings/class-sections.php:768
 msgid "With this on, the browser's Back button also works between sections."
-msgstr ""
+msgstr "با این گزینه، دکمهٔ «بازگشت» مرورگر هم بین بخش‌ها کار می‌کند."
 
 #: includes/compatibility/adapters/class-woocommerce-adapter.php:208
 msgid "Woo template hooks reachable through the adapter"
-msgstr ""
+msgstr "قلاب‌های قالب ووکامرس از طریق آداپتر در دسترس‌اند"
 
 #: includes/widgets/class-account-widget-base.php:70
 msgid "WooCommerce"
-msgstr ""
+msgstr "ووکامرس"
 
 #: includes/compatibility/adapters/class-woocommerce-adapter.php:179
 msgid "WooCommerce %s (minimum %s)"
-msgstr ""
+msgstr "ووکامرس %s (کمینه %s)"
 
 #: includes/settings/class-sections.php:984
 msgid "WooCommerce (default): everything exactly like WooCommerce"
-msgstr ""
+msgstr "ووکامرس (پیش‌فرض): همه‌چیز مثل خود ووکامرس"
 
 #: includes/compatibility/adapters/class-woocommerce-adapter.php:193
 msgid "WooCommerce Blocks detected (Cart/Checkout block aware)"
-msgstr ""
+msgstr "بلوک‌های ووکامرس شناسایی شد (سازگار با بلوک سبد خرید و تسویه)"
 
 #: includes/account/class-elementor-bridge.php:699
 msgid "WooCommerce My Account page"
-msgstr ""
+msgstr "صفحهٔ حساب کاربری ووکامرس"
 
 #: includes/compatibility/adapters/class-woocommerce-adapter.php:235
 msgid "WooCommerce feature declarations skipped (WooCommerce inactive)"
-msgstr ""
+msgstr "اعلام سازگاری امکان‌های ووکامرس انجام نشد (ووکامرس فعال نیست)"
 
 #: includes/compatibility/adapters/class-woocommerce-adapter.php:168
 msgid "WooCommerce is active"
-msgstr ""
+msgstr "ووکامرس فعال است"
 
 #: includes/compatibility/adapters/class-woocommerce-adapter.php:168
 msgid "WooCommerce is not active - commerce widgets will be hidden"
-msgstr ""
+msgstr "ووکامرس فعال نیست - ویجت‌های فروشگاهی پنهان می‌شوند"
 
 #: includes/admin/views/capabilities.php:165
 msgid "WooCommerce is not active, so no declaration is needed. As soon as it is active, DashWoo declares its compatibility on the"
-msgstr ""
+msgstr "ووکامرس فعال نیست؛ اعلانی لازم نیست. به‌محض فعال شدن، DashWoo سازگاری خود را روی قلاب"
 
 #: includes/account/class-renderer.php:67
 msgid "WooCommerce is not active, so there is no WooCommerce account area either. This part stays hidden until WooCommerce is active."
-msgstr ""
+msgstr "ووکامرس فعال نیست، پس حساب کاربری ووکامرس هم وجود ندارد. تا زمانی که ووکامرس فعال شود، این بخش نمایش داده نمی‌شود."
 
 #: includes/account/class-sections.php:729
 msgid "WooCommerce must be active for this section."
-msgstr ""
+msgstr "برای این بخش، ووکامرس باید فعال باشد."
 
 #: includes/account/class-sections.php:98
 msgid "WooCommerce must be active to show your orders."
-msgstr ""
+msgstr "برای دیدن سفارش‌ها ووکامرس باید فعال باشد."
 
 #: includes/compatibility/adapters/class-woocommerce-adapter.php:275
 msgid "WooCommerce no longer sees DashWoo as incompatible: not in the incompatible list, not in the “incompatible plugins” notice."
-msgstr ""
+msgstr "ووکامرس دیگر DashWoo را ناسازگار نمی‌بیند: نه در فهرست افزونه‌های ناسازگار، نه در هشدار «افزونه‌های ناسازگار»."
 
 #: includes/settings/class-sections.php:693 includes/widgets/class-account-panel-widget.php:134
 msgid "WooCommerce only"
-msgstr ""
+msgstr "فقط ووکامرس"
 
 #: includes/widgets/class-account-endpoint-widget-base.php:188
 msgid "WooCommerce only (no DashWoo template)"
-msgstr ""
+msgstr "فقط ووکامرس (قالب DashWoo استفاده نشود)"
 
 #: includes/admin/views/capabilities.php:169
 msgid "WooCommerce only checks plugins that carry the <code>WC tested up to</code> header and counts a plugin that never declared"
-msgstr ""
+msgstr "ووکامرس فقط افزونه‌هایی را بررسی می‌کند که هدر <code>WC tested up to</code> دارند و افزونهٔ اعلام‌نکرده را"
 
 #: includes/admin/views/capabilities.php:174
 msgid "WooCommerce sees DashWoo as compatible:"
-msgstr ""
+msgstr "ووکامرس DashWoo را سازگار می‌داند:"
 
 #: includes/compatibility/adapters/class-woocommerce-adapter.php:251
 msgid "WooCommerce still lists DashWoo as undeclared for: %s"
-msgstr ""
+msgstr "ووکامرس هنوز DashWoo را برای این امکان‌ها اعلام‌نشده می‌داند: %s"
 
 #: includes/compatibility/adapters/class-woocommerce-adapter.php:180
 msgid "WooCommerce version not detected"
-msgstr ""
+msgstr "نسخهٔ ووکامرس شناسایی نشد"
 
 #: includes/compatibility/adapters/class-wordpress-adapter.php:116
 msgid "WordPress %s (minimum %s)"
-msgstr ""
+msgstr "وردپرس %s (کمینه %s)"
 
 #: includes/capabilities/class-capabilities.php:113
 msgid "WordPress multisite"
-msgstr ""
+msgstr "شبکهٔ چندسایتی وردپرس"
 
 #: includes/settings/class-sections.php:947
 msgid "WordPress/WooCommerce default behaviour"
-msgstr ""
+msgstr "رفتار پیش‌فرض وردپرس/ووکامرس"
 
 #: includes/account/class-account.php:283
 msgid "Works without any special host capability."
-msgstr ""
+msgstr "بدون نیاز به قابلیت خاصی کار می‌کند."
 
 #: includes/account/class-sections.php:1156
 msgid "You are signed in."
-msgstr ""
+msgstr "شما وارد حساب خود هستید."
 
 #: includes/account/class-sections.php:104
 msgid "You have no orders yet."
-msgstr ""
+msgstr "هنوز سفارشی ثبت نشده است."
 
 #: includes/account/class-form-adapter.php:149
 msgid "You must be signed in to change the name."
-msgstr ""
+msgstr "برای تغییر نام باید وارد حساب شوید."
 
 #: includes/settings/class-sections.php:573
 msgid "Your custom templates are read from here (relative to the theme folder)."
-msgstr ""
+msgstr "قالب‌های سفارشی شما اینجا خوانده می‌شوند (نسبت به پوشهٔ پوسته)."
 
 #: includes/settings/class-sections.php:1831
 msgid "Your own platform code."
-msgstr ""
+msgstr "کدهای اختصاصی پلتفرم."
 
 #: includes/settings/class-sections.php:891
 msgid "Zero = the DashWoo default spacing."
-msgstr ""
+msgstr "صفر = همان فاصلهٔ پیش‌فرض DashWoo."
 
 #: includes/widgets/class-account-order-widget.php:102
 msgid "Zero = the customer's latest order. When a customer clicks an order, that order opens inside the panel."
-msgstr ""
+msgstr "صفر = آخرین سفارش مشتری. وقتی مشتری روی یک سفارش کلیک می‌کند، همان سفارش داخل پنل باز می‌شود."
 
 #: includes/capabilities/class-capabilities.php:105
 msgid "ZipArchive (php-zip)"
-msgstr ""
+msgstr "ZipArchive (php-zip)"
 
 #: includes/compatibility/adapters/class-asset-adapter.php:160
 msgid "ZipArchive available (optional helper for packaged export/import)"
-msgstr ""
+msgstr "ZipArchive در دسترس است (کمک اختیاری برای بستهٔ فشردهٔ برون‌ریزی/درون‌ریزی)"
 
 #: includes/compatibility/adapters/class-asset-adapter.php:161
 msgid "ZipArchive not available (php-zip): optional, DashWoo installs and serves assets without it"
-msgstr ""
+msgstr "ZipArchive در دسترس نیست (php-zip): اختیاری؛ DashWoo بدون آن هم دارایی‌ها را نصب و سرو می‌کند"
 
 #: includes/settings/class-sections.php:999
 msgid "[dashwoo_account] shortcut"
-msgstr ""
+msgstr "میان‌بر [dashwoo_account]"
 
 #: includes/account/class-elementor-bridge.php:687 includes/admin/views/assets.php:119
 msgid "active"
-msgstr ""
+msgstr "فعال است"
 
 #: includes/admin/views/capabilities.php:89
 msgid "always on"
-msgstr ""
+msgstr "همیشه فعال"
 
 #: includes/admin/views/assets.php:62
 msgid "and no request is made to Google."
-msgstr ""
+msgstr "قرار می‌گیرند و هیچ درخواستی به گوگل ارسال نمی‌شود."
 
 #: includes/account/class-elementor-bridge.php:707
 msgid "built with Elementor"
-msgstr ""
+msgstr "ساخته‌شده با المنتور"
 
 #: includes/compatibility/class-compatibility.php:330
 msgid "dashwoo: %1$d warnings and %2$d errors in the environment compatibility check."
-msgstr ""
+msgstr "dashwoo: %1$d هشدار و %2$d خطا در بررسی سازگاری محیط."
 
 #: includes/admin/views/system-status.php:26
 msgid "errors"
-msgstr ""
+msgstr "خطا"
 
 #: includes/admin/views/system-status.php:47
 msgid "every capability is available"
-msgstr ""
+msgstr "همه قابلیت‌ها فعال هستند"
 
 #: includes/admin/views/capabilities.php:166
 msgid "hook."
-msgstr ""
+msgstr "اعلام می‌کند."
 
 #: includes/admin/views/assets.php:119
 msgid "inactive"
-msgstr ""
+msgstr "غیرفعال"
 
 #: includes/admin/views/system-status.php:24
 msgid "informational"
-msgstr ""
+msgstr "اطلاع"
 
 #: includes/capabilities/class-capabilities.php:90
 msgid "installed, but its image functions are blocked by disable_functions"
-msgstr ""
+msgstr "نصب است اما توابع تصویری‌اش با disable_functions بسته شده"
 
 #: includes/admin/views/capabilities.php:170
 msgid "itself as “incompatible” for features such as HPOS. DashWoo declares compatibility for every feature."
-msgstr ""
+msgstr "برای ویژگی‌هایی مثل HPOS «ناسازگار» می‌شمارد. DashWoo برای همهٔ ویژگی‌ها اعلام سازگاری می‌کند."
 
 #: includes/capabilities/class-capabilities.php:518
 msgid "just now"
-msgstr ""
+msgstr "همین حالا"
 
 #: includes/admin/views/system-status.php:34
 msgid "last check:"
-msgstr ""
+msgstr "آخرین بررسی:"
 
 #: includes/admin/views/logs.php:15
 msgid "latest rows"
-msgstr ""
+msgstr "ردیف آخر"
 
 #: includes/admin/views/system-status.php:31
 msgid "like <code>zip</code> or <code>gd</code>. Those are neither errors nor do they touch the compatibility mode."
-msgstr ""
+msgstr "مانند <code>zip</code> یا <code>gd</code>. این موارد نه خطا هستند و نه روی حالت سازگاری اثر دارند."
 
 #: includes/capabilities/class-capabilities.php:99
 msgid "loaded"
-msgstr ""
+msgstr "وارد شده"
 
 #: includes/capabilities/class-capabilities.php:89
 msgid "loaded and usable"
-msgstr ""
+msgstr "وارد شده و قابل استفاده"
 
 #: includes/admin/views/dashboard.php:60
 msgid "no CDN dependency"
-msgstr ""
+msgstr "بدون وابستگی به"
 
 #: includes/compatibility/adapters/class-asset-adapter.php:107
 msgid "no format readers detected"
-msgstr ""
+msgstr "هیچ خوانندهٔ قالبی شناسایی نشد"
 
 #: includes/capabilities/class-capabilities.php:512
 msgid "not checked yet"
-msgstr ""
+msgstr "هنوز بررسی نشده"
 
 #: includes/compatibility/adapters/class-wordpress-adapter.php:116
 msgid "not detected"
-msgstr ""
+msgstr "شناسایی نشد"
 
 #: includes/capabilities/class-capabilities.php:139 includes/capabilities/class-capabilities.php:147
 msgid "not enabled in this host's GD"
-msgstr ""
+msgstr "در GD این هاست فعال نیست"
 
 #: includes/capabilities/class-capabilities.php:131
 msgid "not installed"
-msgstr ""
+msgstr "نصب نیست"
 
 #: includes/capabilities/class-capabilities.php:99
 msgid "not installed on this host"
-msgstr ""
+msgstr "روی این هاست نصب نیست"
 
 #: includes/admin/views/system-status.php:27
 msgid "not relevant"
-msgstr ""
+msgstr "نامرتبط"
 
 #: includes/admin/views/capabilities.php:131
 msgid "optional"
-msgstr ""
+msgstr "اختیاری"
 
 #: includes/account/class-elementor-bridge.php:702
 msgid "page ID "
-msgstr ""
+msgstr "شناسهٔ "
 
 #: includes/admin/views/system-status.php:23
 msgid "passed"
-msgstr ""
+msgstr "فعال"
 
 #: includes/admin/views/capabilities.php:129
 msgid "required"
-msgstr ""
+msgstr "الزامی"
 
 #: includes/admin/views/capabilities.php:66
 msgid "the matching feature stays off by itself and switches <strong>on automatically</strong> as soon as it is there."
-msgstr ""
+msgstr "ویژگی مربوطه خودش خاموش می‌ماند و به‌محض فراهم شدن، <strong>خودکار روشن می‌شود</strong>."
 
 #: includes/capabilities/class-capabilities.php:91
 msgid "the php-gd extension is not installed on this host"
-msgstr ""
+msgstr "افزونهٔ php-gd روی این هاست نصب نیست"
 
 #: includes/capabilities/class-capabilities.php:123
 msgid "the php-xml extension is not installed on this host"
-msgstr ""
+msgstr "افزونهٔ php-xml روی این هاست نصب نیست"
 
 #: includes/capabilities/class-capabilities.php:107
 msgid "the php-zip extension is not installed on this host"
-msgstr ""
+msgstr "افزونهٔ php-zip روی این هاست نصب نیست"
 
 #: includes/capabilities/class-capabilities.php:159
 msgid "the uploads/dashwoo folder is not writable"
-msgstr ""
+msgstr "پوشهٔ uploads/dashwoo قابل‌نوشتن نیست"
 
 #: includes/capabilities/class-capabilities.php:115
 msgid "this is a single-site install"
-msgstr ""
+msgstr "این نصب تک‌سایتی است"
 
 #: includes/capabilities/class-capabilities.php:115
 msgid "this site runs in a network"
-msgstr ""
+msgstr "این سایت روی شبکه اجرا می‌شود"
 
 #: includes/compatibility/adapters/class-wordpress-adapter.php:129
 msgid "uploads/ is NOT writable - assets cannot be stored"
-msgstr ""
+msgstr "پوشهٔ uploads قابل نوشتن نیست - دارایی‌ها ذخیره نمی‌شوند"
 
 #: includes/compatibility/adapters/class-wordpress-adapter.php:129
 msgid "uploads/ is writable"
-msgstr ""
+msgstr "پوشهٔ uploads قابل نوشتن است"
 
 #: includes/capabilities/class-capabilities.php:158
 msgid "uploads/dashwoo is writable"
-msgstr ""
+msgstr "uploads/dashwoo قابل‌نوشتن است"
 
 #: includes/widgets/class-account-widget-base.php:70
 msgid "user"
-msgstr ""
+msgstr "کاربری"
 
 #: includes/admin/views/dashboard.php:36
 msgid "variables"
-msgstr ""
+msgstr "متغیر"
 
 #: includes/admin/views/system-status.php:25
 msgid "warnings"
-msgstr ""
+msgstr "هشدار"
 
 #: includes/widgets/class-account-widget-base.php:297
 msgid "— Select —"
-msgstr ""
+msgstr "— انتخاب کنید —"
 
 #: includes/design-system/elementor/class-token-picker-control.php:71
 msgid "— token —"
-msgstr ""
+msgstr "— توکن —"
 
 #: includes/settings/class-sections.php:1633
 msgid "“New” colour"
-msgstr ""
+msgstr "رنگ جدید"

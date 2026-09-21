@@ -10,7 +10,7 @@ namespace DashWoo\Widgets;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * روش‌های پرداخت
+ * Payment methods
  */
 class Account_Payment_Widget extends Account_Endpoint_Widget_Base {
 
@@ -29,7 +29,7 @@ class Account_Payment_Widget extends Account_Endpoint_Widget_Base {
 	 * @return string
 	 */
 	public function get_title() {
-		return 'DashWoo — روش‌های پرداخت';
+		return __( 'DashWoo — Payment methods', 'dashwoo' );
 	}
 
 	/**

@@ -89,7 +89,7 @@ class Account {
 	}
 
 	/**
-	 * Breadcrumb above an account sub-page ("حساب کاربری ← سفارش‌ها").
+	 * Breadcrumb above an account sub-page ("My Account ← Orders").
 	 *
 	 * @return void
 	 */
@@ -110,7 +110,7 @@ class Account {
 
 		$label = isset( $item[ $current ]['label'] ) ? (string) $item[ $current ]['label'] : $current;
 
-		$html  = '<nav class="dw-acc__crumbs" aria-label="مسیر">';
+		$html  = '<nav class="dw-acc__crumbs" aria-label="' . esc_attr__( 'Breadcrumb', 'dashwoo' ) . '">';
 		$html .= '<a class="dw-acc__crumb" href="' . esc_url( $home ) . '">' . esc_html( $endpoints->label( 'dashboard' ) ) . '</a>';
 		$html .= '<span class="dw-acc__crumb-sep" aria-hidden="true">/</span>';
 		$html .= '<span class="dw-acc__crumb is-current">' . esc_html( $label ) . '</span>';
@@ -200,8 +200,8 @@ class Account {
 					'nonce'   => Panel::nonce(),
 					'account' => esc_url_raw( Endpoints::instance()->account_url() ),
 					'strings' => array(
-						'loading' => (string) dashwoo_get_setting( 'account_panel.loading_text', 'در حال بارگذاری…' ),
-						'error'   => 'بارگذاری این بخش ممکن نشد. صفحه را دوباره باز کنید.',
+						'loading' => (string) dashwoo_get_setting( 'account_panel.loading_text', __( 'Loading…', 'dashwoo' ) ),
+						'error'   => __( 'This section could not be loaded. Please reload the page.', 'dashwoo' ),
 					),
 				)
 			);
@@ -276,11 +276,11 @@ class Account {
 	 */
 	public function capabilities( $features ) {
 		$features['account_area'] = array(
-			'label'    => 'پک حساب کاربری',
+			'label'    => __( 'My Account pack', 'dashwoo' ),
 			'requires' => array(),
-			'effect'   => 'میان‌بر و ویجت‌های حساب کاربری DashWoo: منوی حساب، کارت‌ها، فرم‌ها و جایگزینی ناوبری پیش‌فرض ووکامرس',
-			'when_off' => 'همهٔ ویجت‌ها پیام «خاموش است» را در ویرایشگر نشان می‌دهند و سبک DashWoo اعمال نمی‌شود',
-			'hint'     => 'بدون نیاز به قابلیت خاصی کار می‌کند.',
+			'effect'   => __( 'DashWoo shortcuts and My Account widgets: account menu, cards, forms and a drop-in replacement for WooCommerce\'s default navigation', 'dashwoo' ),
+			'when_off' => __( 'Every widget shows an “off” notice in the editor and the DashWoo styling is not applied', 'dashwoo' ),
+			'hint'     => __( 'Works without any special host capability.', 'dashwoo' ),
 		);
 
 		return $features;

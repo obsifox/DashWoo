@@ -1,0 +1,18 @@
+{
+	"translation-revision-date": "1768771200",
+	"generator": "dashwoo/tools/i18n/build-catalogue.py",
+	"source": "assets/js/admin.js",
+	"domain": "messages",
+	"locale_data": {
+		"dashwoo": {
+			"": {
+				"domain": "dashwoo",
+				"lang": "fa_IR",
+				"plural-forms": "nplurals=2; plural=(n > 1);"
+			},
+			"Search…": [
+				"جست‌وجو…"
+			]
+		}
+	}
+}

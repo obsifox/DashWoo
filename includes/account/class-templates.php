@@ -3,7 +3,7 @@
  * Template variations for every account section.
  *
  * The shop owner picks a *shape* per section (a list, a table, a timeline, ...) in
- * DashWoo → حساب کاربری → قالب‌ها, in the Elementor widget, or per shortcode
+ * DashWoo → My Account → Templates, in the Elementor widget, or per shortcode
  * attribute. A theme can override any variation with a file, so a developer never
  * has to fight the plugin:
  *
@@ -46,106 +46,106 @@ class Templates {
 	public static function sections() {
 		$templates = array(
 			'nav'        => array(
-				'label'      => 'منوی حساب',
+				'label'      => __( 'Account menu', 'dashwoo' ),
 				'default'    => 'menu',
 				'variations' => array(
-					'menu'  => 'فهرست عمودی',
-					'tabs'  => 'نوار تب افقی',
-					'cards' => 'کارت‌های میان‌بر',
-					'rail'  => 'نوار آیکونی کنار',
-					'plain' => 'بدون استایل (خام)',
+					'menu'  => __( 'Vertical list', 'dashwoo' ),
+					'tabs'  => __( 'Horizontal tabs', 'dashwoo' ),
+					'cards' => __( 'Shortcut cards', 'dashwoo' ),
+					'rail'  => __( 'Side icon rail', 'dashwoo' ),
+					'plain' => __( 'Unstyled (plain)', 'dashwoo' ),
 				),
 			),
 			'dashboard'  => array(
-				'label'      => 'پیشخوان',
+				'label'      => __( 'Dashboard', 'dashwoo' ),
 				'default'    => 'hero-cards',
 				'variations' => array(
-					'hero-cards' => 'کارت خوش‌آمد + میان‌برها',
-					'hero'       => 'فقط کارت خوش‌آمد',
-					'cards'      => 'فقط میان‌برها',
-					'plain'      => 'بدون استایل (خام)',
+					'hero-cards' => __( 'Welcome card + shortcuts', 'dashwoo' ),
+					'hero'       => __( 'Welcome card only', 'dashwoo' ),
+					'cards'      => __( 'Shortcuts only', 'dashwoo' ),
+					'plain'      => __( 'Unstyled (plain)', 'dashwoo' ),
 				),
 			),
 			'orders'     => array(
-				'label'      => 'سفارش‌ها',
+				'label'      => __( 'Orders', 'dashwoo' ),
 				'default'    => 'cards',
 				'variations' => array(
-					'cards'    => 'کارت سفارش',
-					'compact'  => 'فهرست جمع‌وجور',
-					'table'    => 'جدول',
-					'timeline' => 'خط زمانی',
-					'plain'    => 'بدون استایل (خام)',
+					'cards'    => __( 'Order card', 'dashwoo' ),
+					'compact'  => __( 'Compact list', 'dashwoo' ),
+					'table'    => __( 'Table', 'dashwoo' ),
+					'timeline' => __( 'Timeline', 'dashwoo' ),
+					'plain'    => __( 'Unstyled (plain)', 'dashwoo' ),
 				),
 			),
 			'order'      => array(
-				'label'      => 'جزئیات یک سفارش',
+				'label'      => __( 'A single order', 'dashwoo' ),
 				'default'    => 'summary',
 				'variations' => array(
-					'summary' => 'خلاصه + اقلام',
-					'table'   => 'جدول اقلام',
-					'items'   => 'فقط اقلام',
-					'plain'   => 'بدون استایل (خام)',
+					'summary' => __( 'Summary + items', 'dashwoo' ),
+					'table'   => __( 'Items table', 'dashwoo' ),
+					'items'   => __( 'Items only', 'dashwoo' ),
+					'plain'   => __( 'Unstyled (plain)', 'dashwoo' ),
 				),
 			),
 			'downloads'  => array(
-				'label'      => 'دانلودها',
+				'label'      => __( 'Downloads', 'dashwoo' ),
 				'default'    => 'list',
 				'variations' => array(
-					'list'  => 'فهرست',
-					'grid'  => 'شبکهٔ کارتی',
-					'table' => 'جدول',
-					'plain' => 'بدون استایل (خام)',
+					'list'  => __( 'List', 'dashwoo' ),
+					'grid'  => __( 'Card grid', 'dashwoo' ),
+					'table' => __( 'Table', 'dashwoo' ),
+					'plain' => __( 'Unstyled (plain)', 'dashwoo' ),
 				),
 			),
 			'addresses'  => array(
-				'label'      => 'آدرس‌ها',
+				'label'      => __( 'Addresses', 'dashwoo' ),
 				'default'    => 'cards',
 				'variations' => array(
-					'cards' => 'کارت آدرس',
-					'list'  => 'فهرست ساده',
-					'plain' => 'بدون استایل (خام)',
+					'cards' => __( 'Address card', 'dashwoo' ),
+					'list'  => __( 'Plain list', 'dashwoo' ),
+					'plain' => __( 'Unstyled (plain)', 'dashwoo' ),
 				),
 			),
 			'payment'    => array(
-				'label'      => 'روش‌های پرداخت',
+				'label'      => __( 'Payment methods', 'dashwoo' ),
 				'default'    => 'card',
 				'variations' => array(
-					'card'  => 'کارت',
-					'plain' => 'بدون استایل (خام)',
+					'card'  => __( 'Card', 'dashwoo' ),
+					'plain' => __( 'Unstyled (plain)', 'dashwoo' ),
 				),
 			),
 			'details'    => array(
-				'label'      => 'جزئیات حساب',
+				'label'      => __( 'Account details', 'dashwoo' ),
 				'default'    => 'card',
 				'variations' => array(
-					'card'  => 'کارت',
-					'plain' => 'بدون استایل (خام)',
+					'card'  => __( 'Card', 'dashwoo' ),
+					'plain' => __( 'Unstyled (plain)', 'dashwoo' ),
 				),
 			),
 			'profile'    => array(
-				'label'      => 'کارت پروفایل',
+				'label'      => __( 'Profile card', 'dashwoo' ),
 				'default'    => 'card',
 				'variations' => array(
-					'card'    => 'کارت',
-					'compact' => 'جمع‌وجور',
-					'plain'   => 'بدون استایل (خام)',
+					'card'    => __( 'Card', 'dashwoo' ),
+					'compact' => __( 'Compact', 'dashwoo' ),
+					'plain'   => __( 'Unstyled (plain)', 'dashwoo' ),
 				),
 			),
 			'forms'      => array(
-				'label'      => 'فرم‌ها',
+				'label'      => __( 'Forms', 'dashwoo' ),
 				'default'    => 'grid',
 				'variations' => array(
-					'grid'  => 'شبکه‌ای',
-					'stack' => 'عمودی',
-					'plain' => 'بدون استایل (خام)',
+					'grid'  => __( 'Grid', 'dashwoo' ),
+					'stack' => __( 'Stacked', 'dashwoo' ),
+					'plain' => __( 'Unstyled (plain)', 'dashwoo' ),
 				),
 			),
 			'logout'     => array(
-				'label'      => 'خروج از حساب',
+				'label'      => __( 'Log out', 'dashwoo' ),
 				'default'    => 'button',
 				'variations' => array(
-					'button' => 'دکمه',
-					'plain'  => 'لینک ساده (خام)',
+					'button' => __( 'Button', 'dashwoo' ),
+					'plain'  => __( 'Plain link (bare)', 'dashwoo' ),
 				),
 			),
 		);
@@ -197,7 +197,7 @@ class Templates {
 			$default = self::default_variation( $section );
 			$label   = isset( self::variations( $section )[ $default ] ) ? (string) self::variations( $section )[ $default ] : $default;
 
-			$options[''] = sprintf( 'پیش‌فرض (%s)', $label );
+			$options[''] = sprintf( __( 'Default (%s)', 'dashwoo' ), $label );
 		}
 
 		foreach ( self::variations( $section ) as $id => $label ) {

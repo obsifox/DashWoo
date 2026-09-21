@@ -10,7 +10,7 @@ namespace DashWoo\Widgets;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * خروج از حساب
+ * Log out
  */
 class Account_Logout_Widget extends Account_Endpoint_Widget_Base {
 
@@ -29,7 +29,7 @@ class Account_Logout_Widget extends Account_Endpoint_Widget_Base {
 	 * @return string
 	 */
 	public function get_title() {
-		return 'DashWoo — خروج از حساب';
+		return __( 'DashWoo — Log out', 'dashwoo' );
 	}
 
 	/**

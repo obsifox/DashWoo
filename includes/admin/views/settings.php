@@ -24,7 +24,7 @@ $dw_admin    = \DashWoo\Admin\Admin::instance();
 			<?php endif; ?>
 
 			<?php if ( empty( $dw_section['fields'] ) ) : ?>
-				<p>این بخش فیلد تنظیماتی ندارد؛ از طریق ابزارهای زیر مدیریت می‌شود.</p>
+				<p><?php esc_html_e( 'This section has no settings field; it is managed through the tools below.', 'dashwoo' ); ?></p>
 			<?php else : ?>
 			<form method="post" action="<?php echo esc_url( $context['action_url'] ); ?>">
 				<?php wp_nonce_field( 'dashwoo_action' ); ?>
@@ -50,7 +50,7 @@ $dw_admin    = \DashWoo\Admin\Admin::instance();
 
 							if ( isset( $dw_state['state'] ) && 'blocked' === $dw_state['state'] ) {
 								$dw_lock        = 'disabled';
-								$dw_lock_reason = $dw_field['hint'] ?? 'قابلیت لازم روی این هاست موجود نیست.';
+								$dw_lock_reason = $dw_field['hint'] ?? __( 'The required host capability is not available.', 'dashwoo' );
 							}
 						}
 						?>
@@ -62,7 +62,7 @@ $dw_admin    = \DashWoo\Admin\Admin::instance();
 										<input type="checkbox" id="dw-<?php echo esc_attr( $dw_field['key'] ); ?>"
 											name="<?php echo esc_attr( $dw_name ); ?>" value="1"
 											<?php checked( (bool) $dw_value ); ?> <?php echo esc_attr( $dw_lock ); ?> />
-										<span>فعال</span>
+										<span><?php esc_html_e( 'On', 'dashwoo' ); ?></span>
 									</label>
 									<?php if ( $dw_lock_reason ) : ?>
 										<p class="dw-hint"><?php echo esc_html( $dw_lock_reason ); ?></p>
@@ -120,8 +120,8 @@ $dw_admin    = \DashWoo\Admin\Admin::instance();
 				</table>
 
 				<p class="dw-actions">
-					<button class="button button-primary" type="submit">ذخیره تنظیمات</button>
-					<button class="button" type="submit" name="dw_action" value="reset_section">بازنشانی به پیش‌فرض</button>
+					<button class="button button-primary" type="submit"><?php esc_html_e( 'Save settings', 'dashwoo' ); ?></button>
+					<button class="button" type="submit" name="dw_action" value="reset_section"><?php esc_html_e( 'Reset to defaults', 'dashwoo' ); ?></button>
 				</p>
 			</form>
 			<?php
@@ -140,7 +140,7 @@ $dw_admin    = \DashWoo\Admin\Admin::instance();
 		</div>
 
 		<div class="dw-card dw-card--aside">
-			<h3>در این گروه</h3>
+			<h3><?php esc_html_e( 'In this group', 'dashwoo' ); ?></h3>
 			<?php foreach ( $context['nav']['clusters'] as $dw_cluster ) : ?>
 				<div class="dw-aside-cluster">
 					<h4><?php echo esc_html( $dw_cluster['label'] ); ?></h4>
@@ -154,7 +154,7 @@ $dw_admin    = \DashWoo\Admin\Admin::instance();
 				</div>
 			<?php endforeach; ?>
 			<p class="description"><a href="<?php echo esc_url( $dw_admin->group_url( $context['nav']['group'] ) ); ?>">
-				همهٔ زیرگروه‌های <?php echo esc_html( $context['group_labels'][ $context['nav']['group'] ]['label'] ?? $context['nav']['group'] ); ?>
+				<?php esc_html_e( 'Every subgroup of', 'dashwoo' ); ?> <?php echo esc_html( $context['group_labels'][ $context['nav']['group'] ]['label'] ?? $context['nav']['group'] ); ?>
 			</a></p>
 		</div>
 	</div>

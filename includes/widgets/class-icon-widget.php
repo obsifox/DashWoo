@@ -39,7 +39,7 @@ class Icon_Widget extends \Elementor\Widget_Base {
 	 * @return string
 	 */
 	public function get_title() {
-		return 'آیکون DashWoo';
+		return __( 'DashWoo icon', 'dashwoo' );
 	}
 
 	/**
@@ -66,7 +66,7 @@ class Icon_Widget extends \Elementor\Widget_Base {
 	 * @return array<int,string>
 	 */
 	public function get_keywords() {
-		return array( 'icon', 'material', 'symbols', 'dashwoo', 'آیکون' );
+		return array( 'icon', 'material', 'symbols', 'dashwoo', __( 'Icon', 'dashwoo' ) );
 	}
 
 	/**
@@ -80,7 +80,7 @@ class Icon_Widget extends \Elementor\Widget_Base {
 		$this->start_controls_section(
 			'content',
 			array(
-				'label' => 'آیکون',
+				'label' => __( 'Icon', 'dashwoo' ),
 				'tab'   => \Elementor\Controls_Manager::TAB_CONTENT,
 			)
 		);
@@ -120,7 +120,7 @@ class Icon_Widget extends \Elementor\Widget_Base {
 		$this->add_control(
 			'link',
 			array(
-				'label' => 'لینک',
+				'label' => __( 'Link', 'dashwoo' ),
 				'type'  => \Elementor\Controls_Manager::URL,
 			)
 		);
@@ -132,7 +132,7 @@ class Icon_Widget extends \Elementor\Widget_Base {
 			$this->start_controls_section(
 				'variations',
 				array(
-					'label' => 'محورهای فونت متغیر',
+					'label' => __( 'Variable font axes', 'dashwoo' ),
 					'tab'   => \Elementor\Controls_Manager::TAB_CONTENT,
 				)
 			);
@@ -140,7 +140,7 @@ class Icon_Widget extends \Elementor\Widget_Base {
 			$this->add_control(
 				'weight',
 				array(
-					'label'     => 'Weight',
+					'label'     => __('Weight', 'dashwoo'),
 					'type'      => \Elementor\Controls_Manager::SLIDER,
 					'default'   => array( 'size' => $schema['weight']['default'] ),
 					'range'     => array(
@@ -157,7 +157,7 @@ class Icon_Widget extends \Elementor\Widget_Base {
 			$this->add_control(
 				'fill',
 				array(
-					'label'     => 'Fill',
+					'label'     => __('Fill', 'dashwoo'),
 					'type'      => \Elementor\Controls_Manager::SWITCHER,
 					'default'   => '',
 					'condition' => array( 'provider' => 'material-symbols' ),
@@ -167,7 +167,7 @@ class Icon_Widget extends \Elementor\Widget_Base {
 			$this->add_control(
 				'grade',
 				array(
-					'label'     => 'Grade',
+					'label'     => __('Grade', 'dashwoo'),
 					'type'      => \Elementor\Controls_Manager::SLIDER,
 					'default'   => array( 'size' => 0 ),
 					'range'     => array(
@@ -184,7 +184,7 @@ class Icon_Widget extends \Elementor\Widget_Base {
 			$this->add_control(
 				'optical_size',
 				array(
-					'label'     => 'Optical Size',
+					'label'     => __('Optical Size', 'dashwoo'),
 					'type'      => \Elementor\Controls_Manager::SLIDER,
 					'default'   => array( 'size' => $schema['opsz']['default'] ),
 					'range'     => array(
@@ -205,7 +205,7 @@ class Icon_Widget extends \Elementor\Widget_Base {
 		$this->start_controls_section(
 			'style',
 			array(
-				'label' => 'استایل',
+				'label' => __( 'Style', 'dashwoo' ),
 				'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
 			)
 		);
@@ -213,7 +213,7 @@ class Icon_Widget extends \Elementor\Widget_Base {
 		$this->add_control(
 			'size',
 			array(
-				'label'     => 'اندازه',
+				'label'     => __( 'Size', 'dashwoo' ),
 				'type'      => \Elementor\Controls_Manager::SLIDER,
 				'default'   => array( 'size' => $schema['size']['default'] ),
 				'range'     => array(
@@ -231,7 +231,7 @@ class Icon_Widget extends \Elementor\Widget_Base {
 		$this->add_control(
 			'color',
 			array(
-				'label'     => 'رنگ',
+				'label'     => __( 'Color', 'dashwoo' ),
 				'type'      => \Elementor\Controls_Manager::COLOR,
 				'selectors' => array(
 					'{{WRAPPER}} .dw-icon' => 'color: {{VALUE}};',
@@ -242,19 +242,19 @@ class Icon_Widget extends \Elementor\Widget_Base {
 		$this->add_control(
 			'align',
 			array(
-				'label'     => 'تراز',
+				'label'     => __( 'Alignment', 'dashwoo' ),
 				'type'      => \Elementor\Controls_Manager::CHOOSE,
 				'options'   => array(
 					'flex-start' => array(
-						'title' => 'شروع',
+						'title' => __( 'Getting started', 'dashwoo' ),
 						'icon'  => 'eicon-text-align-left',
 					),
 					'center'     => array(
-						'title' => 'وسط',
+						'title' => __( 'Center', 'dashwoo' ),
 						'icon'  => 'eicon-text-align-center',
 					),
 					'flex-end'   => array(
-						'title' => 'پایان',
+						'title' => __( 'End', 'dashwoo' ),
 						'icon'  => 'eicon-text-align-right',
 					),
 				),

@@ -165,7 +165,7 @@ class WooCommerce_Adapter extends Abstract_Adapter {  // Not final: third partie
 		$this->check(
 			'wc_active',
 			$active ? self::STATUS_OK : self::STATUS_WARNING,
-			$active ? 'WooCommerce is active' : 'WooCommerce is not active - commerce widgets will be hidden'
+			$active ? __('WooCommerce is active', 'dashwoo') : __('WooCommerce is not active - commerce widgets will be hidden', 'dashwoo')
 		);
 		$this->capability( 'wc_active', $active );
 
@@ -176,8 +176,8 @@ class WooCommerce_Adapter extends Abstract_Adapter {  // Not final: third partie
 			'wc_version',
 			! $active ? self::STATUS_NA : ( $meets ? self::STATUS_OK : self::STATUS_WARNING ),
 			$active
-				? sprintf( 'WooCommerce %s (minimum %s)', $version, self::minimum_version() )
-				: 'WooCommerce version not detected',
+				? sprintf( __('WooCommerce %s (minimum %s)', 'dashwoo'), $version, self::minimum_version() )
+				: __('WooCommerce version not detected', 'dashwoo'),
 			array(
 				'current'  => $version,
 				'required' => self::minimum_version(),
@@ -190,7 +190,7 @@ class WooCommerce_Adapter extends Abstract_Adapter {  // Not final: third partie
 		$this->check(
 			'wc_blocks',
 			$has_blocks ? self::STATUS_OK : self::STATUS_NA,
-			$has_blocks ? 'WooCommerce Blocks detected (Cart/Checkout block aware)' : 'Legacy [woocommerce] shortcodes in use'
+			$has_blocks ? __('WooCommerce Blocks detected (Cart/Checkout block aware)', 'dashwoo') : __('Legacy [woocommerce] shortcodes in use', 'dashwoo')
 		);
 		$this->capability( 'wc_blocks', $has_blocks );
 
@@ -198,14 +198,14 @@ class WooCommerce_Adapter extends Abstract_Adapter {  // Not final: third partie
 		$this->check(
 			'hpos',
 			$has_hpos ? self::STATUS_OK : self::STATUS_NA,
-			$has_hpos ? 'HPOS-capable WooCommerce detected' : 'HPOS not applicable'
+			$has_hpos ? __('HPOS-capable WooCommerce detected', 'dashwoo') : __('HPOS not applicable', 'dashwoo')
 		);
 		$this->capability( 'hpos', $has_hpos );
 
 		$this->check(
 			'wc_template_hooks',
 			$active ? self::STATUS_OK : self::STATUS_NA,
-			$active ? 'Woo template hooks reachable through the adapter' : 'Skipped (WooCommerce inactive)'
+			$active ? __('Woo template hooks reachable through the adapter', 'dashwoo') : __('Skipped (WooCommerce inactive)', 'dashwoo')
 		);
 		$this->capability( 'wc_template_hooks', $active );
 
@@ -232,7 +232,7 @@ class WooCommerce_Adapter extends Abstract_Adapter {  // Not final: third partie
 			$this->check(
 				'feature_declarations',
 				self::STATUS_NA,
-				'WooCommerce feature declarations skipped (WooCommerce inactive)',
+				__('WooCommerce feature declarations skipped (WooCommerce inactive)', 'dashwoo'),
 				$status
 			);
 
@@ -248,12 +248,12 @@ class WooCommerce_Adapter extends Abstract_Adapter {  // Not final: third partie
 				'feature_declarations',
 				self::STATUS_WARNING,
 				sprintf(
-					'WooCommerce still lists DashWoo as undeclared for: %s',
+					__('WooCommerce still lists DashWoo as undeclared for: %s', 'dashwoo'),
 					implode( ', ', array_merge( $incompatible, $uncertain ) )
 				),
 				array_merge(
 					$status,
-					array( 'hint' => 'اعلان سازگاری روی قلاب before_woocommerce_init اجرا می‌شود؛ اگر این پیام ماند، یعنی ووکامرس آن ویژگی را بعد از این قلاب ثبت کرده است.' )
+					array( 'hint' => __( 'The compatibility notice runs on the before_woocommerce_init hook; if this message stays, WooCommerce registered that feature after the hook.', 'dashwoo' ) )
 				)
 			);
 
@@ -266,13 +266,13 @@ class WooCommerce_Adapter extends Abstract_Adapter {  // Not final: third partie
 			'feature_declarations',
 			self::STATUS_OK,
 			sprintf(
-				'%d WooCommerce features declared compatible%s',
+				__('%d WooCommerce features declared compatible%s', 'dashwoo'),
 				$declared ? $declared : (int) $status['total'],
-				$unknown ? sprintf( ' (%d not in the audit list)', $unknown ) : ''
+				$unknown ? sprintf( __(' (%d not in the audit list)', 'dashwoo'), $unknown ) : ''
 			),
 			array_merge(
 				$status,
-				array( 'hint' => 'ووکامرس دیگر DashWoo را ناسازگار نمی‌بیند: نه در فهرست افزونه‌های ناسازگار، نه در هشدار «افزونه‌های ناسازگار».' )
+				array( 'hint' => __( 'WooCommerce no longer sees DashWoo as incompatible: not in the incompatible list, not in the “incompatible plugins” notice.', 'dashwoo' ) )
 			)
 		);
 	}

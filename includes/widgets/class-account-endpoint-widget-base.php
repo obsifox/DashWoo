@@ -164,41 +164,41 @@ abstract class Account_Endpoint_Widget_Base extends Account_Widget_Base {
 	protected function register_endpoint_controls( $shortcut_default = 'yes' ) {
 		$this->start_controls_section(
 			'dw_account_endpoint',
-			array( 'label' => 'محتوای این بخش' )
+			array( 'label' => __( 'This section\'s content', 'dashwoo' ) )
 		);
 
 		$this->add_control(
 			'dw_title',
 			array(
-				'label'       => 'عنوان بخش',
+				'label'       => __( 'Section title', 'dashwoo' ),
 				'type'        => 'text',
 				'default'     => '',
-				'description' => 'خالی بگذارید تا عنوانی نمایش داده نشود.',
+				'description' => __( 'Leave it empty to show no heading.', 'dashwoo' ),
 			)
 		);
 
 		$this->add_control(
 			'dw_source',
 			array(
-				'label'       => 'منبع محتوا',
+				'label'       => __( 'Content source', 'dashwoo' ),
 				'type'        => 'select',
 				'default'     => 'yes' === $shortcut_default ? 'auto' : 'dashwoo',
 				'options'     => array(
-					'auto'    => 'خودکار: محتوای ووکامرس، و در نبودِ آن قالب DashWoo',
-					'native'  => 'فقط ووکامرس (قالب DashWoo استفاده نشود)',
-					'dashwoo' => 'فقط قالب DashWoo',
+					'auto'    => __( 'Automatic: WooCommerce content, and the DashWoo template when it has none', 'dashwoo' ),
+					'native'  => __( 'WooCommerce only (no DashWoo template)', 'dashwoo' ),
+					'dashwoo' => __( 'DashWoo template only', 'dashwoo' ),
 				),
-				'description' => 'اگر افزونه‌ای برای این بخش محتوا می‌سازد، در حالت «خودکار» همان نمایش داده می‌شود و هیچ‌چیز دوباره پیاده‌سازی نمی‌شود.',
+				'description' => __( 'When another plugin renders content for this section, “automatic” shows that and nothing is re-implemented.', 'dashwoo' ),
 			)
 		);
 
 		$this->add_control(
 			'dw_template',
 			array(
-				'label'       => 'قالب (Template)',
+				'label'       => __( 'Template', 'dashwoo' ),
 				'type'        => 'select',
 				'default'     => '',
-				'options'     => array( '' => 'پیش‌فرض تنظیمات DashWoo' ) + Templates::section_options( $this->template_section() ),
+				'options'     => array( '' => __( 'DashWoo settings default', 'dashwoo' ) ) + Templates::section_options( $this->template_section() ),
 				'description' => '',
 			)
 		);
@@ -206,7 +206,7 @@ abstract class Account_Endpoint_Widget_Base extends Account_Widget_Base {
 		$this->add_control(
 			'dw_icons',
 			array(
-				'label'   => 'آیکون‌ها',
+				'label'   => __( 'Icons', 'dashwoo' ),
 				'type'    => 'switcher',
 				'default' => 'yes',
 			)

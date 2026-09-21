@@ -3,8 +3,8 @@
  * Shared navigation header for the DashWoo screens.
  *
  * Three levels, never a flat list:
- *   1. groups   - mirrors the WordPress submenu (داشبورد، طراحی، فونت و آیکون، …)
- *   2. clusters - the tab row of the active group (پایهٔ طراحی | کامپوننت‌ها)
+ *   1. groups   - mirrors the WordPress submenu (dashboard, design, fonts and icons, …)
+ *   2. clusters - the tab row of the active group (design foundation | components)
  *   3. sections - the chips of the active cluster
  * plus a breadcrumb that shows where the shop owner currently is.
  *
@@ -42,7 +42,7 @@ $dw_screens  = array( 'assets-library', 'system-status', 'system' );
 	<?php endif; ?>
 
 	<?php if ( $dw_groups ) : ?>
-		<nav class="dw-nav dw-nav--groups" aria-label="گروه‌های DashWoo">
+		<nav class="dw-nav dw-nav--groups" aria-label=__( 'DashWoo groups', 'dashwoo' )>
 			<?php foreach ( $dw_groups as $dw_group ) : ?>
 				<a class="dw-nav__item <?php echo ! empty( $dw_group['active'] ) ? 'is-active' : ''; ?>"
 					href="<?php echo esc_url( $dw_group['url'] ); ?>">
@@ -65,7 +65,7 @@ $dw_screens  = array( 'assets-library', 'system-status', 'system' );
 	<?php endif; ?>
 
 	<?php if ( count( $dw_clusters ) > 1 ) : ?>
-		<nav class="dw-tabs" aria-label="زیرگروه‌ها">
+		<nav class="dw-tabs" aria-label=__( 'Subgroups', 'dashwoo' )>
 			<?php foreach ( $dw_clusters as $dw_cluster ) : ?>
 				<a class="dw-tabs__tab <?php echo $dw_cluster['key'] === $dw_active_c ? 'is-active' : ''; ?>"
 					href="<?php echo esc_url( $dw_cluster['url'] ); ?>">
@@ -92,7 +92,7 @@ $dw_screens  = array( 'assets-library', 'system-status', 'system' );
 			}
 		}
 		?>
-		<nav class="dw-subnav" aria-label="بخش‌های این گروه">
+		<nav class="dw-subnav" aria-label=__( 'Sections in this group', 'dashwoo' )>
 			<?php foreach ( $dw_special as $dw_item ) : ?>
 				<a class="dw-nav__item dw-nav__item--screen <?php echo ! empty( $dw_item['active'] ) ? 'is-active' : ''; ?>"
 					href="<?php echo esc_url( $dw_item['url'] ); ?>">

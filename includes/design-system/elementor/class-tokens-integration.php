@@ -99,7 +99,7 @@ final class Tokens_Integration {
 		);
 
 		// Only ONE category is registered: the panel used to show "DashWoo" and a
-		// second "DashWoo — حساب کاربری" group (the slug was added twice), which made
+		// second "DashWoo — My Account" group (the slug was added twice), which made
 		// the widget list look like two products. A shop that wants the account widgets
 		// in their own group can still ask for it - it is opt-in now.
 		$extra = (array) apply_filters( 'dashwoo_elementor_extra_categories', array() );
@@ -259,19 +259,19 @@ final class Tokens_Integration {
 	 */
 	public function sync_kit() {
 		if ( ! $this->is_available() ) {
-			return new \WP_Error( 'dashwoo_elementor_missing', 'Elementor is not available.' );
+			return new \WP_Error( 'dashwoo_elementor_missing', __('Elementor is not available.', 'dashwoo') );
 		}
 		if ( ! dashwoo_is_on( 'elementor.sync_kit' ) ) {
-			return new \WP_Error( 'dashwoo_kit_sync_off', 'Kit sync is disabled in the settings.' );
+			return new \WP_Error( 'dashwoo_kit_sync_off', __('Kit sync is disabled in the settings.', 'dashwoo') );
 		}
 		if ( ! class_exists( '\Elementor\Plugin' ) ) {
-			return new \WP_Error( 'dashwoo_elementor_missing', 'Elementor Kit API is unavailable.' );
+			return new \WP_Error( 'dashwoo_elementor_missing', __('Elementor Kit API is unavailable.', 'dashwoo') );
 		}
 
 		$kit_id = $this->active_kit_id();
 
 		if ( ! $kit_id ) {
-			return new \WP_Error( 'dashwoo_kit_missing', 'No active Elementor Kit found.' );
+			return new \WP_Error( 'dashwoo_kit_missing', __('No active Elementor Kit found.', 'dashwoo') );
 		}
 
 		if ( dashwoo_is_on( 'elementor.kit_backup' ) ) {
@@ -320,7 +320,7 @@ final class Tokens_Integration {
 		$backup = get_option( self::KIT_BACKUP_OPTION, array() );
 
 		if ( empty( $backup['kit'] ) || empty( $backup['settings'] ) ) {
-			return new \WP_Error( 'dashwoo_kit_no_backup', 'No Kit backup available.' );
+			return new \WP_Error( 'dashwoo_kit_no_backup', __('No Kit backup available.', 'dashwoo') );
 		}
 
 		update_post_meta( (int) $backup['kit'], '_elementor_page_settings', $backup['settings'] );
