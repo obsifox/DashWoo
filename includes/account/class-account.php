@@ -62,6 +62,10 @@ class Account {
 		Source_Adapter::instance()->boot();
 		Native_Bridge::instance()->boot();
 
+		// Elementor is the second front end of this pack: widgets, builder preview and
+		// the one-click layout all live in the bridge.
+		Elementor_Bridge::instance()->boot();
+
 		// Anchor for in-page links (#edit-account) and for the generated layout's
 		// section headings, on the account page only.
 		add_filter( 'woocommerce_account_content', array( $this, 'breadcrumb' ), 1 );
@@ -170,23 +174,9 @@ class Account {
 	 * @return bool
 	 */
 	public function is_builder_request() {
-		if ( ! class_exists( '\\Elementor\\Plugin' ) ) {
-			return false;
-		}
-
-		$plugin = \Elementor\Plugin::$instance;
-
-		if ( ! is_object( $plugin ) ) {
-			return false;
-		}
-
-		foreach ( array( 'editor', 'preview' ) as $key ) {
-			if ( isset( $plugin->{$key} ) && is_object( $plugin->{$key} ) && method_exists( $plugin->{$key}, 'is_preview_mode' ) && $plugin->{$key}->is_preview_mode() ) {
-				return true;
-			}
-		}
-
-		return false;
+		// One source of truth lives in the bridge (edit mode, preview mode and the
+		// elementor-preview iframe all count as "the builder").
+		return Elementor_Bridge::is_builder_request();
 	}
 
 	/**

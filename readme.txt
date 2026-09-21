@@ -4,7 +4,7 @@ Tags: woocommerce, elementor, design system, fonts, icons
 Requires at least: 6.4
 Tested up to: 6.8
 Requires PHP: 8.0
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 License: GPL-2.0-or-later
 
 Full UI platform for WooCommerce x Elementor with a local Design & Assets System.
@@ -28,6 +28,14 @@ DashWoo turns WordPress into a single control center for the whole store UI:
 3. Open **DashWoo -> Dashboard** and start with the Design System.
 
 == Changelog ==
+
+= 1.3.1 =
+* Fixed: DashWoo account widgets were missing from the Elementor panel on Elementor older than 3.5 (the legacy `elementor/widgets/widgets_registered` hook is now covered as well).
+* Fixed: the Elementor **editor** was not recognised as the builder (only the preview was), so the account stylesheet could be missing exactly where the page is designed.
+* New: the editor now previews the account area with sample data (menu, hero, three sample orders, downloads) so there is always something to style - a customer's real data always wins over the samples.
+* New one-click builder: «ساخت / بازسازی چیدمان حساب کاربری در المنتور» in حساب کاربری → منبع قالب‌ها writes a real Elementor document (menu + dashboard + profile + orders) and opens the editor; without the Elementor document API the page falls back to `[dashwoo_account]`.
+* New: an editor-wide bar offers the same one-click build when the account page has no DashWoo widget yet.
+* New: Elementor Pro Theme Builder location «حساب کاربری — DashWoo», with a readiness report (Elementor version, widgets, account page, document, source mode) in the settings screen.
 
 = 1.3.0 =
 * New account pack (حساب کاربری): the My Account area is DashWoo's own - navigation, dashboard hero, orders, downloads, addresses, payment methods, account details, forms and logout, all with Persian/RTL markup and DashWoo design tokens.

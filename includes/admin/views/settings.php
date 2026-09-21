@@ -124,6 +124,18 @@ $dw_admin    = \DashWoo\Admin\Admin::instance();
 					<button class="button" type="submit" name="dw_action" value="reset_section">بازنشانی به پیش‌فرض</button>
 				</p>
 			</form>
+			<?php
+			/**
+			 * Fires after the schema-driven fields of one settings section.
+			 *
+			 * The account pack uses it for its "build the layout in Elementor" card;
+			 * any other subsystem can add its own panel without touching this view.
+			 *
+			 * @param string              $dw_key Section key.
+			 * @param array<string,mixed> $context View context.
+			 */
+			do_action( 'dashwoo_settings_section_after_fields', $dw_key, $context );
+			?>
 			<?php endif; ?>
 		</div>
 

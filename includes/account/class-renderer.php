@@ -47,6 +47,19 @@ class Renderer {
 	 * @return array<string,mixed>
 	 */
 	public static function availability() {
+		// Inside the Elementor editor the account area must always render: a shop owner
+		// who is not a customer (or a shop without a published account page yet) still
+		// has to see and style the widgets. Sample data fills the gaps - see Preview.
+		if ( Elementor_Bridge::is_editor() ) {
+			return array(
+				'state'   => 'builder',
+				'ready'   => true,
+				'reason'  => '',
+				'url'     => function_exists( 'wc_get_page_permalink' ) ? (string) wc_get_page_permalink( 'myaccount' ) : '',
+				'preview' => true,
+			);
+		}
+
 		if ( ! function_exists( 'wc_get_page_permalink' ) ) {
 			return array(
 				'state'    => 'no_woocommerce',
@@ -357,6 +370,16 @@ class Renderer {
 	 * @return string
 	 */
 	public static function login_prompt( array $args = array() ) {
+		// In the builder the login form is not helpful: sample data is.
+		if ( Elementor_Bridge::is_editor() ) {
+			$customer = Preview::customer();
+
+			return self::open( $args ) . self::dashboard( array(
+				'greeting_text' => $customer['name'],
+				'summary'       => 'پیش‌نمایش چیدمان در ویرایشگر المنتور',
+			) ) . self::close();
+		}
+
 		$url  = Endpoints::instance()->login_url();
 		$text = (string) self::option( $args, 'text', 'برای دیدن سفارش‌ها، دانلودها و جزئیات حساب وارد شوید.' );
 		$cta  = (string) self::option( $args, 'button', 'ورود به حساب' );

@@ -1,33 +1,35 @@
-DashWoo 1.3.0
+DashWoo 1.3.1
 built: 2026-01-18T21:20:00+00:00
 php: 8.4.24
-files: 81
+files: 83
 
 sha256  size  path
 e943464ade6eb216a7cd67b9bd93c94aacb8356aece3f9a5d33edc0dd5e7f55d      1631  LICENSE
-1de39ab7d34baf2a60e0c23fed5e7c641a6b34c166068018cff865de424de84d      6726  README.md
+f1d6d8c50cfc4b779795385170e8210a10ad9da6908f9d4ca142cee70fcc3525      7462  README.md
 16456503e9cbf97cb9c6e3c668b9dea63c3868293221ac02ee88cd1688888b50      4580  assets/css/admin.css
 c5ce8c7e621f1d2e8fe4b85cd1c3eac11b4c0ff24ba03286ca34d1ff4c0908d6     14196  assets/css/dashwoo.css
 3fdc7027b702e03c0732b755d1956e8e2c1a101e7ba1d17df4f3becc74f0b8b8      5476  assets/data/google-fonts.json
 35ad18ac0bf0f6f68182bc6b25dfa25c281236569b9747b5fc2bb5a926fa66af      1169  assets/js/admin.js
 59fb7a477b4f988c43d1db896eb330762a05e74b059bee6edc65c3459143e49a       440  assets/js/elementor.js
 754bbcbe9235cedf9c1bdcdb8a810c85198afab907150939ea99fcd31177b4d6       339  assets/js/token-picker.js
-35c73ef32b56a797722c2b68b47a3a8fc435bcc773fd947e7a83991508fc494a      1354  dashwoo.php
-d3265fadd56d8958abf93595aae2640fb394611f6910e34e5552916e0f459526      6312  includes/account/class-account.php
+7be75167a1e5373ddf6572a04ee96931b6f0efc4f07d3656ade8825466fda9b8      1354  dashwoo.php
+3206b60f3f37ad4320194ef5f11de223db32911206446e21889c94874d4e43ff      6241  includes/account/class-account.php
+39a806d6e66ae1b0a760224321f45b910de91c8d869ccfe4a81ce35c04cbdb62     24195  includes/account/class-elementor-bridge.php
 82da26c3054793a0b6d35532ba0b3ae5ba05871200717574543935c9cb3dac44     14927  includes/account/class-endpoints.php
 03b445cfdc67a89ce612c80356e56a7b1fab3026176210fd5848299eb5fb0b9a      5866  includes/account/class-form-adapter.php
 54ed95f630d07c3579535b0b49f2afc414863b123958daa446bfc4d60447221d      4171  includes/account/class-native-bridge.php
-9384402993d652c3707e52efd3d588fa0ae74871056a92f9ff6a638b43405b56      4278  includes/account/class-profile.php
-2ecacdb46ce6f283784abe065b89c6cf4c824e9da9a7aca5ea81c245d95774be     18750  includes/account/class-renderer.php
-d9d979e30b7fac927e88ebc103d4f1bb15a4c30a50a673aff40172fd78e5eefc     19647  includes/account/class-sections.php
-c002e74a9269d19cadeb4c6c51da30883ea8ca82ceee8fd897d4744931cb3a25      9252  includes/account/class-source-adapter.php
+d531b45e02d478d3a2fea9cdd323112200c830f88d63a8414585118042e84f1a      5479  includes/account/class-preview.php
+6c419a694ca5c06ab4d0006aea2bb88f09d65fbcdc133ce2f6e8bbe5f140821e      4862  includes/account/class-profile.php
+78af28b0b0305a452b5568c8eb16173546e8fa9d5fd2ee2b2785c9e40dc37115     19642  includes/account/class-renderer.php
+5c98823db5a4b2a6d404f5e8f62bf04317e6d8c6cc01aff76c0e0e837b7c01cb     19956  includes/account/class-sections.php
+57c1c788d6ca2c840684b7eeda12dc824ee3b2af4a97a278faf5286600b0e32c      9529  includes/account/class-source-adapter.php
 096373730426bcf0c003d5915a152cfeb3bc73de81a29c21eecd89da71d87618     21260  includes/admin/class-admin.php
 4f5046536da015325a5485cc6d25e4d47dfa0d49f98af76b706df3659b4da406      6509  includes/admin/views/assets.php
 d5e29dcc9bb1b49d4e3f053d8f6599b7fd03494320558e1a1ddff2a37c5d0f99      8244  includes/admin/views/capabilities.php
 1f421afab25c8cdb98b399a91c30fc3338be69da7ba7394bbef613b3004d75b8      2982  includes/admin/views/dashboard.php
 da0fb8ad1e342cbc74571af58b471924458317c58c2dd59ac85e4b6d55e32d14      1412  includes/admin/views/logs.php
 6150c3846eaf1bc643067cc794a1b4d21739ab41169d2ab40943f3172e443178      4451  includes/admin/views/partial-nav.php
-3ac720c2162b4c770a61a484399df2eac130cf88a64dbb827c151b3b9060de79      7127  includes/admin/views/settings.php
+0be0e853f8e04d38e3ea8302f33331803cb8225f027a1fbc1a33fea0542aab58      7575  includes/admin/views/settings.php
 7d82dd6becd3a9304505e62d8457761e40dd0c3e4a2fbf00cd90dd5e49ffea57      6538  includes/admin/views/system-status.php
 dfb116e861278fc1cb21f6b551c286534191009cf3cad29d5bd2e9deb1c14e94      4236  includes/api/class-extension-api.php
 e7d7f69cb52cbb52086847745e1bbdf7f4456ba91f7b733cd238da0a26da346a     17864  includes/assets/class-asset-manager.php
@@ -80,8 +82,8 @@ ad25589883b17580e3cabeb4bafd407221febb6f7ec2a2f8ff571f38d0e3ca06      3687  incl
 0fa7d85add1ce4122ff3277ffca6166ba509fb4cf84e4cd664d44f2a8529ee4d       962  includes/widgets/class-account-orders-widget.php
 0aeacb040152d945b2ce4e9e2c5a3d6a63035fcd9b652c82f886180798793b88       983  includes/widgets/class-account-payment-widget.php
 aef35b31465d6932b0c1cc0c330276636950248a375e0dc969ca6af14b51bdfa      3548  includes/widgets/class-account-profile-widget.php
-8e0eb3e9bcd3ced4f02a45415d7fe40057f278507e80a24b468076f99d110238      5719  includes/widgets/class-account-widget-base.php
+4b93f799b88cf881a052a2dbe2a51e1a8196c06f6dc9c1ed5ea08f734abe8c14      5405  includes/widgets/class-account-widget-base.php
 17b158d4430a29c04a114f77b6123425480ed3ec658ea7d9de5f28b941d1f214      8214  includes/widgets/class-icon-widget.php
-4fed505e35ad8a8c7de9b4852c41a43d4c3ef9a74f025d704727d4a23ba6f6dd       448  languages/dashwoo.pot
-96460e9e560d597beb80f34a273115a71e256a8add8dac3a095912ea83e51e61      3355  readme.txt
+b5e7af80cbc1ea9dbdb89a680bf32c56386f2ecd6a9e9454eea6e7368a0c7fe7       448  languages/dashwoo.pot
+f6545659f27a38531bad29c976706365dd7fdf1d23ce9d63cc026c33ac8c9fd1      4560  readme.txt
 2705721fd175de9901540a6dfedfac90d221cf32b3f925e151594fe74468050d      1260  uninstall.php

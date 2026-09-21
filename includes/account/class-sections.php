@@ -102,6 +102,12 @@ class Sections {
 
 		$orders = is_array( $orders ) ? $orders : array();
 
+		// Building the page in Elementor: an empty list would render an empty state that
+		// cannot be styled, so the builder gets sample orders.
+		if ( ! $orders && Preview::active() ) {
+			$orders = Preview::orders();
+		}
+
 		if ( ! $orders ) {
 			return self::empty_state( 'هنوز سفارشی ثبت نشده است.', 'خرید از فروشگاه', function_exists( 'wc_get_page_permalink' ) ? (string) wc_get_page_permalink( 'shop' ) : '' );
 		}
@@ -152,6 +158,10 @@ class Sections {
 		}
 
 		$downloads = (array) wc_get_customer_available_downloads( $profile->id() );
+
+		if ( ! $downloads && Preview::active() ) {
+			$downloads = Preview::downloads();
+		}
 
 		if ( ! $downloads ) {
 			return self::empty_state( 'فایلی برای دانلود وجود ندارد.', '', '' );

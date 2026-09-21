@@ -76,6 +76,14 @@ class Profile {
 	 * @return string
 	 */
 	public function name() {
+		if ( Preview::active() && Preview::is_administrator() ) {
+			// The shop owner is designing the page, not shopping: the hero should look
+			// like a customer's dashboard, not like `admin`.
+			$sample = Preview::customer();
+
+			return (string) $sample['name'];
+		}
+
 		$user = $this->user();
 
 		if ( ! $user ) {
@@ -112,6 +120,12 @@ class Profile {
 	 * @return string
 	 */
 	public function email() {
+		if ( Preview::active() && Preview::is_administrator() ) {
+			$sample = Preview::customer();
+
+			return (string) $sample['email'];
+		}
+
 		$user = $this->user();
 
 		return $user && ! empty( $user->user_email ) ? (string) $user->user_email : '';
@@ -181,7 +195,14 @@ class Profile {
 			)
 		);
 
-		return is_array( $orders ) ? count( $orders ) : 0;
+		$count = is_array( $orders ) ? count( $orders ) : 0;
+
+		// While the page is being designed the counters must show a number.
+		if ( 0 === $count && Preview::active() ) {
+			return count( Preview::orders() );
+		}
+
+		return $count;
 	}
 
 	/**

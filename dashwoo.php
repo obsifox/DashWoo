@@ -3,7 +3,7 @@
  * Plugin Name:       DashWoo
  * Plugin URI:        https://dashwoo.dev/
  * Description:       Full UI platform for WooCommerce x Elementor: design tokens, local fonts, icons and assets. No CDN.
- * Version:           1.3.0
+ * Version:           1.3.1
  * Requires at least: 6.4
  * Requires PHP:      8.0
  * Author:            DashWoo
@@ -19,7 +19,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'DASHWOO_VERSION', '1.3.0' );
+define( 'DASHWOO_VERSION', '1.3.1' );
 define( 'DASHWOO_FILE', __FILE__ );
 define( 'DASHWOO_DIR', plugin_dir_path( __FILE__ ) );
 define( 'DASHWOO_INCLUDES', DASHWOO_DIR . 'includes/' );

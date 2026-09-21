@@ -211,30 +211,12 @@ abstract class Account_Widget_Base extends \Elementor\Widget_Base {
 	 * @return bool
 	 */
 	protected function is_editor_request() {
-		if ( ! class_exists( '\Elementor\Plugin' ) ) {
-			return false;
+		// The bridge owns this decision (edit mode, preview mode, editor iframes), so a
+		// widget can never disagree with the rest of the pack about "are we in the builder".
+		if ( class_exists( '\\DashWoo\\Account\\Elementor_Bridge' ) ) {
+			return \DashWoo\Account\Elementor_Bridge::is_editor();
 		}
 
-		$plugin = \Elementor\Plugin::$instance;
-
-		if ( ! is_object( $plugin ) ) {
-			return false;
-		}
-
-		foreach ( array( 'editor', 'preview' ) as $key ) {
-			if ( isset( $plugin->{$key} ) && is_object( $plugin->{$key} ) && method_exists( $plugin->{$key}, 'is_preview_mode' ) && $plugin->{$key}->is_preview_mode() ) {
-				return true;
-			}
-		}
-
-		if ( function_exists( 'is_admin' ) && is_admin() ) {
-			return true;
-		}
-
-		if ( function_exists( 'is_singular' ) && is_singular() ) {
-			return false;
-		}
-
-		return Source_Adapter::instance()->is_elementor_built();
+		return false;
 	}
 }

@@ -212,6 +212,14 @@ class Source_Adapter {
 			return $content;
 		}
 
+		// A Theme Builder template for the DashWoo account location owns the area when
+		// the shop built one; otherwise the generated layout is used.
+		$theme_builder = Elementor_Bridge::location_html();
+
+		if ( '' !== $theme_builder ) {
+			return $content . $theme_builder;
+		}
+
 		/** This filter is documented in the class docblock. */
 		return $content . $this->generated_layout();
 	}
