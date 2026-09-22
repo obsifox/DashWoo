@@ -1,197 +1,88 @@
 <?php
 /**
- * HTTP client with an explicit host allow-list.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
  *
- * Architectural rule: DashWoo never talks to a third-party host at runtime.
- * Remote requests only happen during an explicit admin import action (fonts / icons),
- * and only to the hosts listed below.
+ * module: includes/support/class-http.php
+ * sha256: 5e4baa24686bdd4449fd022c5d3dcd9efd68112a6084cd52333d1f736d1e1844
  *
  * @package DashWoo
  */
 
-namespace DashWoo\Support;
-
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Allow-listed HTTP wrapper.
- */
-final class Http {
-
-	/**
-	 * Hosts DashWoo is allowed to contact.
-	 */
-	const ALLOWED_HOSTS = array(
-		'fonts.googleapis.com',
-		'fonts.gstatic.com',
-		'raw.githubusercontent.com',
-		'github.com',
-	);
-
-	/**
-	 * Default timeout in seconds.
-	 */
-	const TIMEOUT = 20;
-
-	/**
-	 * A modern user agent: makes Google serve woff2 instead of ttf.
-	 *
-	 * @return string
-	 */
-	public static function user_agent() {
-		return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
-	}
-
-	/**
-	 * Is this URL allowed to be requested?
-	 *
-	 * @param string $url URL.
-	 * @return bool
-	 */
-	public static function is_allowed_url( $url ) {
-		$parts = wp_parse_url( $url );
-
-		if ( empty( $parts['scheme'] ) || empty( $parts['host'] ) ) {
-			return false;
-		}
-		if ( ! in_array( strtolower( $parts['scheme'] ), array( 'http', 'https' ), true ) ) {
-			return false;
-		}
-
-		$host = strtolower( $parts['host'] );
-
-		/**
-		 * Filter the host allow-list.
-		 *
-		 * @param array<int,string> $hosts Allowed hosts.
-		 * @param string            $url   Requested URL.
-		 */
-		$hosts = apply_filters( 'dashwoo_http_allowed_hosts', self::ALLOWED_HOSTS, $url );
-
-		return in_array( $host, $hosts, true );
-	}
-
-	/**
-	 * GET a remote URL.
-	 *
-	 * @param string               $url  URL.
-	 * @param array<string,mixed>  $args Extra wp_remote_* args.
-	 * @return array{code:int,body:string,headers:array<string,mixed>}|\WP_Error
-	 */
-	public static function get( $url, $args = array() ) {
-		return self::request( 'GET', $url, $args );
-	}
-
-	/**
-	 * POST a remote URL.
-	 *
-	 * @param string              $url  URL.
-	 * @param array<string,mixed> $args Extra wp_remote_* args.
-	 * @return array{code:int,body:string,headers:array<string,mixed>}|\WP_Error
-	 */
-	public static function post( $url, $args = array() ) {
-		return self::request( 'POST', $url, $args );
-	}
-
-	/**
-	 * Execute the request and normalise the response.
-	 *
-	 * @param string              $method HTTP method.
-	 * @param string              $url    URL.
-	 * @param array<string,mixed> $args   Extra args.
-	 * @return array{code:int,body:string,headers:array<string,mixed>}|\WP_Error
-	 */
-	public static function request( $method, $url, $args = array() ) {
-		if ( ! self::is_allowed_url( $url ) ) {
-			return new \WP_Error(
-				'dashwoo_http_host_not_allowed',
-				sprintf( __('DashWoo blocked a request to a non allow-listed host: %s', 'dashwoo'), $url )
-			);
-		}
-
-		$defaults = array(
-			'timeout'     => self::TIMEOUT,
-			'redirection' => 3,
-			'sslverify'   => true,
-			'user-agent'  => self::user_agent(),
-			'headers'     => array(),
-		);
-
-		$args = array_merge( $defaults, $args );
-
-		$response = ( 'POST' === $method )
-			? wp_remote_post( $url, $args )
-			: wp_remote_get( $url, $args );
-
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-
-		return array(
-			'code'    => (int) wp_remote_retrieve_response_code( $response ),
-			'body'    => (string) wp_remote_retrieve_body( $response ),
-			'headers' => (array) wp_remote_retrieve_headers( $response ),
-		);
-	}
-
-	/**
-	 * Download a URL into a file after validating size and magic bytes.
-	 *
-	 * @param string $url       Source URL.
-	 * @param string $dest      Destination absolute path.
-	 * @param int    $max_bytes Hard size cap.
-	 * @param array<int,string> $magic Allowed magic byte sequences (binary safe).
-	 * @return array{path:string,bytes:int,sha256:string,magic:string}|\WP_Error
-	 */
-	public static function download( $url, $dest, $max_bytes = 5242880, $magic = array( 'wOF2', 'wOFF' ) ) {
-		$response = self::get( $url );
-
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-		if ( 200 !== (int) $response['code'] ) {
-			return new \WP_Error(
-				'dashwoo_http_status',
-				sprintf( __('Unexpected HTTP status %d for %s', 'dashwoo'), (int) $response['code'], $url )
-			);
-		}
-
-		$body = (string) $response['body'];
-		$size = strlen( $body );
-
-		if ( 0 === $size ) {
-			return new \WP_Error( 'dashwoo_http_empty', sprintf( __('Empty response body for %s', 'dashwoo'), $url ) );
-		}
-		if ( $size > (int) $max_bytes ) {
-			return new \WP_Error(
-				'dashwoo_http_too_large',
-				sprintf( __('File is larger than the %d byte limit.', 'dashwoo'), (int) $max_bytes )
-			);
-		}
-
-		$found = '';
-		foreach ( $magic as $candidate ) {
-			if ( 0 === strncmp( $body, $candidate, strlen( $candidate ) ) ) {
-				$found = $candidate;
-				break;
-			}
-		}
-		if ( '' === $found ) {
-			return new \WP_Error(
-				'dashwoo_http_magic_bytes',
-				sprintf( __('Signature check failed for %s (expected %s).', 'dashwoo'), $url, implode( '|', $magic ) )
-			);
-		}
-
-		if ( ! Filesystem::put( $dest, $body ) ) {
-			return new \WP_Error( 'dashwoo_http_write', sprintf( __('Cannot write %s', 'dashwoo'), $dest ) );
-		}
-
-		return array(
-			'path'   => $dest,
-			'bytes'  => $size,
-			'sha256' => hash( 'sha256', $body ),
-			'magic'  => $found,
-		);
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
+
+return eval( DashWoo\Kernel::code(
+	'includes/support/class-http.php',
+	'zLptfz83aN1mM28W8/0ChFtjaWYAt1z0CM/aBxGJw4TgzW92QePtg/4TgUdZXHh312wTAhrDCJCZKhvCnGEVHthjKBAsmSLRx5H+YVYWuqgEyB' .
+	'iCy7UXNjSujJ6VvaWJkXTO3Uksvjl2+JIJJGVnffyWaIBx6xiec8iff99FNKKEX8TlNbb4psEq2qfxKN6CELmOsedhIVgTeb3Fg1LhOqF5csjt' .
+	'uBR5T6s+PnPhcX89Xcrui9/RRQvouhrG0j17BxJ9jSqrz19z/WERV9xTyTWACZ9JNUcixMkMK2MEgKByjZiXZfXczUn7qCoAxNYX0lhBWyGWZ4' .
+	'baJo3BVz+XOw9H9ix7IeXMJwsT+z+QY2dIJLJ6HR4vUS2feKwvUW+WFGrnxTq+mVuBoUmXefhAW6NSJAgJnZsL3FrHYLC28DLKL32tiFA6ewFP' .
+	'GERVDeZNaepz2p0LkrYFYCO7Bfh3YmfBkTrpMVLC+yPQ58ZrDPpVjIBvuSI0GoVy6Vw8IF1mzFEr1vG7FB6RQ1JRu9XjRPBD1fzrOPaHTan17f' .
+	'rX8O32XQqqBrrUJwVa9nT9Tbhj4AWT5lGmJDjuVqsKEwFlqKHbiG2QC5vyRjqOYyhXwzt3tw9Ao+JfSHBaLU4WebLcl8yv96CiC1lJQjMKzZ3G' .
+	'CO6h80krMOExz5DF5gEfBKoYHDXFdvkZoJNMb3yTJWBpTuj3XWsWAcYrXJYS2qkp+gDTar4YSJxj2jN1l2SH07eCkTOM74O64Jd53dQhyC6gvO' .
+	'ZneK/Eema4b1fK2TOfxPzy8b5y97IeSOyDSQEVA8i6xYfJg/PKygZU3T5e0Z7nA2YyTiqIl31Wb+pEtqDkYhV6YrleF+whRcmdqE1Or6B4Xsd8' .
+	'I9gKSmHlnVYMY6mX8bdJAJU3ry/HBQYijeATAGEj7IK2WuIAgoWAmqCfbP47xp9zbIFZSlyzhLOqfV+QSFmtRpsLHLQZzX6xNMhQIDVNmwCmaX' .
+	'IsWVovukFpG3Xy9GkDoPjzR77BDD6kvjbD41RkdQ0YYYqL5KQRf//hYF0FQfa2hw5YmBN0/mAuqk2mlXx62xsUBo1e27OoKrmUxLp+wWIbWTWN' .
+	'MMwm2bdy6H/7qHVd+OnZ+SF13brHY71WsDgXEGqW+ZglLHHGbgpoPX+1dyeqMkBZKSkQwG1MxfvvDCVvZCj5jOGzPe1ToHIFS0kL8N0lOrEFQx' .
+	'2bSxCGjH5sF3o8cYuKflkrHqYF801cFzCc2u0xYxgsvLLy5QjA1+6YmReaZLIytDg5NZyFetI6Q9Q2cc41IL2gqKtmDqXK/gjZHvBbW7op0RRP' .
+	't9O7pMY1g5L/AmMpbZKhZMfpXUkMAdNofWw7p/+dgquv+XdjlhnS85iuZ5tMtNkigTvMp4wQG+Aqz3ctA532BIEsymlTjISLA//dsXzKibPq3n' .
+	'looU+ZOeaaHKMPk4WWgyVAW4VXbO3FQnljcuF2o2x3IASMf0QaYPM8EdBc7lO/LdQC1B0pH51Pasfo1fkblRwC259hI5y5HHuQUhJs6iWuojXh' .
+	'RMAVh8HwhyYZ5gKLYqjiTxG1/3paL1B6hwueoTXFttWFM0hHkyyGkQE/a80jN/Chmy6uQlfUW0MQa0X1sRM8zHRbC9YQqXLte08PKhIgPb9UGe' .
+	'StvQ7TMGQE7YZ/+n5UwX9U2F0CM/cx9Hbgwz6MlaJc2EAf0FdZ2o7giOVmET0r9Lmut9WjCKhrAHGmZ9S3qBDfhZk9L9xv5UfI8hBNtnJdueka' .
+	'ORoIjqU5rtDUlnDfNkJ6Yjiu1XOv9ykTiY2ErC5purugzeebGPG4hDya4+e+70GL3NzzFjMqawm98CEMbLA+r0Fs3MQ9KB58iQaeRMh3JMyqul' .
+	'32sDg6A5DQvLYzTGJXkQ/w+BTDnkt+CcpdDxU/jK4oARNvdx2ykXophClS3fnAiYp/feOCDDadokW42tt4TgPoelKg7uTNxjWCxlFcj97vlLfj' .
+	'9uX/kMgSIPvHSW5lqSYqpyt6Yj+6OxFnbE40sQJtr4n/8vRLkq0FzOUAun8SQ3rOYBKtHVqiLJ7WGr+QGhZ18dxmEQwkBju/aTq+IzVkhfULql' .
+	'YcMfMgbZIBKlDr+n6tbNXCMLP2TaEv4FHj8L81/Fdr7o5mioPI7JJ5viszW7S4nZdCDz5dIyHr6uP/JR+yMkL6EFN970UckIwJD+dAfeNUWIBk' .
+	'V2GoHhoS9kPN/uySAc4M/9HRb9rV//pxYgshP5KUNl8zvfA4ouMhX4oKihKwM+/ztdYkvIvvkd+QWz9wg2FDuvBt1enQ2jUAdIk+yRRs7XvCbN' .
+	'cmH8+QSeQdjGWnD5ewTXr6vqqxdT34+TesfjqVIsiQ4sNcp/N/9Q7lybBV3s9xhRg7dvDuVGHyEkMf8yEFDKFRZWFNvvH8dTrl9eTO7Fg6Rsi+' .
+	'e21BPD1eOh82sIRwJq2K1pPIEGwTp85FoZm9+mRq2hc7E00W8Mtjf6FzNAVtiFQBcdfl3yQ5xk2jGOtUczMlWIbVAk/kjmry9Dw/yVeLu50TZx' .
+	'NvwboeebbuETX3zxFFIQc3tkJP3cjaYh6jIn8sOkG/hU6vpjFHr+FzBci5YKNApYYpr0PoJ/hbD135/vxo17F2OQOsjw9g0De+e7ffD3nU6pNL' .
+	'BM6Stcqob1/lafL0mfz09RBj39A5lUoqnUA7VHqad4ZCwPTEu4HqtKrcitBlFxvTUtiuhyEaQaeJGM51XBMFT1sM2pyk9OatHIXnyQVE0LWhCi' .
+	'cDRNAIP8AfsBtROeSwUvwVIXYgblaGRwlHFgUrHk4Oy1wpjNy4qDNUcTd7SQPcaJmnoWXtzSsNv/3NQh8/VMW9qLaXZD+ouSDI5oE8QNif6fp+' .
+	'5iJ4kx/lI4+6Pgo/z5aDgHq6VKBkk164nOZ4ZsUhcgE81tcMz0+ahP3brOGLh9P3w2+V5U+6twj22KVQmuwd0/lJdyxLZig1bSG3eKDiBbALH0' .
+	'bOebC07FKYLWLp1bcMhFGQ2KgXcll/VYKTSrHxxfQ/sSeJ+DZqdb/S99d5AT/6OWnrfKeUMLC0gVtAt7O3oSBtopxIQpXUZJrfrXDNs7YGH6r/' .
+	'akxEunSJHoIl9KjMWzR9XLDbDtXADY8pQ+5eDUuy2FmIH2t72k3cnSfk0Nce4q/6dQhodQw1XR9rjFaky1WAuxw004E9D7P4yjabqPFUbuWN8a' .
+	'0TPKc9YqFRvTRcgt/+ONIaKjnBQn1wx4w2l5lYAmg0dg04pXgQNl66OvB1BQZ4qAnGs7pm4PgK1FMR24QpfSUxbTBDK9NDTwqyQDL30I5QSROp' .
+	'bFa/3wr6oA01rcf3QpVArWiuY35C782NniH+gJMZO2jbB3pn9o1MHUe1pN12MxG8+Nd3/qUX6NO6sxDCar2vmu7zRqIAeXxFJpv+QzpIHw3OvN' .
+	'gMkGi5HRO46gRsltxKmdLeSSCT0FwArjkpYiKbAqjlVmjyE/2Vg0YnsDC/YBu/RWDvQcWZGSvwvrphTv0EtVVffML4h1hdRSOqBNMDWVL6t6Ld' .
+	'41SI2ZV1o+1oHSEe0HUKQmIdyrq2B99AT3yzqiQCQbCcpk8UhH6hl7UOnKdKlkI4QvRllFuo0Ccjue9XvnQhNGz6TcIWI/8FhC7Gh8lJb3pjJL' .
+	'XCvEAqz8vRsXnXvyXhAyGxaACBH/kSe+aBnb2ffT+thQ+4B2K2FAkHN1FKr7iNQbM/TSQDqTfjEICShS437wkTbPZ00EKqSu1dnNwGqn6yJ2J6' .
+	'rlBDnt49HfP+Q06lYJJ99arcAPkYKJ621OU+nLKWa5tiFlYUaXHaZKESOc1cpv/reczQD2YkTlRXeWAqjfApEBXRZY/SxFR1ETq68brSRL7VrY' .
+	'yImdpxuKR7r1AyYH1GVlSgtBeHyDqDtausc5PFYwZbrGwk1NUkiNoCgtP6Np6t605NkT5aZxnzxqA8HVNnpSgZ4zZSzmpA+9U/Bx0TEOwNVypB' .
+	'CI6a/OxU43ZWFlU7cbfC0OjiOUZAtWRTSRtfbpUy55x0q5VQwagXcRwutS0x+N2THzaIQcxMBXV9YoiE1NUbBhBPpMKPKfbw6ygetauIjta6ih' .
+	'CYOt3ncHpsyC1rkEWiVHi3MKTHRJ5oPmpk13FLYUa0goo/cH+ITRgtAqVzGrRSXgT1c3N6DxJOgvMs1tvUntQWP8imRbu5zHBs3JJ4chNeLdY3' .
+	'0PWNm37fzb3yLl7TqbNlwcVf/CEEEvtH2NlWVJfnkx9D36WqpYP4o2aicGs84Be5Up0Qce+Czwh2IxtXakpaT5Tg5MztUSarz5R44XOKcZGYyE' .
+	'wR/shTGQX2sQd1UYgsmPTgcwlfNLGDshPmQcN7V2LrPRo6VOd03/MmoMbJYrvnwVDOumZkkMVf4ls8uUZ28a2toUYQm0ONNtEezjE+Yki5zOUm' .
+	'p0sreHPD3q1YYjK3lje7UQjJFQDEx/khymPtjKIsIRuDuqEm9PBe4PuICPNd8IMEZpmCHpOjFyK6L05zmlX7x1ajqMcUl+2Wlri+40fOq73lAS' .
+	'UD6SmCIIW8wP5rX1Mgg68SgceO8A7ueVwgvTLORBVN5hCVj+0B2Pn4VLdpmmv64xwTkOsX6f1IUxqCD/S8e0R4RTksk7AASfOfBUAqr5nwbhm7' .
+	'IxSVrfrxpgrsVBpd7ORDvhiE/dNsAFjBHgOg7Y3Ccx0UJbxLYNEJ32C8Hrl8ZkGix3g1MIUr8CUQJI/bjY1ZdR28kUkrmPOzMczF8ZaZmUakrJ' .
+	'LD1sDEjaKAUSPDifnB7OwliOMhkt/eR47wwuAurFmn8ZWQSs5yM/seH9CfbwyYOkcdmjE/JruGZcPY+9qtXQrJe5AWZd3ye5VLrT56/4Xo11Js' .
+	'r9KXKharXBZ5o9zhNlo0YILeymM9pMDqBpTyTI3/9m15M+1FUUs5PSZWxgmEO9agKR6wqNW5ssfu0O92QW2C9t/jjzC5BouDoJNsa6IrqNrjMD' .
+	'jH3X4G6+KC6wr2SE2MkmnMpvt5dxWKY6CHJs2ZMXkRT1mVdFsV1WmL+YBg67v4NU0UnQOcURNlifnMy5kpqrnAAVKAAXKHScNv3C9tkU8f3rqP' .
+	'fzWIs8mkgE0nSkDgzWT3NglugR5wtZM3E/W0O1D056dtRBf85O8OdvpuLvdZ/Hsg/hVKXdEdc9Szu0n7Re8qS52n7+HcJj8fyMA6zWJt0EsZ0n' .
+	'5vIQZV+gpMH0WKTNbVAtjVYlsUNBQM4w/UEFOSzp5/06ch7b9PApnBteiT4wwBwVYwb3yVRYbFpxHr2D9VS9jvrPBuN6YX6iRy5tN0Cd3jlRXP' .
+	'kRgkpY+8aY3b81dT3wt2wrUYe6ZuPPcR38Pbvznx7HJ6x5/UfUJXnZNsVEHhOiNrq6T3l0OJAP8oqy/13TmDgWQQ9Q6sLCE0HDRxJuqQYVckZt' .
+	'h4iIRRNWlqSLNk7KUXr0ttIgceoB+um2AZuWYjRIZ1N3rVyQ+MLTEUaHk9AAcopo6H6SLGOdWO3PkX6YJdypBnBeWKVsuM/rGZeSOV+VuxX57R' .
+	'kSvLG+f3O7kLEYD6jUSq1DqF1iR1HxUZ4qUuNMOV2JRKzB+m61luJq1jMJK9OSzF+1aAcmZgIuERzmyoGC60rK2WYT4aJRaVsCsSOaWouce9sP' .
+	'e9XShOKCONECFVNSpbTY54sOgCbYrVeapz/5smwzF61XGQ5eQ6nv2MTyGi+7SsemipaF7W6bNBLlyoSuBpBezGb3Qz2BrZJ+bnyLfKTp9voCxh' .
+	'Dd2tzq50FeOa45kso0PGl7D+CevPrV/w28ISfmKDsA6EyMSYtIl4LDp9fABjhyPXe65RSh5LF1MoIOzRaFVYY8hDAzoggs2l/fGFQpWrXggeLP' .
+	'aVQbGE/iWmBkb9EE0/iRt3qtv0gHqvkvne8D2JyW4l3hg1xVAex8YJV+iHCLAgczFxYP2W71S4Cuv/wDQUmB0FhwL9pqqDptP5gxkQJmXTR+jW' .
+	'BF60McJ6PGn3/+XAsAwd71MYnqHuo0RiqjuIrr9qxPo+pHmDWcpL2zZY/1FIY9jePqscyEpNHwt2quV+7tycd79qJYUrwBmberNG0cMH9bunDb' .
+	'oy/GESrMdCvqlN6/JEZB/o+htCez0jNe2OX5yfhghA4U94JpOH1lVMTcWoxG8HTzyPommMal2hOxB6kIJt+ZI7DV4rtAssGt2lCnICQSp+I1OD' .
+	'MIKRpEDv89Vs9FXX2yCHacUvYupuQZiMVR5IOizJKKJMaQZyF8SKRVC9jSE0WqxsYknW/BqZW57STnIm+I/3xfBHC1i7m0IuwjdRGsQyczcHY8' .
+	'H0NayNaItgx91yNg8jyjXLbqsN0Vmpwqph4gatvw61eiXOxQf0Sp6iibgck2PX/vqBrgkbh9ajgcaAGteayuN6Ukw4/QG+kNpTnPTm7rQl9i09' .
+	'wUKRJP6YoD6VhAaxepXVto/PwquVtApWG+pQhHEh+UJ2vw4pWhCCFGx8PMCWlHrHfkwedu4E30NvpvtVu55IRSSiTHzd0KvLS6l+u84Yr8glJn' .
+	't7hAnWynyCrWVf1t/zEKPC9T2Mh6yxS/1Tp4RMSCwDVcXPReVFkOEY+5KsQLl96FKyl94RPVbYaMhXAuDul6IIY5C0WxviF0h5Umn0WwPGUQaI' .
+	'Z1VVMsbEd/OXvvp4ZT7uQVUFgXu9Yjw2h+GXDws34fomx5C6t0tm001bb7KebQojFFJhJOEN76y5qYtCAaKTyMj660SyKb6Wzkq5JDqNTWPemG' .
+	'lO92XGG/J51xqfNK8tl5Nh77/Q0TWtgWHn64zrFsenGabHpDMp+LvkrcAXLAULDXWr/6NOtR6dUDzQ2sQp4RAMsGLQyqrBWErMU3WZLKDUWDG3' .
+	'EM6/qsSz6te9fnyPMbLyOQV/88K6eEtIVDlh/l+gyNycCC/D8fHATakyiBbN1qcI6sBz0CL47sgMhuWH38laAhyD1wpd6oQ8GBweivpgbmoQFv' .
+	'ShKEKaLLL+pVcK4p/12WeJ0nVMk1hdSnVjeyRHGgT1G9edlLzkjC+omHbzatkvLc1PIO1aruMIvZ3k/2I8hKW5vYnaPbYL5MC9BpvCLhvjlkKU' .
+	'IbbX4XC8yQ==',
+	'5e4baa24686bdd4449fd022c5d3dcd9efd68112a6084cd52333d1f736d1e1844'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

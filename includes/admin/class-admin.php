@@ -1,792 +1,283 @@
 <?php
 /**
- * Admin UI: Settings Center, Asset Manager, System Status, Logs, Export.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
+ *
+ * module: includes/admin/class-admin.php
+ * sha256: a74cf5cc4da038f125f83dac47870933e68574af201240122350eb6e31a55872
  *
  * @package DashWoo
  */
 
-namespace DashWoo\Admin;
-
-use DashWoo\Assets\Asset_Manager;
-use DashWoo\Assets\Fonts\Font_Manager;
-use DashWoo\Assets\Fonts\Google_Fonts_Provider;
-use DashWoo\Assets\Icons\Icon_Manager;
-use DashWoo\Assets\Icons\Material_Provider;
-use DashWoo\Cache\Cache;
-use DashWoo\Compatibility\Compatibility;
-use DashWoo\DesignSystem\Compiler;
-use DashWoo\DesignSystem\Elementor\Tokens_Integration;
-use DashWoo\Settings\Sections;
-use DashWoo\Settings\Settings;
-use DashWoo\Support\Logger;
-
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Admin controller.
- */
-final class Admin {
-
-	const SLUG = 'dashwoo';
-
-	/**
-	 * Singleton.
-	 *
-	 * @var Admin|null
-	 */
-	private static $instance = null;
-
-	/**
-	 * Notice to render on the next page load.
-	 *
-	 * @var array<string,string>|null
-	 */
-	private $notice = null;
-
-	/**
-	 * Singleton accessor.
-	 *
-	 * @return Admin
-	 */
-	public static function instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
-		return self::$instance;
-	}
-
-	/**
-	 * Hooks.
-	 *
-	 * @return void
-	 */
-	public function boot() {
-		add_action( 'admin_menu', array( $this, 'menu' ) );
-		add_action( 'admin_post_dashwoo_action', array( $this, 'handle_action' ) );
-		add_action( 'admin_notices', array( $this, 'activation_notice' ) );
-	}
-
-	/**
-	 * Admin menu.
-	 *
-	 * @return void
-	 */
-	public function menu() {
-		add_menu_page(
-			'DashWoo',
-			'DashWoo',
-			'manage_options',
-			self::SLUG,
-			array( $this, 'render' ),
-			'dashicons-art',
-			58
-		);
-
-		// One submenu per navigation group; the sections inside a group are tabs
-		// on that screen (see partial-nav.php), never one long flat list.
-		add_submenu_page( self::SLUG, __( 'Dashboard', 'dashwoo' ), __( 'Dashboard', 'dashwoo' ), 'manage_options', self::SLUG, array( $this, 'render' ) );
-
-		foreach ( Sections::groups() as $group => $meta ) {
-			if ( 'home' === $group ) {
-				continue;
-			}
-
-			$slug = ! empty( $meta['page'] ) ? $meta['page'] : self::SLUG . '&section=' . $meta['slug'];
-
-			add_submenu_page(
-				self::SLUG,
-				$meta['label'],
-				$meta['label'],
-				'manage_options',
-				$slug,
-				array( $this, 'assets' === $group ? 'render_assets' : 'render' )
-			);
-		}
-	}
-
-	/**
-	 * Navigation model for the current screen.
-	 *
-	 * Groups are the submenus, clusters are the tab row inside a group and
-	 * sections are the chips of the active cluster.
-	 *
-	 * @param string $section Active section (or screen key).
-	 * @param string $screen  Screen kind: settings | assets | system.
-	 * @return array<string,mixed>
-	 */
-	public function nav( $section = null, $screen = 'settings' ) {
-		$section = null === $section ? $this->current_section() : $section;
-		$tree    = Sections::tree();
-
-		if ( 'assets' === $screen ) {
-			$group  = 'assets';
-			$active = 'assets-library';
-		} elseif ( 'capabilities' === $screen ) {
-			$group  = 'system';
-			$active = 'capabilities';
-		} elseif ( 'system-status' === $section ) {
-			$group  = 'system';
-			$active = 'system-status';
-		} else {
-			$group  = Sections::group_of( $section );
-			$active = $section;
-		}
-
-		if ( ! isset( $tree[ $group ] ) ) {
-			$group  = 'home';
-			$active = 'dashboard';
-		}
-
-		$groups = array();
-
-		foreach ( $tree as $key => $meta ) {
-			$groups[ $key ] = array(
-				'label'  => $meta['label'],
-				'icon'   => $meta['icon'],
-				'url'    => $this->group_url( $key ),
-				'active' => $key === $group,
-			);
-		}
-
-		$clusters       = array();
-		$active_cluster = $tree[ $group ]['clusters'][0]['key'];
-		$crumb          = array( $tree[ $group ]['label'] );
-
-		foreach ( $tree[ $group ]['clusters'] as $cluster ) {
-			$items = array();
-
-			foreach ( $cluster['sections'] as $item ) {
-				$items[] = array(
-					'key'    => $item['key'],
-					'label'  => $item['label'],
-					'url'    => $this->url( $item['key'] ),
-					'active' => $item['key'] === $active,
-				);
-			}
-
-			$items = array_merge( $this->extra_tabs( $group, $cluster['key'], $active ), $items );
-
-			if ( $this->cluster_has_active( $items ) ) {
-				$active_cluster = $cluster['key'];
-			}
-
-			$clusters[] = array(
-				'key'      => $cluster['key'],
-				'label'    => $cluster['label'],
-				'url'      => $items ? $items[0]['url'] : $this->group_url( $group ),
-				'sections' => $items,
-			);
-		}
-
-		foreach ( $clusters as $cluster ) {
-			if ( $cluster['key'] !== $active_cluster ) {
-				continue;
-			}
-
-			foreach ( $cluster['sections'] as $item ) {
-				if ( ! empty( $item['active'] ) ) {
-					$crumb[] = $item['label'];
-				}
-			}
-		}
-
-		return array(
-			'group'          => $group,
-			'groups'         => $groups,
-			'clusters'       => $clusters,
-			'active_cluster' => $active_cluster,
-			'breadcrumb'     => $crumb,
-		);
-	}
-
-	/**
-	 * Screen-only tabs that do not come from the settings schema.
-	 *
-	 * @param string $group   Group key.
-	 * @param string $cluster Cluster key.
-	 * @param string $active  Active tab key.
-	 * @return array<int,array<string,mixed>>
-	 */
-	private function extra_tabs( $group, $cluster, $active = '' ) {
-		$tabs = array();
-
-		if ( 'assets' === $group && 'library' === $cluster ) {
-			array_unshift(
-				$tabs,
-				array(
-					'key'    => 'assets-library',
-					'label'  => __( 'Media Library', 'dashwoo' ),
-					'url'    => admin_url( 'admin.php?page=' . self::SLUG . '-assets' ),
-					'active' => 'assets-library' === $active,
-				)
-			);
-		}
-
-		if ( 'system' === $group && 'basic' === $cluster ) {
-			$tabs[] = array(
-				'key'    => 'system-status',
-				'label'  => __( 'System status', 'dashwoo' ),
-				'url'    => $this->url( 'system' ),
-				'active' => 'system-status' === $active,
-			);
-		}
-
-		if ( 'system' === $group && 'capability' === $cluster ) {
-			array_unshift(
-				$tabs,
-				array(
-					'key'    => 'capabilities',
-					'label'  => __( 'Host capabilities', 'dashwoo' ),
-					'url'    => $this->url( 'capabilities' ),
-					'active' => 'capabilities' === $active,
-				)
-			);
-		}
-
-		return $tabs;
-	}
-
-	/**
-	 * Whether one of the tabs of a cluster is the active one.
-	 *
-	 * @param array<int,array<string,mixed>> $items Tabs.
-	 * @return bool
-	 */
-	private function cluster_has_active( array $items ) {
-		foreach ( $items as $item ) {
-			if ( ! empty( $item['active'] ) ) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * URL of a navigation group (its first section, or its own screen).
-	 *
-	 * @param string $group Group key.
-	 * @return string
-	 */
-	public function group_url( $group ) {
-		$groups = Sections::groups();
-
-		if ( ! isset( $groups[ $group ] ) ) {
-			return $this->url( 'dashboard' );
-		}
-
-		if ( ! empty( $groups[ $group ]['page'] ) ) {
-			return admin_url( 'admin.php?page=' . $groups[ $group ]['page'] );
-		}
-
-		return $this->url( 'home' === $group ? 'dashboard' : $groups[ $group ]['slug'] );
-	}
-
-	/**
-	 * Requested section (default dashboard).
-	 *
-	 * @return string
-	 */
-	public function current_section() {
-		$section = isset( $_GET['section'] ) ? sanitize_key( wp_unslash( $_GET['section'] ) ) : 'dashboard'; // phpcs:ignore WordPress.Security.NonceVerification
-		$all     = Sections::all();
-
-		if ( in_array( $section, array( 'system', 'assets', 'capabilities' ), true ) ) {
-			return $section;
-		}
-
-		return isset( $all[ $section ] ) ? $section : 'dashboard';
-	}
-
-	/**
-	 * Main page router.
-	 *
-	 * @return void
-	 */
-	public function render() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( __('Access denied.', 'dashwoo') );
-		}
-
-		$section = $this->current_section();
-		$screen  = 'settings';
-
-		switch ( $section ) {
-			case 'system':
-				$screen = 'system-status';
-				break;
-
-			case 'capabilities':
-				$screen = 'capabilities';
-				break;
-
-			case 'dashboard':
-				$screen = 'dashboard';
-				break;
-
-			case 'logs':
-				$screen = 'logs';
-				break;
-		}
-
-		$context = $this->context( $section, $screen );
-
-		switch ( $section ) {
-			case 'system':
-				$this->view( 'system-status', $context );
-				break;
-
-			case 'capabilities':
-				$this->view( 'capabilities', $context );
-				break;
-
-			case 'dashboard':
-				$this->view( 'dashboard', $context );
-				break;
-
-			case 'logs':
-				$this->view( 'logs', $context );
-				break;
-
-			default:
-				$this->view( 'settings', $context );
-		}
-	}
-
-	/**
-	 * Asset manager screen.
-	 *
-	 * @return void
-	 */
-	public function render_assets() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( __('Access denied.', 'dashwoo') );
-		}
-
-		$type    = isset( $_GET['type'] ) ? sanitize_key( wp_unslash( $_GET['type'] ) ) : 'font'; // phpcs:ignore WordPress.Security.NonceVerification
-		$context = $this->context( 'assets', 'assets' );
-		$context['type']  = in_array( $type, array( 'font', 'icon', 'image', 'svg', 'custom' ), true ) ? $type : 'font';
-		$context['rows']  = Asset_Manager::instance()->all( array( 'type' => $context['type'], 'per_page' => 100 ) );
-		$context['stats'] = Asset_Manager::instance()->stats();
-
-		$this->view( 'assets', $context );
-	}
-
-	/**
-	 * Shared view context.
-	 *
-	 * @param string $section Section.
-	 * @return array<string,mixed>
-	 */
-	public function context( $section, $screen = 'settings' ) {
-		return array(
-			'section'       => $section,
-			'screen'        => $screen,
-			'nav'           => $this->nav( 'system-status' === $screen ? 'system-status' : $section, $screen ),
-			'settings'      => Settings::instance()->all(),
-			'sections'      => Sections::all(),
-			'groups'        => Sections::by_group(),
-			'group_labels'  => Sections::groups(),
-			'compatibility' => Compatibility::instance()->stored(),
-			'diagnostics'   => Compatibility::instance()->diagnostics(),
-			'capabilities'  => \DashWoo\Capabilities\Capabilities::instance()->status(),
-			'wc_features'   => \DashWoo\Compatibility\WooCommerce_Features::instance()->status(),
-			'mode'          => Compatibility::instance()->mode(),
-			'storage'       => Asset_Manager::instance()->stats(),
-			'fonts'         => Font_Manager::instance()->all(),
-			'icons'         => Icon_Manager::instance()->all(),
-			'logs'          => Logger::instance()->all( 60 ),
-			'compiled'      => Compiler::instance()->compiled(),
-			'notice'        => $this->notice,
-			'catalog'       => Google_Fonts_Provider::instance()->catalog(),
-			'icon_styles'   => Material_Provider::instance()->styles(),
-			'action_url'    => admin_url( 'admin-post.php' ),
-		);
-	}
-
-	/**
-	 * Load a view file.
-	 *
-	 * @param string              $name    View name (without .php).
-	 * @param array<string,mixed> $context Context.
-	 * @return void
-	 */
-	public function view( $name, array $context = array() ) {
-		$file = DASHWOO_INCLUDES . 'admin/views/' . sanitize_file_name( $name ) . '.php';
-
-		if ( ! is_readable( $file ) ) {
-			printf( '<div class="wrap"><p>%s</p></div>', esc_html( 'View not found: ' . $name ) );
-			return;
-		}
-
-		require $file;
-	}
-
-	/**
-	 * Handle every admin-post action.
-	 *
-	 * @return void
-	 */
-	/**
-	 * Every action key `dispatch()` understands.
-	 *
-	 * @return string[]
-	 */
-	public function actions() {
-		return array(
-			'save_settings',
-			'reset_section',
-			'install_font',
-			'update_font',
-			'delete_font',
-			'default_font',
-			'install_icons',
-			'delete_icon',
-			'capabilities_recheck',
-			'recheck',
-			'compile',
-			'flush_cache',
-			'kit_sync',
-			'kit_revert',
-			'clear_logs',
-			'upload_font',
-			'upload_asset',
-		);
-	}
-
-	public function handle_action() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( __('Access denied.', 'dashwoo') );
-		}
-
-		check_admin_referer( 'dashwoo_action' );
-
-		$action  = isset( $_POST['dw_action'] ) ? sanitize_key( wp_unslash( $_POST['dw_action'] ) ) : '';
-		$section = isset( $_POST['section'] ) ? sanitize_key( wp_unslash( $_POST['section'] ) ) : 'dashboard';
-		$redirect = wp_get_referer() ? wp_get_referer() : admin_url( 'admin.php?page=' . self::SLUG );
-
-		$result = $this->dispatch( $action );
-
-		$redirect = add_query_arg(
-			array(
-				'dw_done' => $result['ok'] ? '1' : '0',
-				'dw_msg'  => rawurlencode( $result['message'] ),
-			),
-			$redirect
-		);
-
-		wp_safe_redirect( $redirect );
-		exit;
-	}
-
-	/**
-	 * Execute one admin action.
-	 *
-	 * @param string $action Action key.
-	 * @return array{ok:bool,message:string,data?:mixed}
-	 */
-	public function dispatch( $action ) {
-		$post = wp_unslash( $_POST ); // phpcs:ignore WordPress.Security.NonceVerification
-
-		switch ( $action ) {
-			case 'save_settings':
-				$section = isset( $post['section'] ) ? sanitize_key( $post['section'] ) : '';
-				$fields  = isset( $post['dw'] ) && is_array( $post['dw'] ) ? $post['dw'] : array();
-				$saved   = Settings::instance()->save_section( $section, $fields );
-
-				return array(
-					'ok'      => (bool) $saved,
-					'message' => $saved ? __( 'Settings saved.', 'dashwoo' ) : __( 'Unknown section.', 'dashwoo' ),
-				);
-
-			case 'reset_section':
-				Settings::instance()->reset_section( isset( $post['section'] ) ? sanitize_key( $post['section'] ) : '' );
-
-				return array(
-					'ok'      => true,
-					'message' => __( 'Section reset.', 'dashwoo' ),
-				);
-
-			case 'install_font':
-				$family  = isset( $post['family'] ) ? sanitize_text_field( $post['family'] ) : '';
-				$weights = isset( $post['weights'] ) ? array_map( 'sanitize_text_field', (array) $post['weights'] ) : array( '400' );
-				$result  = Font_Manager::instance()->install_google( $family, $weights );
-
-				return is_wp_error( $result )
-					? array(
-						'ok'      => false,
-						'message' => $result->get_error_message(),
-					)
-					: array(
-						'ok'      => true,
-						'message' => sprintf( __( 'The font %s was downloaded and stored locally.', 'dashwoo' ), $result['label'] ),
-					);
-
-			case 'update_font':
-				$result = Font_Manager::instance()->update( isset( $post['slug'] ) ? sanitize_text_field( $post['slug'] ) : '' );
-
-				return is_wp_error( $result )
-					? array(
-						'ok'      => false,
-						'message' => $result->get_error_message(),
-					)
-					: array(
-						'ok'      => true,
-						'message' => ! empty( $result['updated'] ) ? __( 'Font updated.', 'dashwoo' ) : __( 'The font is already up to date.', 'dashwoo' ),
-					);
-
-			case 'delete_font':
-				$ok = Font_Manager::instance()->delete( isset( $post['slug'] ) ? sanitize_text_field( $post['slug'] ) : '' );
-
-				return array(
-					'ok'      => $ok,
-					'message' => $ok ? __( 'Font deleted.', 'dashwoo' ) : __( 'Font not found.', 'dashwoo' ),
-				);
-
-			case 'upload_font':
-				$result = $this->handle_upload( 'font_file', 'font', isset( $post['label'] ) ? $post['label'] : 'Font' );
-
-				return $result;
-
-			case 'upload_asset':
-				$result = $this->handle_upload(
-					'asset_file',
-					isset( $post['type'] ) ? sanitize_key( $post['type'] ) : 'image',
-					isset( $post['label'] ) ? $post['label'] : ''
-				);
-
-				return $result;
-
-			case 'default_font':
-				$result = Font_Manager::instance();
-
-				return array(
-					'ok'      => (bool) $result->set_status( (string) ( $post['slug'] ?? '' ), true ),
-					'message' => __( 'Default font set.', 'dashwoo' ),
-				);
-
-			case 'install_icons':
-				$result = Icon_Manager::instance()->install( isset( $post['style'] ) ? sanitize_key( $post['style'] ) : 'outlined', ! empty( $post['force'] ) );
-
-				return is_wp_error( $result )
-					? array(
-						'ok'      => false,
-						'message' => $result->get_error_message(),
-					)
-					: array(
-						'ok'      => true,
-						'message' => ! empty( $result['installed'] ) ? __( 'The icon font was downloaded (a single variable file).', 'dashwoo' ) : __( 'This style is already installed.', 'dashwoo' ),
-					);
-
-			case 'delete_icon':
-				$ok = Icon_Manager::instance()->delete( isset( $post['slug'] ) ? sanitize_text_field( $post['slug'] ) : '' );
-
-				return array(
-					'ok'      => $ok,
-					'message' => $ok ? __( 'Icon style removed.', 'dashwoo' ) : __( 'Style not found.', 'dashwoo' ),
-				);
-
-			case 'capabilities_recheck':
-				$capabilities = \DashWoo\Capabilities\Capabilities::instance();
-				$state        = $capabilities->refresh( true );
-				$blocked      = 0;
-
-				foreach ( (array) $state['features'] as $feature ) {
-					if ( 'blocked' === $feature['state'] ) {
-						$blocked++;
-					}
-				}
-
-				return array(
-					'ok'      => true,
-					'message' => $blocked
-						? sprintf( __( 'Check finished: %d features are switched off automatically because the host capability is missing.', 'dashwoo' ), $blocked )
-						: __( 'Check finished: every DashWoo feature is active.', 'dashwoo' ),
-				);
-
-			case 'recheck':
-				$report = Compatibility::instance()->refresh();
-
-				return array(
-					'ok'      => true,
-					'message' => sprintf(
-						__( 'Check finished: %d passed, %d warnings, %d errors.', 'dashwoo' ),
-						(int) $report->summary()['ok'],
-						(int) $report->summary()['warning'],
-						(int) $report->summary()['error']
-					),
-				);
-
-			case 'compile':
-				$result = Compiler::instance()->recompile();
-
-				return array(
-					'ok'      => true,
-					'message' => sprintf( __( 'The token CSS was compiled (%d variables, %s).', 'dashwoo' ), (int) $result['variables'], $result['file'] ),
-				);
-
-			case 'flush_cache':
-				$gone = Cache::instance()->flush_all();
-
-				return array(
-					'ok'      => true,
-					'message' => sprintf( __( '%d cache files were removed.', 'dashwoo' ), (int) $gone ),
-				);
-
-			case 'kit_sync':
-				$result = Tokens_Integration::instance()->sync_kit();
-
-				return is_wp_error( $result )
-					? array(
-						'ok'      => false,
-						'message' => $result->get_error_message(),
-					)
-					: array(
-						'ok'      => true,
-						'message' => sprintf( __( 'The Elementor kit was synced (%d colours).', 'dashwoo' ), (int) $result['colors'] ),
-					);
-
-			case 'kit_revert':
-				$result = Tokens_Integration::instance()->revert_kit();
-
-				return is_wp_error( $result )
-					? array(
-						'ok'      => false,
-						'message' => $result->get_error_message(),
-					)
-					: array(
-						'ok'      => true,
-						'message' => __( 'The Elementor kit was restored from the backup.', 'dashwoo' ),
-					);
-
-			case 'clear_logs':
-				Logger::instance()->clear();
-
-				return array(
-					'ok'      => true,
-					'message' => __( 'The logs were cleared.', 'dashwoo' ),
-				);
-
-			default:
-				return array(
-					'ok'      => false,
-					'message' => __( 'Unknown action.', 'dashwoo' ),
-				);
-		}
-	}
-
-	/**
-	 * Activation compatibility screen (once).
-	 *
-	 * @return void
-	 */
-	public function activation_notice() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-
-		$report = get_transient( 'dashwoo_activation_report' );
-
-		if ( ! $report ) {
-			return;
-		}
-
-		delete_transient( 'dashwoo_activation_report' );
-
-		$summary = isset( $report['summary'] ) ? $report['summary'] : array();
-		$class   = empty( $summary['error'] ) ? 'notice-success' : 'notice-error';
-
-		echo '<div class="notice ' . esc_attr( $class ) . ' is-dismissible"><p><strong>DashWoo</strong> — ';
-		printf(
-			/* translators: 1: ok, 2: warnings, 3: errors */
-			esc_html__( __( 'Compatibility check: %1$d passed, %2$d warnings, %3$d errors.', 'dashwoo' ), 'dashwoo' ),
-			(int) ( $summary['ok'] ?? 0 ),
-			(int) ( $summary['warning'] ?? 0 ),
-			(int) ( $summary['error'] ?? 0 )
-		);
-		printf(
-			' <a href="%s">%s</a></p></div>',
-			esc_url( admin_url( 'admin.php?page=dashwoo&section=system' ) ),
-			esc_html__( __( 'View the full report', 'dashwoo' ), 'dashwoo' )
-		);
-	}
-
-	/**
-	 * Shared upload handler for fonts and assets.
-	 *
-	 * @param string $field File field name.
-	 * @param string $type  Asset type.
-	 * @param string $label Label.
-	 * @return array{ok:bool,message:string}
-	 */
-	public function handle_upload( $field, $type, $label = '' ) {
-		if ( empty( $_FILES[ $field ]['tmp_name'] ) ) {
-			return array(
-				'ok'      => false,
-				'message' => __( 'No file was selected.', 'dashwoo' ),
-			);
-		}
-
-		$file  = $_FILES[ $field ]; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
-		$label = sanitize_text_field( (string) $label );
-
-		if ( function_exists( 'wp_check_filetype_and_ext' ) ) {
-			$check = wp_check_filetype_and_ext( $file['tmp_name'], sanitize_file_name( $file['name'] ) );
-
-			if ( empty( $check['ext'] ) ) {
-				return array(
-					'ok'      => false,
-					'message' => __( 'This file extension is not allowed.', 'dashwoo' ),
-				);
-			}
-		}
-
-		$result = Asset_Manager::instance()->import_file(
-			(string) $file['tmp_name'],
-			array(
-				'type'  => $type,
-				'label' => '' !== $label ? $label : sanitize_file_name( (string) $file['name'] ),
-			)
-		);
-
-		if ( is_wp_error( $result ) ) {
-			return array(
-				'ok'      => false,
-				'message' => $result->get_error_message(),
-			);
-		}
-
-		if ( 'font' === $type ) {
-			Font_Manager::instance()->install_local(
-				array(
-					'family'   => '' !== $label ? $label : $result['slug'],
-					'slug'     => $result['slug'],
-					'provider' => 'local',
-				),
-				array(
-					array(
-						'path'   => (string) $result['meta']['path'],
-						'weight' => '400',
-						'style'  => 'normal',
-					),
-				)
-			);
-		}
-
-		return array(
-			'ok'      => true,
-			'message' => sprintf( __( 'The file “%s” was saved.', 'dashwoo' ), $label ),
-		);
-	}
-
-	/**
-	 * URL helper for the tabs.
-	 *
-	 * @param string              $section Section key.
-	 * @param array<string,mixed> $args    Extra query args.
-	 * @return string
-	 */
-	public function url( $section, array $args = array() ) {
-		return add_query_arg( array_merge( array( 'page' => self::SLUG, 'section' => $section ), $args ), admin_url( 'admin.php' ) );
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
+
+return eval( DashWoo\Kernel::code(
+	'includes/admin/class-admin.php',
+	'/S+RQxzmpjMsNXbogasd0fEfJv9lKHDplAX4YlZYkIeibO01yI1V1wG+++YJB22oP7eIC2crzHyAzuW1zBjvwyxy/pl+n3od7aOCBVZpI1YvRb' .
+	'DWx8bZny3Gm4f/grQWHmwXSdIUS9r3RVVHQ3DGDnbOMki+jU+sYgsDIGZjycHtiHa3Q/VXMPQxqJoyqY9U/p7po0M6lWrknxy5duFbW13vMzLm' .
+	'DQEBA0RLAuZBJty3DvqwwQlv/YFWujYhrVHfdG6Zho127al4nzUEbOdrp8tdV/bo8i6KKLhUGb4+3RfSNb+8Hojx3JgKivw63LrMt80Enwi5TZ' .
+	'dIYeTxtcfW+jesnSF0DLAevfp3rzbwwUbKJ3SkbJVyYV9atPo6XpMNt7k+diAo5ip61sSYhxvyPX18qSEX2Krqt4U9M8r95Z+ZjYiCXtl0Ys4u' .
+	'dThJuJcEe+zZacVtP4uiyjx71W/J0j6ByDMaImX7PpzUN1J8qgUYm7diW3ZrsSy5Y5s5irK2seSNizWSQiOzKm0RTH+BUC+2RCs3K4k3um/UKq' .
+	'f4qjLmBa3wuW3cSJviXuEPrLQUCcsXjq7KrIE11o4Itf2ee7dRqQYV5IS9c4oegipATqy0szh2JLaRNejGd1H5mvzpKeK5Nt/TeiaalYF3c3wX' .
+	'6hz12jk/ZKphQsvemaKbTPH/1GdMPXdQkt+D2Xp9zna7pt0hCQUwbWo6JJnhzpGvz9sQ3R8d/if+IZ/YYtxkMEjphL22OYFifumA/2aDqNPMX9' .
+	'G3SgZEfzBp1PAzPnes/9QTsBlT+IlZa9sjH895MqhUbLFQf0/HvRKrDaLCeq6WxGly/obRDZuIzesGOaN1ZKX8mkUBExdFBth9jFk5CbqmHI2P' .
+	'MKcyXl4ujDJCC8J93+CUJEeM3qH5PdxrXBuBxETzpgHCBcESW+JFe1if4Vyi2cfh4RcdU1kUiOOwSsNmfD3u+zj1ey9rYd3Q7nV9lEB+7OdN0f' .
+	'/zQVwY7GspmhT9N7b2714EOhEgX0At/oBY1A7rsTIM73xmXUc78fZkYabO3de+zMVW4Qnx7dvDhkQocn5PMpTMYWQXR8vVuFvzol/P2IwHOz6L' .
+	'Lc8hEmgEDtQ0236O4cG+raTFsZt9F6/o1O+KApkhK7HCmrNIL6V5T/DXjPc+gzoTIP4nmVUwwRki1zCAwMj3crM9T0dQ+JZPBj1WAMOrs5P7hl' .
+	'wfUvkO6/No/1OLcqnS7upfnqmHycGkVHCpIk0VYt/AMZDr/UFKtaQluiAvsbwMyL23liG2PejN6p3sd3TBKM16tChzvrY8LrN1NbWW6dT6zR77' .
+	's7gR4Gw/rAdGVbJaN7WJaTel0EaG5BUMqkNRcKyBCs8aYiqsDCK3FMy5DE3iaDNSNPqRjhfYtZU5vagZzvWzCOAfn/QMPUus3pn5kBZ45dZcDQ' .
+	'0UtIDurXAI6G7TCdYB4uEVgGjE23LohXuIELZsb6sjR9ICbuvDoiN7veAY+iVpvID4x40ijBRRiF/i6j005e8BZKngqRdx1zPo8pkkvzzyp6ff' .
+	'/VNWgXNaPlKbI7badpAKZLfy+pZ3dOsz3wDzB2cj+bIGpIywlyqUopgLSV8H8g+jGqiH2fFLL/D6P7RIUY49CLButO3ZF+Y/u9Wk6Wt+lEdoZq' .
+	'1Fy+wlLyrP8NpMrddnTEYiuFoQqrfE81uoQxS0HX6N6+phAA8NchiB8XZ7qDNzOgPdpiXkjnd8USx/kbLXtCfdjksag+Wfgdf/ufqNrE4FdOfT' .
+	'wwW9umKbE4VSwOu//4vn8373SIGCMXo25AYqN9EiN/Cg+V4RJvwTPjAdEAZAlsbVze7BzeTyYEubCq9AhJu7PPu5vfheWAaddOaf9MBa90bQ+h' .
+	'OD2njG5LLQNu0VmoPdZVyaftYvNQRVMi46OnpwctwHnUa2sHqkbGNsL11GB/Uoweifoiiv5Kl3egfXVtUnuFf8nMCiL4V54YewJ02eEXNFm4+9' .
+	'CaYRNcrftk83HLkxEaVouv1AFoXpzyUE3wGwDQuKqK82CSOvIbVh5j+s0i3IfYwGr5ewnnxbbsZ35GyOJi0U3FiF5sICbGCHNZPAfmy90Yzqzb' .
+	'C9HS0Y9k91ab4yUYx3h7TfsFuu9hXSw64+8B9jjjtUdX00N0zmYovfVeT62/ns8RVgQCZf8zZvYfSCIHT2gUMKAgqtPyDCbaQiuzeRfDVF8rbu' .
+	'Jfi7a6BZddYEuamam5YAcCSHHiwF0vNAYRpjJ+Q3/+Y2D4uoBUB/ZuGdOedVOEtUAH2HiHHl4bQ+voC6ztKdHD24+vwE0ZidLDDwssgBjlNMcl' .
+	'i1I5A0Qi4IdOkmG+fkjk8QMYa83Ql6vdzQA6ueEZaYi8xr8jH967TgzgFS0wrTrLS+wXcGsr4LLgFBHlZYa+uPQMUpjlhGUQo5yqLFopJosbjc' .
+	'0+sKbm3SvOFq0uzgdrneMIZ7pMoW+jhoDNGmCxncYnuMz4WqDAkSJo78DlLBiGCsZoW+fLg2CUN7GsCZ+IFGduwwnolslJ5/8eFvDsogKAm1tm' .
+	'c+RAS4mRr+tL7Mv2Ug9G35coJPzmqA1K+O0OKCzzflEz+oUiUYWr0oMjacIoASUkEnyOXSzTvNycLCO/L3HGB8+prDOMqVV0MWaRWcngNhYklX' .
+	'bwDWrW5LCPraaHvy70fIypTNtzVd0QWYY1Qm59u6YuquLZ0JIAyHTzylv9ZuOYHSnQKkrPfs1SrqqYtx1IL+o5hBpzeIRk7C15CqYN2kEyHrR5' .
+	'IbNCZHFK6Vg+qj8hWBOiknjqabjLtcz9oVhTYhmnS+g4vsZyii7uTBCDeIEcFGoB0ouaCY/iEB0cT6FMbPgRH09rjGi5y8FYduNSHZ2zWWRqZo' .
+	'jBrIfoifyx9Be7HV3mhEQhTvhfpXyVL7fV0oDEnj2FIfvm+Le/RVXzkE86nLWcNtViF+g9wCzoVYLNNg/2rea4idbcQf6w1IV9d5sQnseVSX5N' .
+	'YvDng6BhcL+4/gcPGjVq373dHlvw6jVvo6QlZ/30VRY61jfcQiOB0n+3BYPPPgNYe0vIPLywU3MuSfFawfbeDmS8Tyftt2vl1HxNW1+A8u0w5s' .
+	'dap3z9f/D1UWvk8NTsBdVIYerLXJFr3KqGr/MOCQ8a7XI2fbEoIr8y0jDe9Eoh8vs7TgrPjt/PjptF3hktFPlJ+OWFy6fciWKBGElGUgp3v7dz' .
+	'U8mUi/GsluwKghzz0Qc69vtgpTki1f1IP22R9l3L+7COYNoUyuWClGuldLlU/QHsFX7jVUCwvjZ8DXb7cHOEEMhCFDVrhBaDM0acXqbEBzkmsg' .
+	'FUVG4i5piFSrkAmDnl1dOzWK8z7+BW4vf6QIQRt1Al7hppdEpZAsJNctS9NP0fCR46ujoZqbEaeecvALnKgoft8OEPCeUBKsZ4/GZtOmE3ICou' .
+	'r30CDUrHwtMnvy+Fi4pihHOtbbr2oYrA+bM2EBGMRKhqMMjn30/NIiqZKfc7KMoH/gtR/yLYeFtBNEX4xr3nVNoKITbZxEsRcQ56NE8gz2orAr' .
+	'04vTn6b+0qbhWSSNS3THaX8D4f9KwAgGnCXFIkUeuuJZvT8GjF0sS+MR5RGLdX5sdJrqwe9IUwOTwpVcmK4/cHI0rvNST6cxZuU6UnAI1Io8iI' .
+	'UWZkznKh/IQOOtVWgYB0nOx6tgcUcR7Tnr7HauUmQc2YqJJd+KFKcMNe4IvXcHe8qK5Fq8Hv0PYVTpAE6yDxKDgt7C6UyUEr5L8jdlIPeN6Xfx' .
+	'4Jurc2GaL9lINY6dfK+mpydy5I1j3dfBrqmonQ351kqu7mVO+LLAATfV9NK7ETu+l5cQl7EoG+4AVmJMIEq0YD8BlOs7+vI2ibaKfharUKYSYC' .
+	'bj/zXUW02B9XuUVjjxYTiehZ7FRcaWDcW4bHDfI7m1lOPdztm6ripxpIdNzPnFUdF35JulqTtEN4asahyYtcSGUofrx+Dka0nhtFnpByCoHVnw' .
+	'oMvi4IT6CEexHCjvESOmg7QRatafePwBGUd1HquYSozj+oj4CIRu08Jr/cFNm0oaa/+DlvDrsfQkxBPFcDWJEUbtDqBzHdXIb0VMvUNVlkEDxe' .
+	'HFfEZPkvdyBh6K/F+8QhJyBdZEwKZHOm4JCvg6MKAS1Km+3/S6s/rR71vLkb7rRksxpEKZqE9pnxbZ9Z1oAxPipvssiiu1bJlDo+/CgcpfTghh' .
+	'HIK3hreEKhc6YNVOqtYRJXL743Cn0kgjxuv3nVdkvGVIrR3LAP4bFeoIw6+JOMFFTOsjC/u/uUrmXoOLEGCCFH67ikL9se/SiGOtfP3rix+zV4' .
+	'j8MUncY2poXlIpabbE5AY0K4yiaZGDOtCaF0pMENyAL3ahRyCHDDiATFFknWUvF/Me0tCaepoy2se6w4E22068bqwGliFdh9rc68UfFX8c80PS' .
+	'fLLIO68Vn8+0vjA0oVVjwgp4f3GluSUvFOplult1tgVbcycYqwTcjIlSq3t+aomsYO4fItWumkuyssfZLx2q+QkA1WFRDjI555gVttMLWUhna8' .
+	'qYFUoGSdbjyWB99/zrQYirPXXF8BCNspg+WVMkR8flXIzXtOPYfmUTDpCEYDzFcoJRlAtyebkhfJy5jkNvaICX7eMYoNaq7w5Lnp5fMKn+L2Zj' .
+	'nSNcz2WiiYUiyT0Zn7Mj9ZxRxhKhWBmsG8f7xpKf2/Hndx/OXjbgDQcQYhzhrf0nyUc7NC6Aqx1eRktoXOVgnuvmXztFmnT/Qi2wsgHbQK7DZ8' .
+	'6LTwfNUbe6+sd4XL4VT9LeXB8q4JTb3btGU5XKqGDjY7A3ptDGsvdcTZvwajBdGlaHDsix1PqDJhiH3mthPjX7SB3aOTDt1UBFoEY3/710UaOo' .
+	'RzVWSQIjHb+y/1wj1/KlaBqh0UNw6Crm4EHSNCTLzoRnQXOLUwuOwAb9ZCrTsrrXwyIY/0pMHT4HbCfoaMgGGT5bXXQr44TosWxHKua8W+wlJ4' .
+	'6RkVyhiWtzpovD1D7EQBF8PFZcHpW5ACIBrP93TAfVviBQvhsm9eZWBh9Au/A2qEemdXF4bj8GCN6rkFR7WOwP27gY2Kss7CtLltZaa7+DBpga' .
+	'mkpXQ687OFsSrxCROwpW6Oz/4kBYXj/W8eGnarxtfZeETl3D9f0kbLVfhQekKU4vgHVsnyIKbT/iHkiPt5092iw7z3yf/RWDGkfslTYlhtAvhT' .
+	'a2OQ4mwkiVEUzGRhSUIXgjlESYaztEmXHiWTZ52aTbgxWbzrXMPe2U/pjv57C1DYGT5LXOON3vpkcBRtu76JLAwkTFRDGuyH209g2+iZBIv6h+' .
+	'H6et/eEppAqaAFIt0kCx0V1S69md773asJSBEiMjqRw7D54834WtiwthWxLMBJeOBrvNs5uk6nTg7KBmCDqG0ilMaWq6URDPjRQQMgi8cJojsR' .
+	'Y6XudjTVfAI+NRoAGLEZOiLlQrwpPCf33naTIR7gyjLvA/zl7av5ZwInv3HHrxXMH5GY/sl6h1SuyzWYk9ByXXVVKHcppfM0xUL1AWMkoL5ypl' .
+	'tWyfTHNqwdZo8732dUi4U8OaloEX6pTeawvNbEsCfjENC+CpMaFv4DJbClxseBRuvLDORlar9amDk59mv40uL/QX6up/3Y9OFXrGa93+3FTjvO' .
+	'P7fuSnntRkrzROgCW4vVJF1/2qlUTYC21zTM9MuUvtpULq8yuZqZ4Wt4dzbiQYhTYNEUueQ6T3eEumIDQYfOVNaPlou6FItivAmynGLQ9pxNgs' .
+	'I4k7Zzi0Ad1wa9v+POFfDQsHTIxIzzrbTJpNnc4Pn7OTJDPZvFqEjASXIg6GNukjS+8DIlGyu75fL69/V5T9eqw2vg78aV72lpW1uN3YypkZ+X' .
+	'znQKEwqU7f1MEnSjuY1VCXRWC1hMIcsxGf9ePd4tILX9/W0gVuXwL09vvHNschEMRHVN6Rgzn/78jmT3/pHjjsrk0sTJRFMexxbBOPxWeTodcq' .
+	'JFXGnH/Krox0P36XuH/MRd5edWSBcqjOutFy8AiNOAOmBL5v+nuwzGx+1gbvdq73q6zvV971HFjLxJcob3arp1x7pUeR8tjzOlW/1CeEzKMbmi' .
+	'DXX1q1m+mb5XNknnlHsoVUNWcarBw+3+5MNy0ju5rIQhW0yxovGP5tBWiTEa8KP1qcrVHeXfROB2jq2McV0kKY17uY5MN1nDyOXIWodGK96rqf' .
+	'4b1yASgMNgUvB13QVQGhjg0u9pnbx5YF5hj+L6v6tPNNg7vIkcIxzD16gvauNQ014Ty+cA4TAd/K52/SzlTQ6eSkiUBWy6SNNggKx0Sj1mV+pG' .
+	'5+pn79n6UlG08XPeGS/7muXKgqrjGb3qAFduZ/8lKLxEsSpSs3Ga29dhO1S1BM/IqwbCY7+vwniZ8J0abtLuDtvQUsQMy9gIwOfAdaGyp/1kqJ' .
+	'yXe+PJyLoKUX9Xs8eiG0/jJAS7VguHzgIscMCDYw2+7E+yp1JXp+uXGUFEhkRy8LnLekHlxgjeGVA+A/U9e8NuC8/3MzwONY1LEpsclfc2yk8Q' .
+	'vxU7vd0aN9wgxHcdvO90E+OKlwfBqctMCehcWzwFkc8VoxVJcu+TThcI8PgCUzR+6aJLw7dcSDhW/tdcP7SsBEhh2hl2Cbm/uHFfVAEYVFYmHv' .
+	'KySX3XTYkOE3qxKprfBTSzQp2yZw+/emHnsMuQDYAUL8ytAElXcHjfZldNxh5+eqY7bRaKE5ps60dX0S/DcwP8M8yfKNQX1IUxJvu14zAw5Jx6' .
+	'Ffct0HQ5n209OW9SAaTqwRH3fD55AhChwHPPJmSeHnPC+htOAD8JNFteTPRsdnrfdORvTe/PFaep8q9bQCtIiBYVE2nQ/j+Tgmb3FU6CiPsXr1' .
+	'c4YXNyBOM6kclOLlGoYRhTW2oOsJLW/omsJV5l7IkBqEAlyBBEe11ijdsKyaugLgYa9ALpL2WrfP8OAnNp+OmNm9JHr8hswzxdvkfzFiw67N1K' .
+	'skkWhnEiaY4ENK44Tnmglzyx+TeR3K8osivR+vYgiTr1Dn1hSUlv8tR1fY2jg3sxvfbM0p3ckwwGnkbfal4Bh/sLC8AJReuURESk0O0YNP3oaS' .
+	'yvKstL4tTkQoIjUlpxbvVGZY5h+lehqrkxtjhjiATYT6KF7xQQ7ZkfkT7nWjVbvEMASuh1AA2sRNp1oYoBRTpCY8Y5NmJKhVZrIdIEKv4cjxgA' .
+	'tDBMWkLJB7HwsSHw6KCUQDiieZnGhacCEaLgtvscZnd0wxosCGkxpSlFxOpsgba9/NwIQOVITVCS7N4ONZm/JsdIi23PiGjR1KCwXe4rXZ5FIL' .
+	'Pny+xCoxgUlEWE4Q80LoKV2k64S/cRwwijcn60HKafJn1J8RS1zEwnutvljVDJD3VMQZjOZ5sI+SIfBbeU7fT+ygjEeDZrLqQj16DSDBfbXGg8' .
+	'qJAtUxXSlGgXa5e+fL7G11wWKSxN0xxX4ychoJC7NAHLYEVx0VY2KwFq6rQRwRiVx6uxMo4mHvKMEPch1WjsCcHArYiYjpIS9MxiPkoQOtDI1o' .
+	'L3wleiANTgploUEKNx0VTH4WZithM5ysVW6/vylYVL/ybF0dgsKUZDr1ihsDlVS6YtlrklBAOM2RBX7+C/6RkMwnPYj7/Oo7SKP8sZ3DhbGORH' .
+	'8znbPByW/L3+WaI/qQG1kp0dI5HdN7VV/L/xNW5amu5JJWXQLw6KcpczSeCT4xeEq/ApCqccinAMbvsrfamtYvp9KIxP6+vkUB8livz9jKv7B+' .
+	'I0XQRKPbgm4cbzX6ZhXIXgw0i/RuvN3PEd4mjnLAq/15QT6dr5jBdqpmPjSrf61/Ypii9r+jEmdPDRg68OkH2MQJ+3YBOhrWvpHgfK2g5V0pfK' .
+	'1ukvqJAzfv1TQt3LBSWOBNU4u8fZZ0ZWD5DHToXXRfXT2WoPVq/+OmyOrsHMYCvPvOcIdgKhuCbW14GMWfsY1No8MeleLWC59YE+GRqDpORU0v' .
+	'S9Nh8BFJKhFIrelvAYDzGXNA2jIMv35P9MVA8MVZnPiW5Ch0YB9PLxpT5JHiVVo41ZN86AW64/glPVm6UXexeUNLJzcj7DBr6PAI3k54p2blq4' .
+	'U4CMwX5HPWw0wQe7MAxvWkujyO6TgsrJqdWCFfzhJUnYjxo762/vTEJcFA/zg+0GyTWAh7jcA604o9vVPR8wsI4odUGjenQ7NeuQyL5J0+qbdR' .
+	'87KAL9/cVgBrhjP2nuRKn2xxPWx0umDpM5LHsWK3FMHEnm7u4ACt4xxE93sJOTT49n2joOyjuWbP32HiC7OfNnxwNcb25/564ZR/XDMvRKbwUw' .
+	'BRBTRLWdrX1xu5YPttk56AGyWBuMKUCjM18ExSz6TPnLjIWR1G+42TQNvxMoSpkWnCgTOMoWbpMarY73AhiH3OzaJPe8sKUSkOPOaeDzf0ycy3' .
+	'PWJqbg7clt6wVR411qYeD/CfySyd5XOdXkRsXS9l/72CVaWGNQwS4NoYpQfcFEJF2em2EwrSm258Dvi0v+Y1zVLDZ8iBlduewd30l7sVakif+E' .
+	'eSBdBvfpbjW/PZncPW2PB6H1VTB+WiDqh3KyE7D4BS7gWb1glGQI5g2cEr9qhZGg+kqfWdO3QhwYTT8Na2E525unDxw24BGxATRgxh0PfOlHlD' .
+	'vxEfpSyMsfz9YhBHOV78On0iaEL+fqc2eloE523kmaUWqnfbpegpejddIejKN1N1TQ2D844RGV+Po4r8TejgjWEMpFW7/Iha+F6opdQn0TDYYx' .
+	'zUCtPr7Mkc0NuIVdLfSiYORczKpYJieFLUr60woTyHGb7YPBfS8ct1BF/jmwELzw1XcSxgEV+s7RG/uGGE7uXPnRdB7UFTywDwSK2iM93QWDsu' .
+	'WpR0MxznnYof1zEc0tBSYp3O5EM8OvE04xdUOwjnBfC7Rkk9CxsqeqIRVWtOND77yxrOb3nfwE7czOBP8shE9JrH8U1ad0b91jiKa9NMuVaufd' .
+	'Nz25jsCxYBg3hZ1JZDVskGCg6vqfsPdvS5XnN3c50tUaHQuk1yPaFAn8I+fDk+DJWYWySSMi465I/tpbUHq6oeFxxOoeNAk6is+XRic0dLiMOj' .
+	'D8xFZGnvIKW+YMXh55zRXPM+ReI0xeniPIrP6mMaNP8jDBOe5rvtMS98kCLEbYzi7CJoB79e2PBv6m2Vu6UT/xx8SJyO1NoYjk9EGY1dP868Ao' .
+	'2yP5JO6qhpzOBSxlmNmgFqaJcHRHts0DZvGjYS/0L8UzBHz+Hf2Wd95EYvO3E2+W0H8h5nypX5HQiLMQNzIjVLm88PAi/1BATc3YiN1kGivpNp' .
+	'MBg2HAFGW5nRo8e6pKb2YghsEg9cfTHkkuvOfucgjMFfg98z6F7bfJPzpgSbyMuhEQYKDl2nC2WrrK2DSbqgGst1mavzfyaEiFSeuKc0H3Btt6' .
+	'eFEPF5yUudoU77lY2+ApmY0dv5xComUqevWizjMwgn1gLUa3iF9rYuFiSbF+OTxNshpsMbznDQ42prWWumO3YsC4iiWbmTEAXEOJoUT3S3Ylil' .
+	'1VtSGOF2T2PfaoHfTIG98mMNMk2EXsQZqy5MDtD+ueXdVBTjolXzw7xhrOWsxHLfijOMKsKcFUftJC8j/aJM2GfObYX7+VxEomqq6SuUV2icnM' .
+	'GePd13qil8d6WESsmDC8pDOkP8dwoUdYb9sI0wEYald1g1M5nAjIQFk35bHrrnIFFKviBYfpF/GknZ26zwxfShB1BMe58/8pW2DnAGHZGxvCow' .
+	'MGQRBZrZoFrZ9NeAL1+27ZzypA4jSGNihOaJPDdhxIH+mDEtL93o2KIuWZj9lAY/jJnPyGr11rtt8O/gJN4fbqmtrmiOyaM4lLkLZURYyZEahj' .
+	'goj+GA+Bw4AupzkGu/Sjj6xZXLIS8jXvTfYlGbZD2Slq3aCSoBOVMJKXfYf4zF7ri7hAs0m1+V8CSuAjn+lCT4gIADT1gaWiZ50Bg9leyRSfnd' .
+	'EEytDOqZBid28b1jffbT0Eyq31hZ8EIn4+x7PeNU9j+DkrAStsLj8D5L+22dZpPLAtQUwFQtGbCG+jy844QGI2vQo0fHLagvTZ6k+hekCLmExZ' .
+	'MQD3bpt73PDsGLF3ao/8GzPiYy+4Zal+QSrE3U/Lrl9v+ql1u0i1vXXUOo8wgU3Y202tcnVJoSBznnUV3xtZ2fQIaY1R/x+n1Xhk78f2YEvC8C' .
+	'4yBr4/pOaKQsXgBSI8leIZOYCFJe89EtA7FsnSACad/yxuZf4r78Oq0CwsMCaSLRtDrrts1fP2HRnVb37OEYjXGsuux++W3rvL8dt9LdApHQvn' .
+	'qFgHk26JGpIYSz+iKylcjeDNO0fcmEtCcm+uEsMQjD4u4emY0nWmtpmCnxyQ58XiMVerOf/bK+oXO/HoHYH4VUcxPK1wbxoybbb3kwTnofg64Q' .
+	'ezmJJc6u55Dl+/AAYxHGweAIpLhor1nFrdtgjVQTrJxG0KGCL587bZe7fYhgkIz47tVl5XcNo1hN+g9E9x759bd6gHejd5VGYaVOG1yNH8fis8' .
+	'r0onfs4UXGcGT7UcaDzERzJGkLrlM+TWhJ+O8yk8meNtQflX4IEqnEOBsvdyRtGFbabCf3VxF/CC9mMGbmvtg8kpSDpQrKFpPbvn5YqXfvUSCH' .
+	'g5U6g84uvy2oaBlORcclWh9Jhg6M/uxhnSAMWatbTZGvdmv2sILmqkX8uY1TUt2TYmMjr+Z/mmgzkwhJr8MGuCZuje/c2ephxkIJf5TIg7NdVN' .
+	'1GumC8xqlTwE4IVaPTGnhGzWOEOV5+uJvCQdsLDW3fgGb2jnzsEZtBniD3Q/q9Y5eAZSupDlONbNMTi+cMe0H/ATBMylUzZBCYSu0b/+uctV50' .
+	'0TBp4FLEbAZ5YyZzhgurDq6Uk3bhULmvHI3TJVuoep2rCO7i0MGvEJgqJePfzllueJVeHlqvrEq9IKfZwB+M7tpm5IPzBmmelxWc7hDM0UoahX' .
+	'qPiTqpRLDyEKQYJC677Tva3xsSeHZnL5/eIYVZ6YW+l+CPr85CJdsHINpgfd4QBg3m8MVDdOjflv/NTAne/4ZQaA7tsgHASAyDt8G88jqeez2B' .
+	'PgO2E52Q5zNremZhVpmXF+40qx3tVCtBa4yQt3XHFOrbD/I3Mmkh3VaaeHr4LLyD9wBON2jFGV1jHmYYGvr4f7cqUxFrs9NNtwE/lJgc3yVMRB' .
+	'BWJZvPYHU/NqtqI312yMANj8TVOuou2/V+o8XXXBUUMp6T0rXjVL5Gt5rNiDLZs45cGgpGNuYAigFLcQaRv5RdKvP1w9CqV5fbz4tVO43kaYWf' .
+	'+JV/cfF7BX77DV+tOnU7c5v4RXYfOv4/lNsTBNwjC5enVNSQ2Bhpzj/NZn8T2gNO3AnF4aj6Yp5eVuMRw2POLsBrWScUJH1V6DrBVMLBx1DI6o' .
+	'U4PLQVSvytu0DxD7L/pQasjAYhfm0i2zgQH8wQLZcWxx+KBybuaiWOeHb/kStF4xRyV8YzXcvTsjurGezcK9MraDgw6eav5bDciYLEOpiir2/d' .
+	'vez0VkWZx9kn6dIP2C3Omh1w0kb0X6QhJGV7mWJNgdLHg8A9T85LNKpPYnfwVRYC64G0spq2oZOc9EjpV/q6a6kJb2OSb4EdBX2Fe7NKPGlwfY' .
+	'7Pzwu260BsLTV013Lz97qB8r1aaMZkahiEKNsKp0G92IgHkrVMT5LshZ1dTuBk9O+p/yh/+tK1AX7QnogaZ/yGe8UlRV4nODcm7I01a088ZUrd' .
+	'VqikEhgIRYNkFn01f9jdN0luDIEMJ8K3tbNFfOclzovFfNHz/aHpsBXoZnvtELnIHPLynPrsrR8rThxUdXPed+w3Zik6AyTWS7NjAmUYNE1C4+' .
+	'GrT22eK8GDktwavkLSQEaFsVldPowDQtGPYwK4N2TC7IsB0KhMIs/iUVXRYns6d1U58JJnnDBKIyhZ2PjHI5y0MnVuZAdSOucHOCnb1dM1tAid' .
+	'uakqHJMw0Otxmrg03tzDSY+7jaB43Bvi72KFNB4z/wa4xhYzFCPA0UTzDY03G9ONSJPcSwLKH2WOolByVKcP9oTjrX2BadR3ATyqaMTUhgZyaJ' .
+	'ME8IKIHn5RbWWW1hWKRZW0ntK92WognxScAr3BdryRNZvTFOPbnuLC4NoNqnV2o6OZLgfCvdGFHCTKYqIyFbVKbA6/VsddS5mV++e22DeLhyhr' .
+	'NBWnS75LlhtMASFB9GIT8aPcZIfXX+QMsl5B8LdupEUxV8DJhAMBCtB91MEoopl5EykeMawc0GXBRyQCMc3/9T8yfs6cMWPWrpBsLPDG4HFAFz' .
+	'IZzQIZrcAm00U2JMp5/E93F9SFXXngSI9Kni29q4MWduoOokSENv1NeHWIudhbqsJeQ+X1McNLPZ9At+cY8E029RG377qzgQn3M0bL085Goe2a' .
+	'BoC1kEnecoBE+yg0qktOgWaq3Vh2cA5doFIQ2hpdXiIIb+XbMINa16GUtSRk9Kg3fyNuG65keQSloQeopDyj49dWPE4tD3fAsCykMbu+w9uivc' .
+	'YTm/byfKcoPZ33ngn6ZuyY7NW11hQOr/TF1cMluRnVKmESLyDeYq2jIOff9DqfajLfG9QYpkQl7IJ1JAZnTZkJbUVj2CJ8YwguSiirvhaT28gI' .
+	'pX6BRcewJrblgl5Kpl5GTrX0Hktrb1uXQuG59LQC0A90bv8lMBrE+d0QN+2ZUFdIuyh4elEmd5gsv0xvSkzWxac54wOr8uqecbGLaGpqp7KylJ' .
+	'x080ouapSs/0cXa/YX/JkL3rKSiNbDP6Lw7o14rCn4B+NwVhhEJ8PkvOOUE+/irHekbPJZeyvtvNpAaFhJwg0vQlDyCmoJ8+HlBpXOUynqfKHG' .
+	'hmAltd9WQ8+7A7gE+U0BypJ5rqKhj1MVB0RZpYW9ivg4x93+f9qtJVvQZMf8J/KuHZltGVQH6V1ac/enqpKYuGFBc7HEI57HKtTYDKw/E0NdWA' .
+	'NgDr986EZ2ndr6X42nZ/rLk2+Q7yZGemnCCOm154ExLRbC5CziaUp4WiyNqUVwqMqX0gVozdYaHEb5aIB62TUq1r0/+TgbMugZl1k7rImpEdvN' .
+	'hcz28muVZg+fkzF0tYNZJopydbc5PzHPbgkWvlj02mjT2Hfou3OzwXxP8lPKjmMZKeuoZDII5Zr4Ypkf0yoSrvYSOZSyiAtxS0vWi3tUqE9sVx' .
+	'Y7v4U1WyS9D3o7zahBWjcG44XZmrRgUwXS52GbZtjNCnWm1aZx0Dyhj+19Gw0vShpbK7ZzwuE9FmXgTd8xZBt1OrqOS6mN/F76k8CUdncpHCHa' .
+	'ctetEgTVZhIRWN4oiTv7s7RDdBaC4k/4eAQjsOnSBy0LuWwn08+kxwG5BI4xvnxh6EyYHIN2sLHoAxJ9+5tEvpTOzPOKCss6RHZ1jkW6VVvab9' .
+	'GBuxQcNIXUyFpnuq/K1O/jp6GmzlKeKKNGKTKpSpP5mB7VrLeunQD+9Mjd5oPjPaKrZmnqfSrbKSOv8nJ0OH/DHd3r4L3t9oIC/vVsjqCAqD/S' .
+	'NRL7DpYm5X1/6EaFzjjGWeokOy01xRTqUXdE9GpolO9VnKa+LxlKmVtlSwShapCkRPs4Cbt4kWa9lENQrM76N2gx9h9NjZ2ZbCB3f6NUGCA7OB' .
+	'G6NNMKHTLzD3C5EXF2OVVuGF4w263qPMNk/3NwetkMYtkj5xZwY8WF5cxsHv0b4HWbEaPmOJoD/75jbzLcR8aotAYKsi5eAun/ml/kP64jhls4' .
+	'CMDvgR7KYTGi6lvax73TIzmv5iQjtVslywKAvSg0Bt2/pnfIjylXkfSawk+q6HNEcjbhrYLafuCCTXWO6jIiYq49j038lMfjUfG79yGTCm57LU' .
+	'bajCoVgnVbcX26g6l+Up2gKvek/5IP9WYo7bPVigdcQvgLnq6xQLmH8cwydIfWVfIga/h8cvCPZEfsLau5HeZktuKzz9spc2zAqfEulBCajVjr' .
+	'BVPy9x3dlOODVbE7XALlJMx4IJ2OZqhUPCSwWte7EfP547W26es0rxKfLUrkmOPO3J3qragPSspirE2pJkZFFcN57Izm3LeVGIff4peSH5xppb' .
+	'pGPTB4qTrv53QI1cjMxpvBZPKfNj1NMAdpdbV8df4oiUUigCSptsxEvHc4r8vfVr2nmXFRNnrAcrvpm1kqXze2Pm5lFt3mUQxnkvSAVLvSmHm9' .
+	'yWvgk1vd0zEmPxXVFIL6DMLYhmHhCtHWJifQ9vgC4tziS4IbnwBhtSB73ZgH6sbmrzCvHVFKNtwP7QfyYFSv7qzwFhHnYk5jPiwz4Exv4XbiKl' .
+	'S2FuspW5w1OQr0Wb+u4vtfP5WmUyM0bPDwcAg9CgcILps4zeX4xzXlGdGCSmoxrq69HDRyVz2iUtjwSkEwtYHC4houJ2r8x6HoQKpMnpB0eyHj' .
+	'56RRImb4uEIoQQhuk6NZdVK+m9eaVjdp8jyQRDewBpn9voMRz9s64EOlSUPyEeePRW+gKxPOVaaH8A2cULA/spVbnYHeRbU4KzBe8gtPAz14oJ' .
+	'kXSO80CbVLAjfkjJkSQpeSiB7l9i5GGoFAmV8JU/Gi9gtHEichIHRNeTi9oeOy9rFxLcq53XFlp0GbaPVHqrY2crTQ+Od9gvaNrK5YWzuT/qxH' .
+	'jMtyRB/Aytf4uZIY+tI/y5skeI0VZNuREgNvAZKYA2CgETfVJ0KD4mSR2b55BTxbi28xcMomazjzUOYdYK5z5YApIc1EGixkxIyycsvhbaF9/L' .
+	'knTA9lFr4G+PG6CP2gwjr4X6//ABBWgmJOzNzu5usZHlZwCtIhx8zyzAZ/1H7k94thEdse4tqqpu9JVNC/oCxnk/VK5tm6GYScgLFXZKT4RVGj' .
+	'P/KNUBYnU9alksfbu5cSLxQL/lTcWVhD4Xq/9WPmVrCgcLcYQkuhg7r/lZNhgPS/NOYOvaaOMS8QZAYbCC95QitWo8HtRsZyrpAFJqQzkeytbA' .
+	'EfCv7Gnze8YA66/0Ikme9qhUQBeejcAgJFG0WHVJbZHNd8B5DL/yA10ncq7Q3AcMuQmtoSh9lHUYhTmnLiNduLE+73MnZqtmtLjY/PKe5Z9PYb' .
+	'uHmB4tHDC6xc7FN/S6AVPw0pXQOWMK6qyyN+yJ4aRIWWLGAawOD6yVhm2bIeSalpz4OWEWlG86u//HB6jRby+mwOyuctX1Vza/BxvctO4en4mO' .
+	'6z4bEcCrQHmLi4ewj2XEec1qxI/nrgUE+fQgV0vMSKeoWuGjpZ4VPBAb5RewbsBbBd2BFw1hyYmAs+owZ5cKnVGTL+CtZQHSXgQj7zNlzE4xWb' .
+	'cSj5IM/TuFtq6mBqdZepn60V3dyh/rbXxnWzf9pWg4oQB3M0/Wj8wJS8ZKdrGeqDH9WQ24pS4I65hIxsAWxVpB8AWzxkPBtw9ae2iVbvaecV7z' .
+	'q/jFFVOCLCK9MwRxfRnrNpsi7mQDJwpRup5W6a89yhYcKSiihUqPYv4FuYuVZGIMV/0f4gg5BMW25eYf2TYq5k7HjBL1rU7I0kCrly/8HWq2Kp' .
+	'ooE7/rBbh25Imru5fGjzpCGm3KfvbUIbgxrpZrtsFs8epd2+vGdCNZmxUc9wRniyP3LHVfqRhXBozw42ANgfHmTVvBy3we9qEPeJ5u43ZgVdnz' .
+	'dXK+dazkGvgNOyAPNZ4uLYfHet1Fx+Tjy+V0oqLbCSIpIWZHf1EHtYl58k+u70NdOp6kRgN3KQXCY2z2FS5cpcj54q75OJYs8zDzpwiqf5lPAF' .
+	'Bd1ZdBu6jOUuu7cVJPpo/hJSIvxipmEh/5g1kpQ8aNheXnuGUgaRkwYAQsZEuWDVWK5nqbGgiXvJzNSp6zBtk5vonQMceXz0JCJm0zPRqyRfPC' .
+	'6jqvQMi2c4Nzrcmw7X8v6/AO/ZLF7TeWWHsV9hKqrz3pE9yGPbOlvfzTIr+3ireE+kFMnLdPwle+lCMHBR4FxVVFUCErrE7ZsgG4Ny2rutU5DG' .
+	'VzCU3xN42w4zB8s2zoLueDiRGIn978P+zOkXrIQdo+wsSdPhUBXxKcnYy9Dd5bSsojyT08ar939hX9WhSkLzOeG9XM1l+562nEgNSiAOu3WyhW' .
+	'MhUyy+t7kxSs8KOJCsXzTyaa1sPyYYhh4S/Md9D844Tu1riawt4ODDu93iW9gPJ6IkxOKRZywTalRv9X2jfzWLEKYsMPIdEU3d5xsunmG9fZdM' .
+	'lhCaxB4OFrttDfq85oQbe7v67ZUuCRBB3k32ccaUpKPhhWfZPtp7RNEhs3q4rePttfjSGB47I5DoTzu6OjzzRN2+QjKof1jbeiOz+it6bYAEkB' .
+	'f50hXErTg+BvxF7qkPDiMLt9WOHg9ojPBg+Su7uW1P3h7KrUDDF/bu++TZXFdGEP8KgQ5smY2yojOqOVQqzxggzVWmPcvcGtEfB7oTCH9c1RJR' .
+	'7CT/DzY0c/IiZ5fIb6thS3R7tC8EiKN6o053yttzqHYIsR2G2pniFDLBZmff+2LvA78bK31D6A6VUOoVxdVhtJ1Bg6gbSwKSW/XD6SBY+fsQ++' .
+	'aJdJO8cnT8AA6/UOdLL1CE25qNcc6ugSld3J37zipcFFmG2vn/FeHe+GcVzGYwdB0bslkkrNRn9we27nDbUx2L0jvfETdVN5mLVP7cUJAh1fsB' .
+	'SEm9BLlDjZk5b349abdjo0/RcEuGS/OXyhaBbyf4ecks7zBcqtNzM0PpfJZp2hoXZhGF749eUdHHP9mbSmXMutG7dTEzlSWkpDlcKBRFvL9DJw' .
+	'bK7WnvURMVYvnXIxIiGxqJAUc10sq0P7xKgy6tm4fykHss6HrSYi0YtZgBFh9A1rgOisyxpwPnqpQN1uzQ/Gkvc6fuyuNUPZG6JjZkJX21wmAC' .
+	'tsc9wxAsSF3ONMRoQhZmA/4BDRq3X978X/D5fHQ41cJEDoPIS9+NbN+tpzb4y2eIj9Rroed5tiGNhETbmTzbnn1YTyaj8FkGoMaMc5Y4Eae/W2' .
+	'XY4hccna5oPlFGigrfHyw5/GR+ZGqtEgOx3qxzEs3uldiocgOlMvSTVbhRr1hUb674WaNUbS2Q2F3rhCPJ0S/080EUWj6tYUbmX22ohtDFOTOo' .
+	'+jyZaJmEes0VNlVnY7GhVWQ3LvJacj0gcxGZqCt8q7j58kp9618n2vVXDP7QAliCs45tL320aawiPqOqDCc9I0OlACYYnuW7uoux/7bSdyrbYQ' .
+	'fOe3BZXC8vFosnMsWsTZPWFzxrRDpz20pEF66wjSGX3xDb57kbAGiYe50W8jVYmjCStuR5dnJPk5JWF8rcW2IFmgaDYdkqtMtWUqDeq2uRi6Fj' .
+	'b9YDGagANnl6JBP1cCCRBU8NDYvkTuWr9F2m466KcOgosuv6OBzGSsiUBPgORBNE4LIWtviBy0P/sRAbbexbH/otK9ecU2ngPNZt57wemzXyEe' .
+	'0ABlnTNVKbFv58iUBR9Gg+yRcWJ5uSF05tCvqOpUE8mFf/Tk2dr0PumuiRk/+wTNrg22PQkZLHderN2ntUeBPXBEChPHPvcV8aOYo8hWIGhjwq' .
+	'2YUHhmc/kBjtOTZNKdgG3l9YKDbLzNYTSpppOeJOZFTAjjCtjERywk0Lq28XaZAHxRFTdm5cvJqfKxAksAUfHU9APTdpebAfJBXW6F7pH1w/IX' .
+	'dYClRHuR3mbmCCDcvrxaLXXVX7A/P7kXXcpzxYOBmbvUqeTouJR15G4aqfMhCgiyinmuPCeyA1gCmnsamSsZvMbotZyP0FXgFCktIdk2n05qJL' .
+	'XMCtP3MoCk2dJHXzAEW5zGa1u2/otJ1gbWY8Tkyga5PxwXaiQVB92ZI2/LEcTewQQJznAK9XKzMT56MPvQtelveNb7YLWB9n2SMGWVE7uoJH4S' .
+	'v+Gn49iduITNScqAPjNFy896bErEHIVV0Ep9uiKRvT3kzvRIQ5WjkGVG98VxShr6mXQ6YjfpOLmXtSthfZOLo/DfV3cn+gTA589Sm2YIcMaSPS' .
+	'5y8G6bbF1+HbJAk4Lm4xP5O7MIjnMr4G5XG5WoeklxgVyb974rDYunzRnFPNbg0/QUr4ME7dJyUeJYPp79smHlfJ5q48zlJugLh5e5EVBRqqWa' .
+	'0DA+XPa1mv8UuVgDbOrlJkTvJcwvv3J23hRnQvuDjuCU0ampxrCxgjyz2SGYEHcSNoLaDJkxFaTQXkTv29vEN/Cfe6tkP/bnbNoQAGhDRFCSBn' .
+	'BakFPZ6lWCHG5NZwXKXYH3+CNUEIUE6OtzKTPBUJz9O2nf9oy4r2xkl9SNRMocwnKlRBvgAq4L5u0yy1J3pil7SK7e0xIFflfxoFU2Yg2uxkLp' .
+	'rnxIB7n5EGZeYmyou6LsC07P9GkSnBkJaAXr4Exz6lSEVV8XD4WPmcuaOiSyoTvFUV4Fgn5ocOWXZUxWyeIBpCo+Fls4NUi03ety1KHj5s+2/j' .
+	'zAaL8nm0l7qxPnOHtzUJ/eeUcUJvEnSboB0H+l+Vqq70vimzmwjc10dRb46OcWrohsmatGjbqufnDR5lGOkqzW+O4B6z53K4hHYqDOsRScbvoN' .
+	'EPV0uSU6b5QscJfIslQJpwY2l1iGhz+QuZr7zUfv81AlqmOFpKIazQajknCsT2SJ+3i6yvV9PUwR0gKeiizBBGjx3gAKL+PNAfRxLecoy8to0W' .
+	'CPbaUtEmEtt2ifzMu+7030y7EPbTKfjLixpYCXOi7xUMDuMgdJ0HRd9x38j240crGgMkMkh8iVPTbz21DG6cLoj1KfazECOtrP7Uurw4CC/FlV' .
+	'fFUIr8qNYPnEJtu81bN38fRpNR3LKUT2o0IM3FFOGGZMribAYtKugFs/xX9BNfcCqNFQwici/fNA2x5Rgt0OHNQaBmji4ffSKrD8vfY6Q5GPAM' .
+	'faRXzQCMtShiwhYyXwKl32LPISv1Ih7fFfI3FCmMVPyidaOP+Qyoxd4yITXlPEAKOa0+NqKj6ZWbN1lQ7jchRjK6rqFhaMh5K/p+/I3RF/4npC' .
+	'gbi8U+Jf00e10adOPUeYVQROOrezXsp7JWWKALtZmHfC8z2Auon3bdPwVB2bdeAAzUYpyqHMygS/WTrdqK2Elr5eu0tpXsoPYaDE5Lia82Du7f' .
+	'eD2bhw8RJHhcp8EXAvL5cnieMqHtyX1OfP5tSikte1oOengjDnD1TCjB5WDAckhUo7LyxpWDRpG2nGkXv80kriBUhdJW7tP8IxdEjpj8tkfvVP' .
+	'TTjbHS0zqN7HO7UXihHBEs+9BWXMyHzlnyMGrWFeNMK0oHB1+j5GOqODldYeBhHGo1ESoIEFyxFYwyQI6MPBKJhZ64/Dv7zQy3JRwZ8m5EUxzA' .
+	'G9SoG+XdavJE9TZy7e/bWXT2yZMM9HRBtbo+spDIeDcN2402Hj1Eg+wlDs+4zd6mA/sVsw1dH08fzweZNMuB66f+CIxMrGk54umjgnHpAFvC9R' .
+	'vsAE4DvtSvV4j81WYiXzSnI0WlUPwXUJJoxD5RlxVJdxy6ATobUyYQACwIpKnpyAvLNlN9Sx7Cxtijd17MapaiFeyjSwi7a7Tehk4XqXj0GIu0' .
+	'vrD0iefuEx7HdhOvkXgLhjEGwjl3K8YYOT3Tn0+tJnBVZXYR/B7zV758ODFjaYxig0zKMwzjtnk98xIu838mq0M7GmV9+Y5u54NmQeG6yYy+Ma' .
+	'ytvqRMavPnUQ3baZL2x/zZipl0wFUIEMhCqw66EIUN/nZ4Px262prkmDLTqYqTKJIslf0sDMW0YrcCRL96comjIhgQuv++kLCofxNENcp69jRw' .
+	'vK9l3ZiTHq37HU2//V4TKRjmkY/0+4bUsFkbS9eYJHAVyFgIdpn+02JNbL0aoOcB5fYIFLJUqjQPAY9QLGJyCcotbNo+fsulKuqdx/1O5jjsvt' .
+	'+TmV8hD8eB0aQ+pM7L5GnEEUYtKuWROee5P+fUw7JQRZG20QI80d2zVxXqUuj1RD+E2CKrgZmlr7qksgnygY8Oy+QpPMZI1o1JAJxMr7Z7FSqY' .
+	'RpQ+Dk0ev6DzW2in9xxStNkq06ATP6eHFGbPLIrjaaIfgrJup+6U3STftVp5LwL5UGoQSHl0IwC/WgXY3m0Tlbq27q3qAf9PeSsaxvR0r80udo' .
+	'7I8RAR32/9eNLaSvLRfT71Sgmw62z740jYXcU0r0xBlTpi8KFS79jWKA9U19lhB3fkxOwxdz2PmzUVvEZOn+JQErvX+ZFCGCwxyVp1tSh8/I2g' .
+	'3uhE0dJ+0ne4AgkpP8hvs10pE6Uz7f/hQjoBz5KoKip1QOd5kt6yITWCNfHlugJNVCJ/IH2jX08J+7t5mox3ROcGesGJlmWSKkfmvVIpxg5Lde' .
+	'J/Lp4xrpORaKVAK0pbZaILMM/JchUs3IilX01RU/14ERUZz/PBjpVXSNgyF+/XgVFwWyE/naDeob0w1qyCoXyLDHXV/YoZBjo6sq8A3Fuk7BOy' .
+	'RE5J47++gxMCCSrNpEGJqwCziSEfuGd6fiBMEhJ8+iHqkKMfZ058sIlwf7eS/MITEyPV7zC8vlwAqtcbbBB4dPKlNk1ELdDu1I+pOUxZrftRgB' .
+	'ZOzUieSQKQIUMbewku3LoCYTlkpjNnG3HALP65yga51ndqRhHnV8XaA1IT3niRmOT6fLm5js1wT82lyYBH0CHJYTF5yJmgeI4k94bnIyQ6mrSW' .
+	'zYJf/LXfB5odF88yj1LQBNBbFwDkkoSy+ILuIsVMnKc/1qakoCdWb2mkXRhTWTa/NyLKkSuoP/cI3aKOIPv9f0jfIyb9VQnHHFIV2+Rkv5ewpR' .
+	'b8CJA4jE+OL/ccFgvKzIc1k/aqLp8HcgeiKrKZEUhRcY7xCh8iBANGEHGjHYaiYfxvRaxfx+GM2etOZ/zWlHsyxc/djL/HEn8JBP60lAzXdxNh' .
+	'2Xg8osu5QPKX68HmzhrN6E4NgN+gfybzxpO0W6QWesetdS+Nt3fiv9ndEJBdoI+vZfS5ZoCHjDAgzW/25H/lDKJrOwC79JijXk6a+5ue4TCJcm' .
+	'76aVsMFRB774Yk0hG2Wg37FULRRg98ya7VYHbb2LyXESYb2P9jb58aHm1CdMhLW0Fkkgy0+yAzesqR+QWMxcPa0Vsapl8WKyY52FcT3ZSbb+Eb' .
+	'k0DN4gvig4o00aic1yNivRXNzdFE5MXPuwYcn27VKZ5Iz9b6xn0EGjdx3r7hilfOkEy3ruK7rJuE87Ppf9UIsMurgWwYOjjExeTw6pM2+LMGmV' .
+	'bMf6ttSWkvr5gpzvc6q26w75iCE4F4w3shP3kN2oWeO2CoCLU6qAyTefT4pn9jf9fxGOnYlxSSz/91r44MhDZxiiCn8zL+vyYfbhF0qYOqxZML' .
+	'M7uPUSgsYeZaI8+gZFQwXDAHEugdSZW58v7BLV2j1QuayPkWR8zm28xq0K/sikDkIi+KHRPCRO+UNShEVlU4w3AZWjdCxfDl5JXhOCcjLalOtp' .
+	'CKtfp2fswb0QsPl9R6/XKNliGfxyHX1dk1fbPltI2h1jyAKiHKBziUbWjPNOtK6iiz/bZC7LM1EdMFy4MOw+XerPurRx1FW/DNpcsIoE+Ou/QY' .
+	'Kb7unAToJX9Ht6R0QktQvNM5ACzyo+17S+A3clQJm/O3qfsoLBl1fnK55PyoUAzSjK2wcHe/o8/3j1QnXo20wzyWA5RSIq6pQeuTNIFpDoPk+X' .
+	'OTEnssvKqlCcjoa58nepfIlopXzFBVXYO8h8rKryCwiBrLFC8cEz7hlytmf1vw+Q9Bnl/AQelhfX+jRFuO7QOacxCLqSMek94tMefmKP/AL5VN' .
+	'd2a61VZW5nRZ0Dgp7dnV3Uy9VGrssDLwEAz6TLF6tO6np/Ot7lemXXUhvmX6gVlXfdN6LqaYaFHegF4EflxjVTeNhTVY0Q6vXE6/cd5uzvZv9P' .
+	'qmELsiegP0Sl2o2DdIDSEndbYH5MgZwQ5O0M9UlUPqegjnMVudjOLDmSUypTwTBp3y2kbXSWhnTWZCV4XX04uWNmN/H07dpnrp3/X1Nn2317cl' .
+	'4OBB1V9c8TLnvliJ9F4grKEJaPK6Iz3M5zaGh4CPIOQcGxo5yg+Fbt/lCxLK0dmNsrSJ4oH5OTclXpr23pjz/U9Kn3X9csMT7EWdbBo0Sa71MB' .
+	'+oRn87dEmuzRqjdigpU+X4PuMI+JPFH7AxEcP3S58NJTi6uITtvvM6MuB79m9ZNelTt5Iis+ff1vTppu5bRP9MAPm1m+HbWFlxXoPJfnZNROGg' .
+	'yNsdVYo8lLK8ehy8KcDcmKlFHcpKF97kkEcRtfeYf9+KV/6FrY1Wl5EZxDcCrgiXar6f8wHm0kdZ9i4wINkx/KnAa8FSaw9bs1uML7xedvRYP/' .
+	'RghP6Sh74TS+mKNJjCHEoa1yUBtcex7Np6z1Z6hFjtZ3v5B5cVHiMFkX0fzVbA0lO51iR/zcrw1wLsNM4Pp4zrSfuUNe/i4Sw87byFNo5BQSI3' .
+	'4ms8YGvEwBhAwdRJPnp0jbC7yy7pkHIpq4zwRBvo9YPN4yD7/nqU2/kudD/rB1g6yAOqyN4AVKLxsA+xf4Sp+UxDLeV7/LIED7yS+HEffKwuJw' .
+	'+iq/n/oP2GhrPGHnjDPY7mFHwgijeAGzru34fmMHwmqCb4hBOibVvEGtbjV0LegWX+8K3kOEsYo+GIN6JQ6ocPxCZB2nSB/9h6I1+fIlZzxch1' .
+	'Kzxdw795Rqr5T4KwjD7V6jk2bm2LZ2j+iwRM4X1cQDkuVFgmFIeQgaQMpSOG9WP4a72fxK2+GSsH/poYStAdlbTCtFAGbIAXfNRFFRuTRLkGoZ' .
+	'GjFsEicTxQeEsnKBBQ3Ne8ZARNlBbN0tCoyHwY/LpWsD70fWXVIVSkZxl/pncMQwzav6Q2m48AdMC8OnTakxCql/juSKBx3tCpPsNOMs1cizOZ' .
+	'4rgGsNNQpb5xkdMR+p+KWR3xZgnOkPqNfM9/rGIsyOtPnna8iHcRa3puRD0382fU86nEVipik4n5SAQv1wS9WjhhE7ndwFDxv5YBUaTeJLC+Cq' .
+	'Y5CWAu4pFcYWzY4UE7MvqAV4liJHHOKfN9r0/birNPvM5h4RySF7q8JgX6uiarrZbjlTYE6ViL2NpLN+IWEXbxYmcNPPMqH8c8Tw+Hy5qsADwe' .
+	'hEKu8t002d7p2xgb4x6x9tWHcfzRCrBP5cXiseEIXpvVelfDNKd9tj+bOD4auVgw8ShAQhCI6mwNRX48l8t4Qj59dHJ0NHgq3PT9jowzwSzrJh' .
+	'gPmDps7nQD14AT36qEQWfxyK6a+xWpsjHsRc3B7EpvzaFFl9SCLBKWpGrLbMw4Hfv0F7J99EsCnIW6a+ViSQLCe4ujb4A3zR91k1xdeU6Ijeum' .
+	'9YARhVAC69nzr4goJcVfa1O4ttBYBfNAmOEbTX8MBk2Pk1C/jVc2NtPV5jX7DHvkh4CnPAXwVw25GcmCgZeoLLc5K8R9DeGiGiusmFX0w/OKS0' .
+	'AEnFemCcbD3kjt/ob4cGJ7krFMXN3Z+aH9mXGALiVyeFr4VfFlZR4obVtF4FYfn0NAog7DeIacS0KJkwjl4Rmp62JybFYIit9XZ7fRa14JRBzj' .
+	'gHPbmfL0wgjG+b5Gx4gfOtQQ/oinjesiEvJ0UgEdLbOkDqHmsU+C6yrDtqI3w0ghXFMNSQ4FQkyF1F9Vx3BLNJI2FnSCa16rXIujenHX7G50vM' .
+	'Nlsr7LltmV8hZKvGC81PN2j6NDi9pJ8hvFB6ibGYsCpBuWjy7QbHzOc+u/t1WuwP+JHhVyRxP46iEWpqobw5fjCHFsvzrB7ZRX7wmhk8JMIAT2' .
+	's6a+ywG2wdBcoZl4N28SdyOTb5tUUJPmwmLviyG+25dw7vYT/nQCeqs6Z0kY6EN8av/nMs2UNafrR5hMC3q+C+gSqjM9ZXeOfOC6cusGsKNAxS' .
+	'+gJPXL5+reXlQHRyJoRWhYcej8eSIt334Uh7uJ7um/FTMOakKstum7KcQ3HmaTb79+qAeCTqdmNDnWeSooTJYoPrnT9N3IVZIIDnyxOTg3Ej3N' .
+	'OoQeMW0s6r8nsKHJDb0c5/x6ddUDttITRtS4tjodmgP2/m2VHPXZWo5vY2sZQ/SG7J04O7Xq3b/wE8jpwV0YNay7rWgh6IAGuWiQHLn3JfLkN+' .
+	'/iFh8ZLIIuPMAf5WaZNg9X+ScvUypkLTYyx+JJq4+2JE5QQkNQc/YIde9K+w2VjAVSngrV6+1kFd1kgmsz8QIpoCnI3oDTsFsBl2ZKxr1SLjds' .
+	'Nol9BZyh0GpY/H5UrEyFdZq9YppZgJmibhgGFZ7eNmogNMYxq4L4trBaqghKTeC9xhY3SWuzgvRGkEgyD7j7X6CzC4cQ8a2bR/tCRYi49PyldD' .
+	'oj4kr51B56z+U+uq+2R37Ak68lzb/471u9DbTGGJNCMIPsCgQXqZm5h66bIJerN61orG7bzvcBy2A3kgYE13wy5od0Ui2RNNxYotWyyLl3UPYU' .
+	'eKt+Q7YGZr/2q+0U1DH2THIFwigZnWY3h1Vw14nFxNhefLFRAxAV+Qli9e3cDuZN8C0wyvceBS2qBy1nMubf+aY+ReqeIf+YdcLi4NCohZvVzd' .
+	'pLxHK42NxDgeTxcYFoVy29+QrqflLbkn1o9UV7g1IaRNwZ5/ymNOdAZmeinQJJeSgz4dTiF0VjNjSFnyiFvD433ObFf0bNBW1Tqbkbx9stSLfS' .
+	'Son9s2vtgHIDOc/FggKfseb+uVwWfSoHAjvQQL1Wmw+h5O/FITiE94r2uk2/wp51ohJC9QtbeLoUN7y/PVSHRZCsaJWjusoPNLaXuNjVTF0dvL' .
+	'vRHPQSIieI0YiawdrmNpNMEjwmDeDcA6ORxyjKE9txEPYLitBSDeKeKQCDTduXYaeiHT7FvhrV2H6GCpOJp4htSNfsR4lhjjjbwVfpJu/cCPm7' .
+	'38a4P8gsGypR6wrao8+oLPzz0xYw15gw/GCGbbqDW8Hn/QcZpD0aONhkf55PWfeFEmQ6vnuiyZhsmf72MJ6wsGOLgzFwrteqczaQI678L1L1ij' .
+	'3oIcgZUbh/UUnbPQCxKneBUxiN9jqtSXSdWuOJ/prNgC7QS8isL7eWxR141hhDWg37oYywDSgkYU2cgouYScNh6tqnMW9s2lqlgeuFTwmjLnO9' .
+	'K8UI73Othb3pZ4LBvGBojcI0AfxmPWSvqUJkmkn9XHyhlLzycTpHVXiBiqeh61JMqOFwozSOZ3IlGL0663Tqr1175+7/TMiUvBd4JlxdWCGq+i' .
+	'eKSzDII+psju/gGbylXHCNE6j77yxy6zw+mVkiU63qE/zyUt3b/onEYJre6RQwbgo9Cro+nll/zIFtYhSLOEM4nX+I2dSGpX6NOCdJLQfGmLds' .
+	'qfDAqX03mHzXPFpafzhiD9QrGpsdXKKrhqI2Uksqwt3ksAffyjvXO1Yh7Yp5nLVPQ1t1r1WEhT6EDa/1NZs/0WRC5xbIws5Zx+fUJeM7J+kkvJ' .
+	'czsnZmlLo2BQTadrIhSAY1sTg/F8XVVT5X9vGXkL7DxpaLthY1lHXGe4VVR+oU3KC0a+rEkHb+oHJdE7vmyTvJJRTsGQCHIUX+Vq04pKi/ZX2H' .
+	'EDls1X1mJ5PiiKrAUyEKQR9fORJB91zukoCizbnJ62BwZ/fGna6jY7ilwo7CZTT6H3h1ym4iVn7XkUOIxQRAyQLUiYwzurYyg+bub5vX/w2FM/' .
+	'xWPbSbC7DL41N12HgPl0JhOcsXrVFhUwJhsdiSyeSSfLrU+thOuD1oWJU716MA2Xj6o08iGMWKBxGi9fBQDBAxyKpLnRQ9Pa+Ns6ymHuwYWm/6' .
+	'efIn/2QJRDp7cHT3r/XWFMYP39nM17eSaKkXz4Wac58D8mRCalBB4R+/TIOiDTSHm/RLBdm5Uu0S9W58FGho4UduBU476uil44IXCHYLQgGe9u' .
+	'jpAgxNunbcfIQJn/fT53JgvpYKBxl5ukUD2LGd8Wvnk7UugCSkIVPOT6MD6ZnTQThLOpg5Yhvuwc5rWT7SE/fMfudb9YyEVQ0pvXOalyZK6F6k' .
+	'1y/3zWPkFe7MA4ZML1roA3vPSmTkCCq45t6ITSmi3bGk09piKfd6EKjNqSfhbiJnNJ6LY3Y/H+/lcmdtw48yfDmREHq9IywT6TthMZusyr3LM+' .
+	'999bsaMcNSZyBSEkznTtXr06YCf6ebonRTSP+COXNa73LH6xfEBpCQqeGlTlmdjHTsgq7vSU4XMH1c2rY83QLtrwex0frzNn4i2Z1aUFApnj1n' .
+	'4fa7iqdRZJ6HvTv5UFW1MLPjo9gKLMQjCIo2Id8s12oqEpbvMOEYqxPJuBBseZII+HFwQiHxQQYM2IjOLOjEDp2qzOC6jL2YFif16/XFTwj9SH' .
+	'f9g8pJxjgkn7RKjuHb2Nt8jYegNRy0O/SZmLpbPp8d9F7tFYSW2BXaW6c1iP47Dp+uxjfVfUgDAueX3Daf1MbOhLQN9vLUlMEtva45RTq08b8E' .
+	'ryVh9ckxiFyHw+5oSGAJ2tKfftKi8xTyK5GaGHzZ4rhMiwDhyOWqLifyQs23GQqMhpT9VckjRqvExVj8aC3bDcR9yMHgs8grQ21d9PpFV2H2B7' .
+	'Y5Nj4qpmUiO7FIlXAwZ+6EdQYqtcI4SKafxryjqqr1Vr8wVo0Z9L0NFjKQbL2MJMIv1V4g5WZJ+U1Kxc0WNIz04U46jxRPatPoikvaD5XFD+6u' .
+	'1ed0mBI0azMWbuzvKVUgV2nDFyL/KPvuS+hjwBjaYMRL6nUX8gWKLK9Lcd2hwER1RgfYROP1RzbBv0G+CahHlQXaYUJy4x1FPnmTG8EFLnqv6N' .
+	'Jy5/Gz6eKP9F0+ZxroYwERUoNRkfZ9mnZHkeJWfC2kkk3LawVwEs+tCgPz8UTBiVOd4DQqF3HSH9w4AwLpSg0DGhMJC/dCA0ff2CW2WY36kuc0' .
+	'BgP+m59Ql52aTyEwBC5cOu9cO60ofIcbXAzF5d3+0Ljg35TYK5qyUAGTBDBDexRRC2/9uFcQS54+x2SfcM8rBP9MchlMbq4LZ5Kua4QuXaxg9x' .
+	'HDmUldh/PQtg6HJWVbm3qdGlUv1M4m3YIELRzDQvaW4Ne4eC+2EPu76pbZBooahU2NQZxjciuGzawK0OLN66TCFKoCGsJdgCfME2MsF5L04toT' .
+	'G1mJv5bq47d4W9ZMOvCJSLJnsY7q1B54/Rq0F8khiMEZrkp9FM9r8piXoPsG+csQx6D49Yp3xNUcZEhCqBHdB3Tln3cYifSJJ9GbNe5wDGn2B+' .
+	'HtVNNfM/52wrOp/V7nQHSoJQHMFE5A7FOAH3h48kz2lwufBI5/LjfBd/BBkm/JR6MZXHuplCRA5zHqNoD1KojQZcvDbMnx/6xtnJuguIfqw8+c' .
+	'B9h0okV9ETZE22GUUTOgvUeC8+Q0cCPPaIRuwRo2VantMvoAy0uTITyf1LuiQV/jEjesect+sjphipHCq2iCNlSgeR++N3GNhc9w6T5wbxq42Y' .
+	'ulHFBuYzphDu9YhW69C0OGxa8B0QbusDWwmiclJJCBtX8nzTPwKVC2SlDosdsrYICc2trAh3KujxjfaZguH5oXjyNOaX45ymmGgnz0GqTSE0Ja' .
+	'mpY9ioLx6cBWLzjhNM1bzuKmfIKGbK2E4xqx9EGVofsMOUy4IMmeuE0P+cGlZ7K9KuOh/il8e/cNwDmJRNUKfX4ttdSUF1Su53oGRnlfrwmfDd' .
+	'JSlmth9glN8mXIU+uin1dP5H3uBZZNoFLhd8AUR88yI2DlOWpE6/vj0OOvkIbv6PUVLX43eAq8KaujqCuCZOGp4ieeYAA93ehPyA0H5SU2cwPh' .
+	'etbc2FBPp6K+4APZhLJVjH4tBu9RDDLmapHpwvk+VfSE596ODp6xOSFpUem1vqeaHLmQio+GGa/DyVcBpHaypuv2xpQCr6xtLE5seVBiyKJV4U' .
+	'0uIARGk5L+Zz74CIeIV72C6V+UxczIHc6rsTvloyfZTu0w0981ZrwAP/3iwoK2b6pxQ6JjXIcS9F/W+Etk/+9ioDlaYSJY+F4ZUyA5l8+YxYZ9' .
+	'8vXD7r+Ik8GjxgdTpz794zykFFqVN00S2WBXO8XPAJg724t8QNEbiNOJoY2UTbbO2KCvtQv16V1FJn9BHbkl5Wmycgu7I3nb2NTBPo7PYP9Ch2' .
+	'yinSjIopJhR3L1o+5hTMLoa7UKSfH2TQlK6Us7vaufwB68Hpztor0oDWLdvUDvpq5fPsMzpW9vgDGiZ310N2nyEobcFSYFrXLg65/lBl0NlZBT' .
+	'cu9Y4UeffM3MPWHo73lGP0NJY848OEzk2z0tZUU4ZEdWNflptxbAjgI3ma05U/eKim6xf7rp5h568ZaKxQQAy+bQuPs7TKwqaHXgDa6CNci49N' .
+	'UCvaXLYNFhXdYUgnxNdXf7pjMRIPtG5hvPkHr/uer6ZRc69QG307LcbtQNvmzKIa+bRVkTgWNgKQNNEOqnLodFkEiVk28lwWXVzOIuWKjYvw+1' .
+	'hlrER5pftZQrxouEL3wyHGluFEj9ohbIAViXL311rMwkKX8Ee/xd95Ncg6JsthyQtyPe7FmPj+LOaDEW7/hQjUTDPhMgB+VfXd6KTZ+bX3ZFcj' .
+	'wgxTI77cXntCPI51P0UtOvDfdC0bZWnMQAjb5H7tocH7F4IA+7vPBujOoALa5ikymT2schFKvVgvAXL5E7IitKnUCCY0Hm8lgYSKCx2BzYAdUE' .
+	'WkuxuBf2pwjSGwNCvtY8zmADmggk75+uGSyT4CEBz8yluZXAzCUhek63vaV74wJ9CVva8vpUfAelrs/UWU2mRd6dT8ZNayQd4ZqCwnq2l8+EWY' .
+	'Ab/vBjbJCuV3dEx8G0NdyfeRa/XYBSDmP+LQ==',
+	'a74cf5cc4da038f125f83dac47870933e68574af201240122350eb6e31a55872'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

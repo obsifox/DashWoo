@@ -1,240 +1,82 @@
 <?php
 /**
- * What the account area knows about the current visitor, without dying.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
  *
- * A widget (or a page built before WooCommerce was installed, or an account area
- * closed to guests) must render *something* useful instead of a fatal error, so
- * every accessor here answers with a safe fallback and every read of WooCommerce
- * data goes through WooCommerce's own CRUD API - the same rule the compatibility
- * layer audits.
+ * module: includes/account/class-profile.php
+ * sha256: 6bf772dcde1cfbede14c75801d30819e268dd498b962d00b99a98b8d6e0d1d29
  *
  * @package DashWoo
  */
 
-namespace DashWoo\Account;
-
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Visitor-facing account facts.
- */
-class Profile {
-
-	/**
-	 * Cached user object for the request.
-	 *
-	 * @var mixed
-	 */
-	private $user = null;
-
-	/**
-	 * Is somebody logged in?
-	 *
-	 * @return bool
-	 */
-	public function logged_in() {
-		if ( ! function_exists( 'is_user_logged_in' ) ) {
-			return false;
-		}
-
-		return (bool) is_user_logged_in() && ! empty( $this->user() );
-	}
-
-	/**
-	 * Current user object (false when there is none).
-	 *
-	 * @return mixed
-	 */
-	public function user() {
-		if ( null !== $this->user ) {
-			return $this->user;
-		}
-
-		$this->user = function_exists( 'wp_get_current_user' ) ? wp_get_current_user() : false;
-
-		if ( ! is_object( $this->user ) || empty( $this->user->ID ) ) {
-			$this->user = false;
-		}
-
-		return $this->user;
-	}
-
-	/**
-	 * User id (0 for guests).
-	 *
-	 * @return int
-	 */
-	public function id() {
-		$user = $this->user();
-
-		return $user ? (int) $user->ID : 0;
-	}
-
-	/**
-	 * Display name, falling back to the login name.
-	 *
-	 * @return string
-	 */
-	public function name() {
-		if ( Preview::active() && Preview::is_administrator() ) {
-			// The shop owner is designing the page, not shopping: the hero should look
-			// like a customer's dashboard, not like `admin`.
-			$sample = Preview::customer();
-
-			return (string) $sample['name'];
-		}
-
-		$user = $this->user();
-
-		if ( ! $user ) {
-			return '';
-		}
-
-		foreach ( array( 'display_name', 'user_login' ) as $key ) {
-			if ( ! empty( $user->{$key} ) ) {
-				return (string) $user->{$key};
-			}
-		}
-
-		return '';
-	}
-
-	/**
-	 * First name when the account has one (used for the greeting).
-	 *
-	 * @return string
-	 */
-	public function first_name() {
-		$user = $this->user();
-
-		if ( ! $user ) {
-			return '';
-		}
-
-		return ! empty( $user->first_name ) ? (string) $user->first_name : $this->name();
-	}
-
-	/**
-	 * Email address.
-	 *
-	 * @return string
-	 */
-	public function email() {
-		if ( Preview::active() && Preview::is_administrator() ) {
-			$sample = Preview::customer();
-
-			return (string) $sample['email'];
-		}
-
-		$user = $this->user();
-
-		return $user && ! empty( $user->user_email ) ? (string) $user->user_email : '';
-	}
-
-	/**
-	 * Avatar markup (empty string when WordPress cannot render one).
-	 *
-	 * @param int $size Pixel size.
-	 * @return string
-	 */
-	public function avatar( $size = 96 ) {
-		if ( ! $this->logged_in() || ! function_exists( 'get_avatar' ) ) {
-			return '';
-		}
-
-		$size = max( 16, min( 512, (int) $size ) );
-
-		return (string) get_avatar( $this->id(), $size, '', $this->name() );
-	}
-
-	/**
-	 * Initials for the avatar fallback (works without Gravatar).
-	 *
-	 * @return string
-	 */
-	public function initials() {
-		$name  = trim( $this->name() );
-		$parts = preg_split( '/\s+/u', $name ) ?: array();
-		$first = '';
-
-		foreach ( $parts as $part ) {
-			if ( '' !== $part ) {
-				$first = $this->first_letter( $part );
-				break;
-			}
-		}
-
-		$last = '';
-
-		if ( count( $parts ) > 1 ) {
-			$last = $this->first_letter( (string) end( $parts ) );
-		}
-
-		$initials = $first . $last;
-
-		return '' !== $initials ? $initials : '?';
-	}
-
-	/**
-	 * The customer's order count (CRUD only, `0` when unavailable).
-	 *
-	 * @return int
-	 */
-	public function order_count() {
-		$user = $this->user();
-
-		if ( ! $user || ! function_exists( 'wc_get_orders' ) ) {
-			return 0;
-		}
-
-		$orders = wc_get_orders(
-			array(
-				'customer' => $this->id(),
-				'limit'    => -1,
-				'return'   => 'ids',
-			)
-		);
-
-		$count = is_array( $orders ) ? count( $orders ) : 0;
-
-		// While the page is being designed the counters must show a number.
-		if ( 0 === $count && Preview::active() ) {
-			return count( Preview::orders() );
-		}
-
-		return $count;
-	}
-
-	/**
-	 * A short "who is this" line for the dashboard card.
-	 *
-	 * @return string
-	 */
-	public function summary() {
-		if ( ! $this->logged_in() ) {
-			return __( 'Guest — sign in to see your orders and downloads.', 'dashwoo' );
-		}
-
-		$orders = $this->order_count();
-
-		return sprintf(
-			__( '%s · Orders: %d', 'dashwoo' ),
-			$this->email() ? $this->email() : $this->name(),
-			$orders
-		);
-	}
-
-	/**
-	 * First letter of a string, multibyte safe.
-	 *
-	 * @param string $value Value.
-	 * @return string
-	 */
-	private function first_letter( $value ) {
-		if ( function_exists( 'mb_substr' ) ) {
-			return (string) mb_substr( $value, 0, 1 );
-		}
-
-		return (string) substr( $value, 0, 1 );
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
+
+return eval( DashWoo\Kernel::code(
+	'includes/account/class-profile.php',
+	'4uutPM/UKy/m/PNjt018q8ZQiBdUPmbQdwjKUIE+izZhuiB03A18cvhbCKBVyldbKhqFwnfffy6B79VkOSolAx640gs24KRvN738nI1lKPRboh' .
+	'Ja+QbYbRCvp5af00pROyr4LhVd0wOYQWupHco8ZcDLh6ZDrKP55ksyR/l7r9i0YtB/XEbJg3DFe7R1RT79YPeMrIq2xPbaooRV4Su54xs4LFRO' .
+	'2ApVyirCjUAdkKSzc/D9cQl8M+vyYy48RcSPaZkTnVRkO0ootLRm58OmlMhOQhZB0S9o8Ko+gKAzMrNVKehn0OnNfDMLzZ+mb3ERWhga9YWwL/' .
+	'rE8k/vClo0T22RjFIrO69IBztu2ukHAwCN28uZAIOk/o5mbwpmWnx+lnLntsdVuIRBRYwTVMv+6luVuFmq2C1NdN3k2hnguyYWyu5lev9CRYTs' .
+	'gQHyRUgPWLwAOgB6OYBrs58wJtV1UaZdQ3YaLQj99H21WKCDymzsX0iRgXVCWBa+FlVWADjtedYdeknsYg6KAB2UONc2x6QfuI04wMLXbhSniQ' .
+	'g/UUmVr8ts8qfg+KwklOYSUT8WMg9kEkz84gcKP+0bZDrkqPbUszEGJ3SE9v26seJiG0on2k1OsJrGa7GC8iSpNEZNUUuwKC2Gx/qgYKRZ6kPy' .
+	'WMZNPOhruEucqfntYrh2IGO1DqUeWmt9i4EAd8OSFSn2aNPxKfBZwhKPk8PZZAE/knI1Y9MS4GYviQRGOckMPsJC2jkSauDcoQmoXTjoDIpDhN' .
+	'UiBFWddW1dMtXahyej00TkwUxgglQU4HLRNUiXtUwslMTLBmBKCDro4niINGyT2dZ5qrZOgOBmYqt0Z+7UXgXhEicr1gcfqdlTajtCz2Oe02z9' .
+	'T6cXK0w/wTjZHGLo2qjtqIw2oEUoXylmLmZp7ZdoTog/8Z1xQkGyhJpMlWBA5OvU1ol7qeAYLXNHfhpSs2LrJwzBWjbJ0zqLLDtndi/wUHHDAT' .
+	'h3GwtrH70/yTWlfOOx7WnkVO+CT3Dpsk/GG9+YL1RZY3GeZuf8+H0RPL2RJa0uZVGBd28f5xF3hxIR702R1CouytR1s5k/Q8UloG4lwpp54AVW' .
+	'm7Twc7zpW0u56JGZ5hHZMIDrW2XlRvsPY6lsuANFCm26IWaR7yjZdYeiDGOL1rWz+7j4Mhen5GTq5zo0aMhRernsXM257HYphYyauP0828VgLq' .
+	'Q5/WuB1WnstYiDTRHNnyr3FDmeEsPofEeqT381zTBODPtCxk1yo9DkFMcOfldJ7A43RVIPZKxfmMK5soahvCY9E4LMsukLMm955o5jrWNfcO8D' .
+	'rNpLQRp60+3p/Mjx++9Ie03D16QnDhCBGbnGTeU/19ejGXVsEzLKt4rm+wa18+eS52ZyNyi8woNxXgqdqZCtFnNl4JEUrgw3jqpR3mhOMoT6Ew' .
+	'RA9h67ykYbmldsmtItRdBtHpPEdqK4aD2rDKVu7qo2yj5AeaIifJL2111OoS2bRAxNidgjfCiMf9mfyZ9b7bVr4FKbXVE6qqFARKiPbPkk6fRY' .
+	'ENE9/R3xO36UamDMNclWk2GMKPy6QG9a4/mQju+OrRkOxQAzWZaNbsOJLf9zdpig8nAaBZ0c9ZNek5uWhXOwMGyLC+lJpiADf1rqO40137YPXp' .
+	'9L8DNne1XDKiEwXiLZzxxGjQPUv7QuYFqDoWbcL+ghlZsczdRjDO4DvlXwwEXmUCHSBeKLgi+xsRfCoGJMSNnJc8c2CDhj51OHrUxdIA9TUclB' .
+	'nrkv1w4tvtulYlC+qvtWIf0Xg7osB96ebsuXtBPbKeMhrFJHTcDoudb2058RzU1/hzVixNc4ai+JVnXlWHQrS2Nv7O4ZLpoB0ZCUzNbfBg7mZG' .
+	'U6FrUPqkn9NklaunsZnc4KHWiekrU8Qy1R5yUHij5M6ERcQ/YEE6DSa27Qumi6j455bUfpCWTzr/Zyu5VU7NNHOGi3Y879DLkaZ2QQcVSnAZsb' .
+	'pv3nPaubGneJcRz5jvqT0tKSrWlVpEZmlApfh3iGTkrvJGi+HGnrZmrZn5TB7YiCJa5/BlxYEgQsJgHFh4OuIPuCuGT/ne4dLiR2M4RsEFOWSb' .
+	'76/VUKeH8otB8/EMbkxaYGJP0vP8kWrndgEdaICV7WTsHiM7vtbRiyZQSFoV7QC4yIAumni9yAyORYdXjqJqvBpZpANdH7QyMaMsPl+99T8Bqy' .
+	'Nrt0sinx2aJsAVD5RGs+jMgWUfavF1xl+9L4EtwbDGUUXJvnV3MHbyCaQaFW/BtvW1C8sPpn8bL1e9nfTJjqklb8J3V5YZowegmT4ghfhDQFoQ' .
+	'uupa+RR3QFw+X+Jf8cqspWumIT3OU0jqn6fmBeD92Whtac+Ygon7wIM8WV6QHMy4kBMe19UcuLHUc5OzlRX0NQ8M3UP7HUze7lYSSKfMB9dU5d' .
+	'Xf6HdW3n8nfTA8nvnwUWzolX980iGV0T3lUuvn03YMQBL004/LHOSI/sWQeqvOrd3k/gnKD5Yk9IispUUxAK428U9Rk+BjHPW0sNSK6PnbOSqu' .
+	'/5hpeSxIyabzo4aZ7sayK1FRkjMWMZBRssXS4CjpYdJngaY4rJU8kNLnZAgNgjVeYRs6OQVLCCCkKIUoP0dS0Mv+H4U2cUQce+xUV1LO4U9pvg' .
+	'AUqzxLvZzM4Rg5XAvF1o+50glwRaSdjxjif3wRnlp33OMUFm2jztCiPbn951Q10+tSJUQdmJlnmlV3pEaNxXKGRPqj0U05QjBnQF4M4jcZi4J9' .
+	'Y7/O1ApLtZDZCKArFHGhEhL9SC3aSN+7yUTUdxCJfUAXfanYOR5z2JSd9wDOM6A3KH8uDkNgehLUSeXZc1TC7X9ViIUm8ey1XhJOEteygeoeS4' .
+	'UAmDu1b/6HKkVyAuJIBsykqXZQG93WLKJIT9DsNE6XU7rmig7M2O/mOZ+nfZG9p2c64JWpxFhJhVArtz0NJ/mQQ0g+CX24Y4TwAMzdqDIGUJGl' .
+	'NjfcmaItz+owG5OyRAmdvZ7ApsJAmJyTR0viu5l0+D9Yog+knVvcLw7BEFN/42/1rCZ8eHPyLaqpukwCnvT/OYyJrKEFfmmXXbFM6Zgn/3kz6F' .
+	'gWEW5c14aleo/7ZVCIkTNjJViGzf1XpGzgLFgntY64X7OMQ+A0kX72kJ3BbVMw1p3p9ACFnSfpNDt8PkXG6Uo+0TucgdjSmnM9ZE6v3MDSWvO/' .
+	'PQ+SXQzCxkIXd6m2jzv12mZvyk8r5G9FqUeHopElAmtTSFH4JdWFR325Q0EXR9dQ1q1RYY3p+N0TCx8p75cgj2QLOtPucUZCMBQPnkwfpLpFSG' .
+	'NwqYcTCAWFekW/9LHYb/ZrJX2EkjP5+7XikBdae8GWoBtuiThkI3+46FsdD6xFXMaMylIN8KbfyZYWZxiYRMYpZGTLcGQPG9M6SixTpy058+Zz' .
+	'dyXLoLwz9Hup+ZlKf0QDIIG1NTcOrutK+Vm/mjcLBEWT9Y7tN55LB8HPOrYfQOcnbuZ04JbCPWuYLkSblvQSx1AfXebf3dGj3dn/aEGXThKsNw' .
+	'llfUkKCVwcaex1WJEUIn7Vy3yQ1Y7iSeLh9kdqhoDH4ArsPQNAeafsT05ARwtJFg2GEcljedBNpTUud/Imr2u2hd86QX+yGX2qP3ie2mOqDXEK' .
+	'anmUhry+xQwnmVjfCbHE6V/RHNyc5p3jZGcHb6Xed5k6oISCvAdyZzJ2RqLYjAyUOhiNUB8G3Q46GIGgU1xtR6caTOVJl9bDl6t5gdQJYZtXnd' .
+	'ScN6ZGordpGwB50tzrSqlFg5wvXZyfJO17ugBzxZ4C0NI6yIrlNweZugTrWQgAVyo1b0qTRuKoon4RArbRNs0BvuJ55nWZXfKMBU733xaVJhpI' .
+	'vj5owzusH7hheBfuE2lh2eiAk0V0kLwLFsSXhV6+ddi0FCEp0W1yCY3691OcocApgVC+SUJKvXCDQgiTBVO44P3XVE9MGEpk9gLbmw1NBzr3cD' .
+	'vIIZa0XaE3ghTguz7TWZ6EBZ6CeUIzPRRs6+f8I+YPG0a9OPokOzXAn/GoAICrD7Ynmgw4Na97UELQUP1obfTmKvIgawnGIfukhdIORQ5yDrbj' .
+	'/CghBFW9QSRlK7uRlJa1AiMRUv1WOC2Iniz7JNhUFCBuy8soR66o0Wk7Qxy5FYVYnJp+wLC1dkMYIyHx2jM6N9jcwnbpVpZhxRgT1F+2HJSbSl' .
+	'pDGHrvwUluPhwJHxbVdCLf+fn4ndDh3evBlHxYUSi4qlKEZKAlrkjGH7pWlN2BIxidRpIgqrv86fxdoctbeeGP/V55QPbAdH6S0rvdxEiEpnPs' .
+	'syR16xPCLm+GYcNg0u6tUiPdLTTxMSe84D8aR9yVFkVNUZl0gITAeq6hKbXLtHt0c3KZc3gLdWQ4viL5BC71Dp+5ci4nFv/fVwpmZ165pJF3lm' .
+	'ycwH5r9gw+xVSIxUXEnDXATPK9VdxihylMvkxjqlofncxasNuq3DwYA0+1QLQ6raSOGicSbZLwpbSVjS7yNxLnGN2tnp2zWKq6+NirpZvPKSmv' .
+	'Eyu+NR1GDtvxvcvYyAOjcqutTW4t2fLYmOg/MCGnFZSdH0RkC5c8sFySVm8VvxAxOpw4STserJynQQsHGV7DAC3+nvqOQJlHj1PgEiRmKOYLgi' .
+	'0ZEPUyOJOxaVJPFcacBjbR55rIXfQILwEmw7RchYkx/1EjvyJHa0I2g8qDFTGA1Y/WwkxHg349csvLMwxnfOjoMIA8VUfGwoMqmllb42fFPdNo' .
+	'HNcN9O2gOJ09WziDusmjZYj+jjH8LlUWk1wnG78aJohrAziC6/xuZR+81DK0GB6rBucmoFOZmjRobPAVQUlLUhv39DnMeEOhRRNYZHLoxVhP+k' .
+	'odelJzHYec3DiETuh2J12qom2HpXq27yw+MpNrZiH6XJXaQ3rmGWp858lpwa186LsYobhxlwNGDQV4qkEtUtuVkSL3pCrPu9ubni0t9Vh9uKAt' .
+	'3eqX2g05ru7idxo2u0b8wftBWo0hTLZw4bZG85xRXFH65jaZKnZD99NTyo9GEssYkL7+EIwNzPs/EOn4qqrj/rIxRQ5oZWMseARUSeBb1KW7sZ' .
+	'+ng8HziMWxG47eQJpvu1+SLKR/hCeUKkMTjsl0z3+pdbXw0zQjrYXDSsaHyFnOX8ninLL0lwSFlemitGh4tDfZuE7NE36NrkRLXg8DllK4Rhv8' .
+	'owTxuqncfKZBDWCV4umWoPWyB7UjWMxtG+/m45dJe/ORTaGH+Tes/Qfk3luVkDAs20b9jtgst73MiV1O+Jg90xziAACBv+eVo9LvE4C1lLcZgE' .
+	'zdJlwxDOGyawKURGdfjVuR6LIJO601k5t4UULTJkjJKfx3a4vI/A3gQO6cUWYKjVaUwWhHqVAnP0js4YTozwYL104Q9evKT43dZCi5QN/l3XPY' .
+	'O23IVGR3qx4omVuNnJouYfWPkkIXTcYcIXrPJDUtmcbGRMo9RgxVArmNhrOxyRfmByVWros4iuz7wc1dMrJBevcPDPa8wg3eZcPKhjV2Gn73QS' .
+	'nRrwqWokMN1v9VEv5O8m80crpNdHt6zAO/xel+gG3K+0fZ5zDktQrNjIkKam2xK7+AUADE0yUkYiqsW2NJ+fpE14H7q/lclVB/GYVIgDQlvERB' .
+	'nwSU4hyroYYJnj30styIfqg95Ey1KI5edgkkjllVYPKO/cFuwNFt9L5wagnNk59h7ZTCpjjGbHz53+Tbm/G+xl0T0oboPLDqcUblk/KytMLPg+' .
+	'eBGw/6FAoQ1M47/qvamo1vhR+/bo3CEK8ab/gmFb0+h+1RAN4Cpl58IPIHx0Qbn+SxGb+VyyiMgMLsV53I5wbpi54O0Kcfj3lCeGA86gYIamFl' .
+	'eI19zKPvqZbHxahfZGL8MEU1nv5YQKj5vrLD5b0KPH+QS9/1wHNO7d1/pf+WncKPOY45SSaWnfPPHYWJWbP5RcQXRzjNceNUTjskZdbhF2nFWw' .
+	'nI/5DkmD3W17vFIV+pmqN017XliRTdeflZrEGj7riEWtlAbHI7y+lZvbomXS8/IGfxvLBWQhDsXs5196oHI8zTU2E5lutqJT9zcHL8lKn5DmPX' .
+	'4d/t4zihy6eTvqcdJKBKHCfIpmVr5i4jLAnLWIMvQ05uUrdnFeQueslLh56upFf7N/9sKKpcXz/3PWYOkQ6ev8lHaDYQGac4fqVauv7UTWEb5A' .
+	'FYyyQC3UJujvDpwcctOTtHoYnLWO7zq9ZyNXO7L7q0bk8Pw2qbACjVpT+wF70RgroctPZvOVdgD07gFC4mymCfKChQstkQwGvOzTSCTRBo4QgY' .
+	'mI3wUcWHo8vmEs4lG18W2PdtxADCrE2MrCSpS/XYtOTAYOBPr8LayqD5W4u05y/MnQOEEZs7iHPo3f/lXXjk+4mGT6H7ek2vxnEdAHRxheVNBx' .
+	'czPtwm7BcMcYbHAppSuzpEv5T0fXAqZqpGij1h3Xf6LQgLuPAvTGIRw9Rwj3jQEwHMTm+DdYR5Tf4oGiEo4af6I=',
+	'6bf772dcde1cfbede14c75801d30819e268dd498b962d00b99a98b8d6e0d1d29'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

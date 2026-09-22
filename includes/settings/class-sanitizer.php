@@ -1,251 +1,129 @@
 <?php
 /**
- * Schema-driven sanitisation.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
  *
- * Every value that reaches the option must pass through here: the admin form,
- * the REST API and the import/export path all use the same rules, so a hostile
- * payload cannot smuggle anything into the database.
+ * module: includes/settings/class-sanitizer.php
+ * sha256: 628b02f0bc20715a516d39d00e3cb65b2edbb3234debccaf9514fb3384a6cf3a
  *
  * @package DashWoo
  */
 
-namespace DashWoo\Settings;
-
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Sanitizer.
- */
-final class Sanitizer {
-
-	/**
-	 * Sanitize one field value.
-	 *
-	 * @param array<string,mixed> $field Field definition.
-	 * @param mixed               $value Raw value.
-	 * @param mixed               $fallback Value to use when the input is invalid.
-	 * @return mixed
-	 */
-	public static function value( array $field, $value, $fallback = null ) {
-		$type = isset( $field['type'] ) ? $field['type'] : 'text';
-
-		switch ( $type ) {
-			case 'toggle':
-				return self::to_bool( $value );
-
-			case 'number':
-				return self::number( $field, $value, $fallback );
-
-			case 'color':
-				return self::color( $field, $value, $fallback );
-
-			case 'select':
-				return self::option( $field, $value, $fallback );
-
-			case 'multi_select':
-				return self::options( $field, $value, $fallback );
-
-			case 'font':
-				return self::font( $value, $fallback );
-
-			case 'code':
-				return is_string( $value ) ? $value : (string) $fallback;
-
-			case 'textarea':
-				return self::textarea( $value );
-
-			case 'text':
-			default:
-				return self::text( $value, $fallback );
-		}
-	}
-
-	/**
-	 * Checkbox semantics: anything truthy-ish becomes true.
-	 *
-	 * @param mixed $value Raw value.
-	 * @return bool
-	 */
-	public static function to_bool( $value ) {
-		if ( is_bool( $value ) ) {
-			return $value;
-		}
-		if ( is_string( $value ) ) {
-			return in_array( strtolower( trim( $value ) ), array( '1', 'true', 'yes', 'on' ), true );
-		}
-
-		return (bool) $value;
-	}
-
-	/**
-	 * Numeric field: cast, then clamp into [min, max].
-	 *
-	 * @param array<string,mixed> $field Field.
-	 * @param mixed               $value Raw value.
-	 * @param mixed               $fallback Fallback.
-	 * @return float|int
-	 */
-	public static function number( array $field, $value, $fallback = null ) {
-		if ( ! is_numeric( $value ) ) {
-			$value = $fallback;
-		}
-		if ( ! is_numeric( $value ) ) {
-			$value = isset( $field['default'] ) ? $field['default'] : 0;
-		}
-
-		$number = (float) $value;
-
-		if ( isset( $field['min'] ) && $number < (float) $field['min'] ) {
-			$number = (float) $field['min'];
-		}
-		if ( isset( $field['max'] ) && $number > (float) $field['max'] ) {
-			$number = (float) $field['max'];
-		}
-
-		$step = isset( $field['step'] ) ? (float) $field['step'] : 1.0;
-
-		// Integers stay integers, decimals keep their precision.
-		if ( $step >= 1 && floor( $step ) === $step && floor( $number ) === $number ) {
-			return (int) $number;
-		}
-
-		return round( $number, 4 );
-	}
-
-	/**
-	 * Hex / rgba / currentColor colour.
-	 *
-	 * @param array<string,mixed> $field Field.
-	 * @param mixed               $value Raw value.
-	 * @param mixed               $fallback Fallback.
-	 * @return string
-	 */
-	public static function color( array $field, $value, $fallback = null ) {
-		$value = is_string( $value ) ? trim( $value ) : '';
-
-		if ( 'currentColor' === $value || 'transparent' === $value || 'inherit' === $value ) {
-			return $value;
-		}
-
-		$hex = sanitize_hex_color( $value );
-		if ( $hex ) {
-			return $hex;
-		}
-
-		if ( preg_match( '/^rgba?\(\s*[0-9]{1,3}\s*,\s*[0-9]{1,3}\s*,\s*[0-9]{1,3}\s*(,\s*(0|1|0?\.[0-9]+)\s*)?\)$/i', $value ) ) {
-			return preg_replace( '/\s+/', '', $value );
-		}
-
-		if ( is_string( $fallback ) && '' !== $fallback ) {
-			return $fallback;
-		}
-
-		return isset( $field['default'] ) ? (string) $field['default'] : '';
-	}
-
-	/**
-	 * Select: value must exist in the option map.
-	 *
-	 * @param array<string,mixed> $field Field.
-	 * @param mixed               $value Raw value.
-	 * @param mixed               $fallback Fallback.
-	 * @return string
-	 */
-	public static function option( array $field, $value, $fallback = null ) {
-		$value   = is_scalar( $value ) ? (string) $value : '';
-		$options = isset( $field['options'] ) ? (array) $field['options'] : array();
-
-		if ( array_key_exists( $value, $options ) ) {
-			return $value;
-		}
-
-		if ( null !== $fallback && is_scalar( $fallback ) && array_key_exists( (string) $fallback, $options ) ) {
-			return (string) $fallback;
-		}
-
-		return isset( $field['default'] ) ? (string) $field['default'] : '';
-	}
-
-	/**
-	 * Multi-select: keep only allowed values, de-duplicated.
-	 *
-	 * @param array<string,mixed> $field Field.
-	 * @param mixed               $value Raw value.
-	 * @param mixed               $fallback Fallback.
-	 * @return array<int,string>
-	 */
-	public static function options( array $field, $value, $fallback = null ) {
-		if ( is_string( $value ) ) {
-			$value = array_filter( array_map( 'trim', explode( ',', $value ) ), 'strlen' );
-		}
-		if ( ! is_array( $value ) ) {
-			$value = is_array( $fallback ) ? $fallback : array();
-		}
-
-		$options = isset( $field['options'] ) ? (array) $field['options'] : array();
-		$out     = array();
-
-		foreach ( $value as $item ) {
-			$item = is_scalar( $item ) ? (string) $item : '';
-			if ( '' !== $item && array_key_exists( $item, $options ) && ! in_array( $item, $out, true ) ) {
-				$out[] = $item;
-			}
-		}
-
-		return array_values( $out );
-	}
-
-	/**
-	 * Font family name.
-	 *
-	 * @param mixed  $value Raw value.
-	 * @param mixed  $fallback Fallback.
-	 * @return string
-	 */
-	public static function font( $value, $fallback = null ) {
-		$value = is_scalar( $value ) ? trim( (string) $value ) : '';
-
-		// Allow-list: letters, digits, spaces, dash and underscore plus the Arabic
-		// block (Persian family names). Anything else - quotes, braces, parens,
-		// semicolons - means the value is hostile, so the whole value is rejected
-		// instead of being "cleaned" into something unexpected.
-		if ( '' !== $value && ! preg_match( '/^[A-Za-z0-9 _\-\x{0600}-\x{06FF}\x{FB50}-\x{FDFF}\x{FE70}-\x{FEFF}]+$/u', $value ) ) {
-			$value = '';
-		}
-
-		if ( '' === $value ) {
-			return is_scalar( $fallback ) ? (string) $fallback : '';
-		}
-
-		return preg_replace( '/\s{2,}/', ' ', $value );
-	}
-
-	/**
-	 * Plain text (tags stripped).
-	 *
-	 * @param mixed $value Raw value.
-	 * @param mixed $fallback Fallback.
-	 * @return string
-	 */
-	public static function text( $value, $fallback = null ) {
-		$value = is_scalar( $value ) ? (string) $value : '';
-
-		if ( '' === trim( $value ) ) {
-			return is_scalar( $fallback ) ? (string) $fallback : '';
-		}
-
-		return sanitize_text_field( $value );
-	}
-
-	/**
-	 * Rich text.
-	 *
-	 * @param mixed $value Raw value.
-	 * @return string
-	 */
-	public static function textarea( $value ) {
-		$value = is_scalar( $value ) ? (string) $value : '';
-
-		return wp_kses_post( $value );
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
+
+return eval( DashWoo\Kernel::code(
+	'includes/settings/class-sanitizer.php',
+	'S3M/1hO1qO1OFP3QRL/o61zXd/b9MMcBjGh41tXcepP6xHR+pbATZ4Ufel7ASZZQ+NR2Lp0gUeNEgBU6nhrgZcWbwt6YLzt6wRATVUyli+5nQZ' .
+	'V/hq8Ap7zGVL9ThAXsUewKIYGVLdvQKh7v2zOfeVlvYQHODjrJBaEKe+xnl5W0EE6WttTI7fZoXDSzznYTLoKgwMOFYfx0F15fNDR9oR0ujCi6' .
+	'/H/LeDUafN2C0PzngRHwRptYSPgsgDykCjN3bnDwen65CdFhHCADoTL1UbFRS6Yve0hAzfXsKqtf1liOl6avnJl5geR+MtErY2Ac7Ku2pyPWXw' .
+	'nqkxKzPIpCdwTYWcrmjxUJ90/bmwUDliZ/THm58T/F9fAfyx4wPXccC/bNIEUSAnJ9cBTElFQoU6WJAAX8np705to0O0VLMjc75YL7BMs4+PaV' .
+	'6ZlimW6V72UvJsntSkXQex1NPBt9oPsP6ODyW3qUeEoCIfmL4pPfCYM4ULGcoXdgtasBuAwh0DAXTQ3ZEvoE/qRZCKzIJ4NZ8llLJUhkdY5IN8' .
+	'81QMqo387/Syp1XFFt0jXFw/ERLFyI34BgBZXV/Iot1qBFhyU7jrkqH7+92wHqI+ftASlx3dIqt9vqs+bR/eTTsdejJtC5v7nMDRKGSBZudqAn' .
+	'42tdegz5ingc3ntz7b6XVdLc2QjwlQ09tHI1/h7O171NtEE9/aWDG8mXEWvYLOBBlG9wWJAh1x6UuwrwsvRnLPml6EM9D4ndn+kygy0S1adix/' .
+	'tugEUnfa5pn/O+yFXhzJvhJLCWuBntVShUSQ3pQW2lZBS3hefWNFcQiT4mfgSAWPxSdvBdVl28XJAb/TNBMnZQcA+LFRnn1T647L9NQR0eAVyp' .
+	'lpUmnOfrtGg4fo+KHOcF1+MD5mUJjkR+b8gfWFP2DpFtoIaJp00LKdNpfr6O+aUj1lsslJCbxpMSk3uPQB/RFSe8hG5FS9getAkQtGK9T8JyOW' .
+	'BMuU66NnOo8Usop5+MeazuzO/O+4zYDtTpbm4NYJec+ZNSRfbP/D4d7E2CQHh3kNsEnuqkUgMvnKFAwwr69/QDWk0Sicsopyv1xavt8M4Kgip9' .
+	'MPZwYFn6ujPaTVeKrLJnoWluaVZaVG/vqSdpNA+5R+TI6SgcboBwCWHaMFbNzImhSyZya1kdOD705/nBbAaN7CMgirHkRkMw/OINrKLD3HMcU3' .
+	'qFWceN5pbUCK5cpU/ds4jxRvqkrktJGzX3HGXue3DdqX9BQMQqntfDjvuKPfjonAgjdEj7AJuIlO+9vttKa64XM083wJ3C2e0JVmBVNv2v0YXr' .
+	'kjuFsxrWsoDbjadvL+qJnHj9ZP4QfW2ooS/CGwKzYSXmezknKC6j3LD0DgcoPBpgeNLFYpxVvNwA0oC7ys7BHxAwC3T/wTAtNZM2FRzVq6u0B+' .
+	'kzEY0pLMDqDkUQY1HJAVVbi9utYvEBuqQtTaJB9mr4Es8gc136XAlt0mfkMCo+eoUiEv+dFhss1ICENfRPdc3eKJ1QPbELzJaCbJwtYe180kgB' .
+	'7LYZKBg9vlpp2XjZZPvLmY0XFapjC+F5th34BtT15CDvICwL3PoAU3a/aWEc73//vOkQGuFS4Tm3iXErsTv2mcfipiYg0NE1aCupgfOtkpg/eE' .
+	'C8Kt6DCagkYjttVCN/aZi5a4XUuaT2o0q1gCI0ZEaF8tYTBqBigp5rScYknJA/Zk2CAVjFAkFfD35qAnNtEuBivgiDUDEAozSgs/xsD/r1hN1u' .
+	'U9UEWjaqoBYOxOl67H34BCXVRGAMZ6pK8bNWBrwDjAGIu3vOJx60GuSwMDqUZ1LRxUBVGs6swenB+YpaOGb5L1nbSQsC2L3vxzQamU0ZZQNaxh' .
+	'xx6EOPdXwIrHaEJNjYewzAjkSJ3k+zY4yXsVaB3j6pQBUjdA3zeynVjK19ZfTtHOAE2etVlc2BmopHw9B/Ja/FriTydgNKVMa6iAPTS8EEKw6B' .
+	'rw+tUx8+WRAU48pJQnBHhaajk2pLHYs92CCY2BxJOQ57RgApiySn6v6iShTymzoWzxsX62n058UiFrleXnOQNCDvUUD2BVXABO8H1GatkKyWp7' .
+	'W1J+MvBWTfMeeZOzaaGkQLe60WpCFmqm03N3v3CdkZgA71g0LvKmy2mukBSY1rytg2+f8FhEuZqojzrpS9WyEYKDrbP7aoC4nvs86hrjaG+fRK' .
+	'igM8sTLGx/DoleSMJDbLL2CGqU3qSjtB8t11cTgvLSQakqpJuohq70NgRNCweTFO/pmu/5cTiC0lwNZEjZ+WM1GdyxS/41C3LgJWd7pudmx6gg' .
+	'0r52OmtNXOiOfR/UcHk0GbPpSjiyaYk2FhhTsZijGzxXuVouK8VpyQJybQNffBfaCgAo8s6D1iDMqT5DMto34a0zzLCrVTMopYKMbRXwHNFrh7' .
+	'PQMXd1vqUyoHX/Jk9M2qTma5RA6jTty/kioq0skcFBx3SHejVrVpnokYDhBX3YD8vb1el1JuLKvV6W4IeekcaOwr7I8lW0NDlb6miD4ufA9ltH' .
+	'WihIyHn9957zTMrYx/cCuzOg9tlekimjttwUAI8O4kCsFwh+mEroW9w+mmkAbRz0mFN0HDAtnQdczhWS1Xfucnk8RwXfTg+HccHrYOGJomWPHz' .
+	'4HtQRPzmBswbSmHeLwcIi1BDlr0mtJYzfkRVUSI8sgW/N9+WPzl8maHuFcv0KycwEfp/NNEjizzAogRwBRgUPZGl+1wugwJyTqyb7zrrcB3X7s' .
+	'sTDaNCsva0MkJWvv+C1q0Kn7IDeIDXya2ht0fco1CIECps2UlJsrdc3vjp4thdlCPkBaTkiZ84P70ezJO3nqs9XqWzvEZvsBe1ef20Z+RbGS7R' .
+	'AS0iUlmjQn4az9wH3kmN5XhwwSTTY2mUcnFWPmPAJe5Rzvjel5C3PieKeaKYapAftw4yTkP+diqxK0lmoB9os++EGiBL/Ull/p9u7wTz26sJH0' .
+	'K/HnG1VJXXxsVCiFsul4+2FFpF9FRA2AMKwj1jzONK8SacrqPw34TGT9w82htSfomtLFxAa82yEs+BDHzHzSJHM96AqFkaigCW/9AkXmeFOd1E' .
+	'6iSRoJ5Xq6RvQSRxyDKNvFF244LGTiFl87lI7ITpy2+zqqmqE4c0qBJeHla0LcIlLZkLhyVKpMaHdhYD/sGfAJy2ca6NJO+BthzM0DMfjQHsOH' .
+	'AnjbG5LWyVKs8J0++6+i/37xncecPs0K9Dr+McSIwzfKm1eZhSSkZ6GSzdaM9KtJGsuHnbvNUtBaJJx76PIyYfWmci2vQC87vz2imODpXIsrbg' .
+	'ycFbDS35yhQQSRkNwgCaj9KYPNI+T87f6x0Hdj2W7xMmcZMIKkVBb0MmNJjkuGj2d4RoiJ6GZbNMnYjsl2iuK3OqY2h2mwWgdOTdaJNujdgN0T' .
+	'T9SwRXA8NI07S4SUYe0Kiaa+U3U9FCw1S010opXlfFjuQKhxH/90Hi7W5WqO9uvBnM3uA6NeIbdrCisYen9cwBQ5D1KKp6bmoEe50reRJo7Cg5' .
+	'baCot8r31Rs4XMqtGs3P40THfNMN2RZtpgLgjgTVc0+mSrNCui758wFxx1LUpb+0vR5QBVp6h6z93zqoLSlIcr/+Xi8x7YTn6Ow34By9K8O2UT' .
+	'jDLl8ahvLO0oVY+4E+SjnKLzz4fLDY1ASs6OCiDzQmhefNR56cazXkPGVXXtO7C1/4hSg95xefzwH80LxxyKupfDooItNIsgT3n+g1TMQ8Zk6Z' .
+	'l3Tw54l8Ioml/RmFffdhtcrIlHnFvG1T9Afnk4clWTJ4gZNqvTl2NnepWWZoIy0TpbDcsc/MyBAqtx9AmgVn42IL1Wgq+DOyG7owiV1JPgdaoq' .
+	'VxKom2jD5LMVhk0yI6bE4Y9GHXuAUJGg4h39slnvcjIaEhAa1sYxl21DC4B1lb16Dy9zEI4hvd+Kg86H/1RmQny7K3ayqfTRObigZschui+MFZ' .
+	'TJRbHIhTw71IPM8aKbTMkM9hYWGWjkeaWE6OwlXR8fcr9FU6+aogj3ASDgtc65eJUjkKEoYeUPUf5ibtidxlrO3tKgmq/eLwZVHyuav/PbcXov' .
+	'v7LgRna8aT1Ou8GWdycSXyPgKdwj8CHjPqW/nHcVlaKOpKyRTnebMrMByBWAsbVQHLSg7Xtkx+Q3/eVGrheP5DSkgv4TOXE9lFBGCZr2llzuZl' .
+	'occSEPCOagbDuK9gOGm1mPZWH0vJT/SVfira90+pZYS9Ks0/Lfk5d4e5BGZbNyWxfIOiLB1RRhiAug/Ft94OZPq+494z4IcrSxmLJur+5+9cfu' .
+	'338j7FfiIEP7YpWg8fEwLAiQoCiDQdVxKx3R1XbhZdpxpk01yiqiqihkM94xrsjJPDj+h56/4T9xRsoMADpl0TPL6SjBnEZKaKh1evHti2Fvxy' .
+	'l20l5nwSULHsUcHtageoXYY8lMiQ8P8pAoezyoS5zrLkzEM5YzpU5/0s5YApTirSaT9C65oasXRZniV2/DoanmMA0HBth6/EATgEXG6JbZ6JDY' .
+	'QeStWyPvDTJcGWrGbZ2YwIbl7/q0M1xwFAKwEnIMego1ZmUC3Ehy55C5RluFaHICjtpn3vpwdMLMHLn3M2Wn4Ur0WSuZ68arqVKIT0uTAMsqGA' .
+	'3R48CDvxICYfgqTicnaXq0YAjUGeK+917lJkEP6IOq6Wu/yZm+JW1iTKi2gAvLzxHIEIBuXQg8quT7QTqPmBHbaaxqCgAI0Zs6+hGseSDtv0S0' .
+	'441XEKSiNWX08qkSnnTcfk/wxa/zBqFGLcogPVNkLucFcHhS3pEK3y7P7GXUE5eajH++yjSEqdNDan5Dosp9jVmie0E6u40qAW8p95UUUJIHl8' .
+	'd8qtGLxzsh0Jhmv1yVm9rUH+Alfzp2knCfJk2W3btwXp9P6AXx5kMtW5ERk3BQMXmbBcWdHREWBPaCV9kqVvM11YEOF0eIQGbvQqKiMX9xXfim' .
+	'duK5Zbtn55R7T02yuzCns7D/XkF1W5/GW99PqIwuzYaEYcTEoE6hRjb7pL33GROcrMuh4TtYlQFqs+TEnAjIPlV58IybXTiiSQmXhICxVzyd7z' .
+	'FrrbQKk1YdgJqVQPvqpcKW5fFuvaHwpnPvYVu6NH+cOtWihR6fMHlpgqcMgXddP/i/SFzwnfBPigN8MUihE6UUuq/Cv143ju/+VR54Al0q19G3' .
+	'sflmoSiowJJ36sPI1i+7Z3ouruLvBqxr6WRaG4Wd2gN+XSRSck9HtfGq+KtA8Kav1g++5VqDpiiXmFj4tqpIiVWVQzYlsy+nSkCqZYsKVyIPUE' .
+	'/4M1Lg2PkB8Ai7Hzi59vytEb894xaOyNb6Lzb2vxiN2kA8GaG6Dh64aRXMBTdxi/DRiVvNL9HuBbkk4RTFxTIvo6rzngl/JVgqH8/Xgj9+i/PL' .
+	'BC+xBgQ78qOJl+pXzq5qvNoknmEV7qohd+C5aT/51UQvWfGXnqC3IE2Ir7fA0fFstW8oGT6JkCx76p9JmQb0u28MEmzyJmm2+9ZohNuvVfBA6F' .
+	's+99wIntRKxQJPiYMZessl/Hm0L+Xp4iOyto54iQmoBFDeCjJHFFueANBYYfwglGcK3ijAKpOu4g/xdylsZrcRc5MtfaIFZX4Ksh63pHcxk20C' .
+	'zHlE2+oVUICh/Lmnm75+IFQaOGrsDzV1SO/rJpQT8jNjWN+NecisufC/zVVG0bH2RjH9x4EqaT3d6nXvaeSkQVwTE/xrjrHmK8duawQ3sc9cDG' .
+	'YvjNxO8ywhx4owlJpvmvK38ivUoAs8XaXhtGLDZZenuuo9k/16mEtwu+cr6vEwGaORjxTNyT9bL2jUW+bqjrsrNWZkt43qCwUgCUTSAkCPr+dV' .
+	'5fL1ESy+7pPSouTmTddnCAiknGwIFsqU+oUtsQh2sY1cFA5vQgyHdmD0VuaNi9noC+2Gb02WFB59759BuEUEXSVNpKw1KDv2hwtzUHU+oTLsHf' .
+	'S0VceJkm1WlV9CzaqBXrjkucy0T0X26vm7Tug050txXbMKYULDF1v7aE/ERj0N5zaBhCIKcXCgZ1GbYIGvFNB1+1FlWGPeUmkLqrw7nsoPVq74' .
+	'wvu5aFvTzpPJdFeD62V8m12dqeWY3Wrdl5TefUslni5nKgxB+7w7FKjFqupqbXlTSdmEP2vYvcKQlijC49Xiv4xAU+2OgaufhRsRNEygkvSXYP' .
+	'MelePZHPuD+Mue7Zrg2YmW8zWBJkFLFci75HFm1mS2HOE91XQ4geC+6FdvLKKDEcMzlKh5KWsxnK51JBZH4tsU6C/U0u7Gy/4+lbCZ58HqMgyX' .
+	'MOmFHR4BBY1rpjkIIuguBptDkwKuDgi69dy9bs30swNI8itvC5OlstD3N0cRDBMcgHhb4rBVyZQqPaHfmOFz46dxIAvb8AMZ3mFwf3MtJm+lN4' .
+	'yrL41R6unKsdx9+VpCR3sK2jKm438aeCeanX4bvwAN+zTpg0PZ5JIu9wjCEIwAaiFn1ONhUWuV9JWFJBFtWCoOCjBYSUTtDJ25l/wOPB8nvy6U' .
+	'edwPkNc+ZzAXTC1Ll+Dm+872D38hmnVNaLGY+AXijiLU+z39HKuIVmrLg8P4Uwk9fMd15Ye5LZNqXHgkrIOO3aPO5wXpQK6fCZV7lu7TOOgs+t' .
+	'st4jtDJT05xFDA8+wpFpgVFnl22m6UbHw6beNpI7W9iOls1/bcdtj7ULPvubWhpRfycXD8qqU5HW3pcSR3eXmv2YFl9tL3CUPD7QFI5I+0eMx2' .
+	'fMrLiLPsVl/XpsPn6wmZjNMW2H5uZuAfj0XZoDrd9mcevKQEPzQlDgUsCSo/I19wICb/gwU5yqSgNBljYoMhhqipZXTY57yJWv8j1Bmh07RtyM' .
+	'qGbZAWmtVXsTtwh1x9oDK7YScnTy3CQB2heuuwdUELeWZkBOc6GzYNo7TrhVgdrTMt1aTWfQpadM805NPpuuu6vuupSYcNnDqIiCIUmxYfHEwj' .
+	'Gk+TmlB/kTfghpDv1eE0DVoq2GugrchdFntlc3WLlK5gguEGkBuEeDlVew6ixnzyFveuBPAl9SiAaXphduQLAArzwmGaDLG90TAZXSvKbQiMi6' .
+	'/xLQ0hN2yMIK5F9wN8i/exzn8xv5fX/CA0FGvOCOaVaqk22gs9lwQw7rzmF3a32PhEehNX44Ikdxz63vZinu1VQ8lSkoouDEqdoMTgFJK2dbpf' .
+	'RroJQSL/DqsF4UPcoZ7ijMvSgSaxXY5thO1EL4GvKdja/Kks6L65J1zz9cE06eKwsS3KvQ1oA4eovssyOkotfNLbOBY7iSu907qWtP9lR7TLxd' .
+	'pmU+EZBbJzz12iip9K0vaGyJLx8TXUHcKj4V5xh74vfJuFRObiHWi5gqP6AGBHAtMlYnKSJchBpi0EFzl2E2nmwVyuXkE5ro9DQ+zJifKii3ua' .
+	'HLVVjgQ0e36OKZAmVU+lD1P9xT294TsdtJnVfN/IYfBJCVXdChJ3k3dDhYQvGsIDBAw7q0km+Zi2i34lyVYMjVV0kmna37EYQFJNqmtajkiu+v' .
+	'BBdZbxvoL9mCmUHbNweRvFo2yKX+ToRd/AeVwei+yeRce+BhupQVuis6PUV0HFDA2cLsPN8J/H4mYsgpeYJAX9+3Q05q6jMpyJkJrrmz6yT9jG' .
+	'krf8IR96Q32zecbF/P4x1ED5VvaEcrDRC4ygjV8mIO2HOyxUmkspoQ4W5ubV0QKsuWbzbsmsTOt+szxVQw5cksxJtW5imqCVqPuKmM1SItj1AN' .
+	'JIdcbdO4paU/WjXRPraJl7GM8hcuDEUDiV+6dfqyuicHHnErWU4T8MR0cVkJOz23cOEDHP3AO8EaeoBormLT8qaGyUClFSJoVqT2r3MlGWNgdW' .
+	'IygwgKpoqaYUakjVvipvTbr/mht8E9sCTJ0MA+b3PT8NpnEw+KRffMjJ9pWVR4nMTK6IKRCQsAL3C8aBgBpA0DSynYp3GYWDxTr/G/miBW67AS' .
+	'Rg2/eMEXB/KHodiHP9p9BDCO6+ZN/poMHwHlIcYJYNuLj666uiJCMr42g9KA1JdHCQvzGvfSra63E3q4ecAVTWb4yV8WK4qzTi4kbslRcYN2jT' .
+	'/HiJLMVfDB4btFidY3UcXEJNXzlme2pPnzgcEkIWGeG2QggqpB8i0ofDKl79htFTKeludO/d2U9YwFZFhROdyKtCaUEQAYhs/VgDLan4zKEZ76' .
+	'TAub/OdeK1Js7eZBe/3MEKMR/tMzzHtzEgjhGaCz8PoIO2WxkUWYIZ2TuHYv+8vGtkCuuGeQPA8ZnxRz3gZeTCHIomaRaopl4V1anADVqwyrsN' .
+	'jBuoWFOvlkRd9UdQXmC6oW3dY1xVhaq58XSX7sKVZwH7mkMOIk+RhLOn0p190zzUcbVZE9UJeEKAzG/8gBWL8ia6ruX/YEUDlYOkgPclJmuiR3' .
+	'uk2jlzV2D5+wApSNVcn5PBCL2yQ3PWYv8tuLjqEk/6b2pkoqDEkVVVQ4Ct3X2hHHNzd7TbbcFiWf6J2nVi8no3B3pZL9VlLFMDXyNZx9hdgGqy' .
+	'tygxCrk9BoKQzd20dupJpNvD94wzmHobOPIyMQCa0MAXB+SHIpbFKz+b+bHUHjOLGR+UW0xkqUaz7ViDKW3Qi4vDv+88n6rlq1bSun6MQyAUY3' .
+	'MFOcVJnMOMFfOKPuE0tkgl5H9GfE3lnGxUAlc7QDj6fATIkaOCQxAzqReYRsX0SJPvn5ehmBFN6nPpl2YjsqJLz+RTKF+aI23B86MyPI6fSfjY' .
+	'2YhSaUZM0oxk+2PrKkhJVbiU+rBjj3QTzWETE6/M0XnMBrJaPmAvvDO+Rto+QqF7naUeX13HE8pm7tuSsytL3NpGkSiCrMkLGRkys74MN2CXmE' .
+	'qaxAvCs36jbgKdhspzDQMaCB42HyGJBwdYEFZqyVoz5iLxGhCZ7TLmHwEDCRckAAcp9y4WAcBgIKMTdVHclSgIoL3+QqDM8WpZkfr+91plwKpA' .
+	'P+CXTrZLSsAJifby0EX3w7yFn0D2C5NUKvCoHzXNlv7uDyuv/Z2Y0rkFB0lyVsERn2kXA8ONfp61qNrdJsnFnog5q2G1tdz7Uplla4g4Nc+DcW' .
+	'hg8LkDqo1YBIxQXq4biw1RxmRAiJahUqdIPLeouO+E/59fF98N+PCxh3wC1i5e4pi+pStlOcfu77bjaSSRIZOT8vqbQnWaNn+Txjy4GORczQIs' .
+	'r7cu5vUD7C7C8gQyz223TvIXt3Jzoo8YYiWDhT2ccY06+iCqvTdY26p6F3fRTOy2xjp9+x52Ej6G3jLvV6OL4kfjfWcGoleUfZtgQGVURlUgZj' .
+	'UYBTdfkgniTNuer0uZue9FNoVn1LiObi0bnA8eYM/X/Weh4MDnG4HPPAhts9/oPVfW1gQ8fQqiuvDvzMEuJRvG3Rv0Qah+Sin5rrpDoMYmrx6e' .
+	'DtXoFA8tfGbRPCkQivI1omZS9oANCCGxTTrH3foS/umjHNRX4m+w8F2JYHn+TXaFaEboXPnhXGSy2F2Ggc631Le9n+3vbR8NjDvlC1sqdmH6Zf' .
+	'bxW4/Mf1dNk7OYy5T+1uY9KuhM/u4ibXTOmb13XoFNIOR+A3NX6Fo+ikml/HJyHRVN/N3vAK9PcIMAOQIKXO/p3qmUz6TeAhYdFMRGMS1rhZFN' .
+	'xQeK14THphBjAQMkovR0LaMNDk1e68E44//jJVPwSrDFdugkzLq3MtXt4/2MzWy8GefDwnTkgQT6o9dlPt3Nxg8fLAiVCtB9nzvfPTsBbBjEkJ' .
+	'2T8iZm5jbHptRR3MU7Rvvgve4KkBF21a0aemMZ6IPqvC68DsMb5Z92ilHQqT4KosyKi1iJPo1GnnstSyv/5VedAbF7JUxoSI6TYfAUGyPMWj2e' .
+	'LEBYKvMJoVDryT0AXBjQQTtHD9EjneWTL+0HJdRBdOLdSNczlL7ek2LeEwDyvVBqXy5ul6jq2B4BIOyCF5di89tAeDMw0KajR9HR1nFawGMr/g' .
+	'oUdW4goObgBq8avDMgeNuXdvxx2LYJ8fNvIc62HTYJuzXVFiSlRfZUXKNubHgFlVUoDN2n/pbJbSXTRSTR0qeiVbJu5L8BTKiPSLopVrvNAFUx' .
+	'UF4nPpTjG5cNB/J2ibs3SsWY4F2OchzWIjoWUWIR2ttfeBRkLx8twoVfxOsFdX0XeKJ00by5Mxk4y+hAGqFPTODuiITz5IXxA2gLZgNUlRIHq2' .
+	'fFJIDCpSwttxYATNOu7xOa4Fi6YqRgVTAV9Zwwl/AG97JXHknc8kqxPrfzSo7SPcVBsaE/VnYqCOQGiOs1nxtxZDk4TJ+ChXPgnqoaFxlRCVV+' .
+	'adFY1FL8wy76Nnk/gJ72D9LzjQsGwiFDLlEZXoCQdxbCPLUi3sxWWgMtrMxpydc2rTIlrKHaKnwFT4E2KG9qyH5j/b3LYSDiRvfEStKLck3AUB' .
+	'KjBe+veJ5lyGfdXpNdJNfpjyilASJXn9CsRdZ+dB8yCEk5kK0aRr9CxlPh31J1bTzjFyA/zHfNomWSRXvjJDfiQwh640iR5Jn4MeoJ0LwJhgiT' .
+	'1zeDUNS5dnm3r95MpKG7h61ThWc7DbPOGZG4DVn2QLLgLgqwWpzPsJY3aVfVeZZKdfKKRq4PmqKBvX8UV68dZQ4oO7/CDgG6yYD+bCNme3L/te' .
+	'WAdSG4H963vOLBxHYm7s+wT7E/lP0YuPqOyOcG5xPKf2+HF1Loj0YbeE8R2xnLuNj4KVuzQeNN7DA8Vw76OKc20s4miX5LYlRn8QN7ndEFi42w' .
+	'HnZaghcQHBHz2GsjD3uWJVrn8fRyP2gQn2KOnzA3rnrIVWX/5hUkjb82uMvq3E8AcWEG3O6ZWJLISbQKE9XR01eVgJtZP3E5/yR0eIIbplP63R' .
+	'2H1b5vwHqLCJKuh2mDPJdVklKUFXWmjR0LFvmHbfImAd6kGbqo6lAovj4rftKvZBi09opiEY2xt4v56+2DzunA5X0aixtDteTKEW2mZ2myqw+e' .
+	'dfT41WJULY2gjrWFNP5MlIN07rbcnwrsKkvyLCOIJriZsBS+4ydsek0K52h/E7g0dtel7zWb3vgGHPq5Qp5COv1uMs9IcEBjiK5ux3FtR0lwYD' .
+	'EktFYyEtc4kesor9olw9T3xzJJix/e1KWdWriGKZWPOml8csF3oxHmbLRrC1E7CHNp8llUvJegyj9gmbj40pXNl2p0savnZLNtbRwLkuqaGbIz' .
+	'omPwWcXYPFwe/GrAmjEad1k0fQ9695YrTIUZ1FlYHWAyVLIhVUXuIbdpRn5wryg5ysEHGyCo8ImNUcbo0NpLQ3PF0Gb/w/iPyNY1rTsS54qurd' .
+	'hhINci+vQxjtO8cRu1jmkwrocgCrB1tOGtXul5JB90o3P6C1RIU1p4DscYp/QGRJ7pBUij2k4fF4SPThkLWXWbGkF8QAA/P1643McCbnWHkCRn' .
+	'oZpIITItr1E4NsFcPeB0KVAqGz3YKTJOI3szILVn+rq8T/JtJkeh5Mga/KZdyiCRH325JasuxvS3/6erZF7naD0PHwKwt/XC38nTy9Sac9pCnQ' .
+	'0T0nXvp00H2zUa0LayWJdedqsP/go9cc0bllWIDxadmRz+jPQ89KGWwqrqy3P4EpL0XErE3XD339GXsvEafqqQHvM3eL/oyeDPON3yhqHz6odV' .
+	'KlBNFQqLAJopK7I9dMUiLWeCANWP3Hu+RT1Qrd0cMJiD4u',
+	'628b02f0bc20715a516d39d00e3cb65b2edbb3234debccaf9514fb3384a6cf3a'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

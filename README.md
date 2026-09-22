@@ -1,14 +1,41 @@
-# DashWoo — UI Platform for WooCommerce × Elementor
+# Dwoo — the DashWoo UI Platform for WooCommerce × Elementor
 
 DashWoo turns every visual decision of a WooCommerce shop into locally served
 assets and design tokens. Fonts, icons, images, SVG and custom code are managed
 inside WordPress — **with zero dependency on any external CDN**.
 
+> **English first, Persian supported.** The project page and this readme are English
+> with a Persian section; the plugin itself is English in the code and ships a complete
+> `fa_IR` catalogue.
+>
+> **Dwoo** is the visual identity of DashWoo: the mark in the header, the logo on the
+> product card and the icon set in Elementor. The plugin, its settings and its
+> technical name stay **DashWoo**.
+>
 > **English source, Persian ready.** Every string lives in the code in English and
 > goes through the WordPress gettext layer, so DashWoo follows the site language.
 > A complete Persian (`fa_IR`) catalogue — PHP and JavaScript — ships with the
 > plugin, and the platform is right-to-left aware. A Persian shop that only wants
 > DashWoo in Persian can force the language in the settings.
+
+**Preview** — real screenshots of the plugin, in English and in Persian. They ship in
+[`screenshots/`](screenshots/) and are produced by `tools/preview/` from the shipped views
+and the shipped stylesheets, so they cannot drift away from the product.
+
+| Settings | My Account → Design |
+| --- | --- |
+| ![DashWoo settings screen](screenshots/admin-settings.png) | ![DashWoo account design screen](screenshots/admin-design.png) |
+
+| Account panel (menu card + content card) | A custom page with its own content box |
+| --- | --- |
+| ![DashWoo account panel](screenshots/account-panel.png) | ![DashWoo custom endpoint page](screenshots/custom-page.png) |
+
+| پنل حساب — فارسی | صفحهٔ سفارشی — فارسی |
+| --- | --- |
+| ![پنل حساب DashWoo](screenshots/account-panel-fa.png) | ![صفحهٔ سفارشی DashWoo](screenshots/custom-page-fa.png) |
+
+The short project page — what DashWoo is, the system requirements and the same preview —
+is [`PROJECT.md`](PROJECT.md), in English with a Persian section (**[فارسی](PROJECT.md#فارسی)**).
 
 ## Features
 
@@ -131,7 +158,7 @@ keep following the site language.
 
 ## Installation
 
-1. Download `dashwoo-1.5.0.zip` from the [Releases](../../releases) page.
+1. Download `dashwoo-1.6.0.zip` from the [Releases](../../releases) page.
 2. WordPress → **Plugins → Add New → Upload Plugin** → choose the zip → **Install**.
 3. Activate, then open **DashWoo** in the admin menu.
 

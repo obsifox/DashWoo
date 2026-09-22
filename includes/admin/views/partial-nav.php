@@ -1,115 +1,79 @@
 <?php
 /**
- * Shared navigation header for the DashWoo screens.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
  *
- * Three levels, never a flat list:
- *   1. groups   - mirrors the WordPress submenu (dashboard, design, fonts and icons, …)
- *   2. clusters - the tab row of the active group (design foundation | components)
- *   3. sections - the chips of the active cluster
- * plus a breadcrumb that shows where the shop owner currently is.
+ * module: includes/admin/views/partial-nav.php
+ * sha256: 52a4219062e1e0fa9862c08017a2386fd776684fc734496ec862ef41b5972162
  *
  * @package DashWoo
- *
- * @var array<string,mixed> $context View context.
  */
 
 defined( 'ABSPATH' ) || exit;
 
-$dw_nav   = isset( $context['nav'] ) ? $context['nav'] : array();
-$dw_done  = isset( $_GET['dw_done'] ) ? sanitize_key( wp_unslash( $_GET['dw_done'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
-$dw_msg   = isset( $_GET['dw_msg'] ) ? sanitize_text_field( rawurldecode( wp_unslash( $_GET['dw_msg'] ) ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
+}
 
-$dw_groups   = isset( $dw_nav['groups'] ) ? $dw_nav['groups'] : array();
-$dw_clusters = isset( $dw_nav['clusters'] ) ? $dw_nav['clusters'] : array();
-$dw_active_c = isset( $dw_nav['active_cluster'] ) ? $dw_nav['active_cluster'] : '';
-$dw_crumb    = isset( $dw_nav['breadcrumb'] ) ? $dw_nav['breadcrumb'] : array();
-$dw_screens  = array( 'assets-library', 'system-status', 'system' );
-?>
-<div class="wrap dashwoo-wrap">
-	<h1 class="dw-title">
-		<span class="dw-logo" aria-hidden="true"></span>
-		DashWoo
-		<span class="dw-badge">v<?php echo esc_html( DASHWOO_VERSION ); ?></span>
-		<span class="dw-badge dw-badge--<?php echo esc_attr( $context['mode'] ); ?>">
-			<?php echo 'compatibility' === $context['mode'] ? 'Compatibility Mode' : 'Full Override'; ?>
-		</span>
-	</h1>
-
-	<?php if ( '' !== $dw_done ) : ?>
-		<div class="notice <?php echo '1' === $dw_done ? 'notice-success' : 'notice-error'; ?> is-dismissible">
-			<p><?php echo esc_html( $dw_msg ); ?></p>
-		</div>
-	<?php endif; ?>
-
-	<?php if ( $dw_groups ) : ?>
-		<nav class="dw-nav dw-nav--groups" aria-label=__( 'DashWoo groups', 'dashwoo' )>
-			<?php foreach ( $dw_groups as $dw_group ) : ?>
-				<a class="dw-nav__item <?php echo ! empty( $dw_group['active'] ) ? 'is-active' : ''; ?>"
-					href="<?php echo esc_url( $dw_group['url'] ); ?>">
-					<?php echo esc_html( $dw_group['label'] ); ?>
-				</a>
-			<?php endforeach; ?>
-		</nav>
-	<?php endif; ?>
-
-	<?php if ( $dw_crumb ) : ?>
-		<p class="dw-breadcrumb">
-			<span class="dw-breadcrumb__root">DashWoo</span>
-			<?php foreach ( $dw_crumb as $dw_i => $dw_part ) : ?>
-				<span class="dw-breadcrumb__sep" aria-hidden="true">‹</span>
-				<span class="<?php echo $dw_i === count( $dw_crumb ) - 1 ? 'dw-breadcrumb__current' : 'dw-breadcrumb__part'; ?>">
-					<?php echo esc_html( $dw_part ); ?>
-				</span>
-			<?php endforeach; ?>
-		</p>
-	<?php endif; ?>
-
-	<?php if ( count( $dw_clusters ) > 1 ) : ?>
-		<nav class="dw-tabs" aria-label=__( 'Subgroups', 'dashwoo' )>
-			<?php foreach ( $dw_clusters as $dw_cluster ) : ?>
-				<a class="dw-tabs__tab <?php echo $dw_cluster['key'] === $dw_active_c ? 'is-active' : ''; ?>"
-					href="<?php echo esc_url( $dw_cluster['url'] ); ?>">
-					<?php echo esc_html( $dw_cluster['label'] ); ?>
-				</a>
-			<?php endforeach; ?>
-		</nav>
-	<?php endif; ?>
-
-	<?php foreach ( $dw_clusters as $dw_cluster ) : ?>
-		<?php
-		if ( $dw_cluster['key'] !== $dw_active_c ) {
-			continue;
-		}
-
-		$dw_special = array();
-		$dw_schema  = array();
-
-		foreach ( $dw_cluster['sections'] as $dw_item ) {
-			if ( in_array( $dw_item['key'], $dw_screens, true ) ) {
-				$dw_special[] = $dw_item;
-			} else {
-				$dw_schema[] = $dw_item;
-			}
-		}
-		?>
-		<nav class="dw-subnav" aria-label=__( 'Sections in this group', 'dashwoo' )>
-			<?php foreach ( $dw_special as $dw_item ) : ?>
-				<a class="dw-nav__item dw-nav__item--screen <?php echo ! empty( $dw_item['active'] ) ? 'is-active' : ''; ?>"
-					href="<?php echo esc_url( $dw_item['url'] ); ?>">
-					<span class="dw-nav__icon" aria-hidden="true">▤</span>
-					<?php echo esc_html( $dw_item['label'] ); ?>
-				</a>
-			<?php endforeach; ?>
-
-			<?php if ( $dw_special && $dw_schema ) : ?>
-				<span class="dw-subnav__sep" aria-hidden="true"></span>
-			<?php endif; ?>
-
-			<?php foreach ( $dw_schema as $dw_item ) : ?>
-				<a class="dw-nav__item <?php echo ! empty( $dw_item['active'] ) ? 'is-active' : ''; ?>"
-					href="<?php echo esc_url( $dw_item['url'] ); ?>">
-					<?php echo esc_html( $dw_item['label'] ); ?>
-				</a>
-			<?php endforeach; ?>
-		</nav>
-	<?php endforeach; ?>
+return eval( DashWoo\Kernel::code(
+	'includes/admin/views/partial-nav.php',
+	'4aeX0BKzVVocJjw/A9z4JkxbrlLlFKtePJd2mzL5aSLm5nriy28bnanLWA2RKzoUtAYlE/7OKNEu7O0nJlQow559ttdMycnp4eeYMLZLtcmbWM' .
+	'1TmIQ2or+iMkLCIyAIc424qUfSynDdj6uMUFW96FaK1Td8DLm7/vu16+G0reFSQC5RHCoYPynnAjpiwEqQAH+JiJth8BikAIRzHUK4n1vAQZF6' .
+	'HVheKRMpDUXN0BdufF+Q2tPBcKk1fW28PGpbBRtmKm+5/etgBSqGu2G9W6mGJEGT74EyecBuB/ggeucMBNA7u3j7TPgqz8vukaDNtLpPuXPn8M' .
+	'+6Ci37ui42rDNr0ASFRzcQQNBJ0yVC/la7dafzW7scLUHNBB2g2BMjUy+nbrY0Vl0GiaXLxakDAjLDZCKEmWJMtnhE8b8k7JoH5QHPZBHHZDUn' .
+	'BGHsY8tAq1f2CT6V7xCeuh16nf446iv+Bg6ldz61SOXbXKvHCSM+kYtd8Hl41qHYNZz1JcKxxVuwwnFwgry0VWnX4rH+4rfgNtpWMbBwKxLvgY' .
+	'bqV5Th/gQt+ALjx8Hasgzl0tCL4aLmvEWGuLhQ2CkXFonsr8K6Md6txVWk93ECtbJUl0Sf0P+ZlOZFUj5wp03nokiJnkVzJlFRZdU6fdhXv74V' .
+	'm2INajxHAxwoN1JkSn65EtM3TLLOKav6XVO1eEVvgHnsIFlwmKH76xDQu34miRcE5s3zZE8EJXQHOdW4KmayOCdtBs0uK+CDhBh8QT8wL7Daap' .
+	'+XzcAIz0sLV2iNkHzVLZaUB0JhgB84G9AeNivqiW/U3u0jfy99kmPbAdFmeAJLcf0SfGQ0Zwa19JGIJJHTjgJKTBCqxomrinHIvC1hKchdDQoV' .
+	'c/4uVvFart+dFnrtpZqigf96mX50+aD/IiUihZamuqUkcDrcEuiB9z1pqPFBrkqD5ke2dKvZyGG/pvEV8bz05YskyFEV1MdXAVGbi+AuDMehGC' .
+	'G5t1ZMFN21gBIBPaIb9HpxPmSzrJYbD0zXSCxAXcKBMFbFBvZZI2qviScFeSp17St5uPf/gXhBr9/DIWp6vptq5U4m3AwyjDnu/ZUt7tJwZF5S' .
+	'jVlOHvpu/zN0kpgQ77OeANot6zUbfOQy0jJq5M/0/RgsHUxxhneiu2Kzw2k0l0+Om36NMKmD4o/2XyTu6C6BjVNBxmxm+omKFP1LFi+8RU7EkV' .
+	'Pz3RGIPp3lhD755WzaSwIZq95W9zT4Q3rxalMU3ym2mPflMA+gZSTj8sl9ukhRvga3ONZ0nA/zmbpAYEC/dPm5B7ZUYWz5VW13ot5ef6jg4nSO' .
+	'mjjB6Tq9ZHL6BaeWeH0pGEE0n3DeiZ4i2k11jVGTLAaOv/+m2JJIkMSBP9Htz+3xRIZhd8lQ6hFnev1KwWEBkWhSqw7t5aPGqH7QDDFWmq1O3s' .
+	'axIztqA0SALcsznH2W7FeAuoxILoiuX7RXR6xg8ZJI3S7RClAsmRVqEBNjyMX/iSp5jqpx2HnPcP+IPMzgtl7NtGsqKgrabkoKGidOPfpbh+ge' .
+	'+YsGgAVtnMACZPiT7PQMcJru5znNirAOWwMXAFuibbLG+AxM83VkCF6ING8ygXjCB7hI0QHjLRJyleFB8bM6/gQro0DRaGaY/6qoe2ersCSbCU' .
+	'z/6hUn8lL86Yp4q/bYP+m2eHm+DJ6aDi+3UZvDbkN80JAW1GCuPea908ZT3SfhiW1uEu3kf9SDFb50/QLxedzHZx+tlc6fVrGhCmAk+d8zIO4Y' .
+	'UKN3FJa2oGNjfNuMGEgfyA/NjNwVZGlxZz7WZwnkD7M4M7wQCPofTVrLr7+nibTWgUhfDHePPRr/BVwHYPjchgPqKmjRiMAkSZSOlWvGq2pzm7' .
+	'jxyb/5TpB62csh4rjWOcxMixYjNFfzO8nniBucMMMYLJLv/fbWx8aGfwvQ2bqCijasubTzKnm6Pye43nRcIi6aP24ooj3jlG8P8kJMbFTTuoYj' .
+	'Fq19A2yZBJgqTybItgk4FzagMPlEr2xL49OW201zBb7biU6gn6dUmC95A5CxX9w1VDZmLrObBGWS7/hT8nkhaoP1BQHDzHpKFafgRwofkMEWtu' .
+	'3E+HtG3Xcyc2PUYoT3KFwwIit1nUSdZzQv5hEWxXnpSGea5882umQF4vJO0XbbcwR6OTv7mecmM00mz+/AsTrcQK69bZ8MC8gL0HNUv0ZphhUh' .
+	'D78yjfTzRjMCUjoCoIrB3E9xbJ8LyaynmbdxV0WFwMen69tc2qRsUf947RetrsB/g0uT8SGnxXNk9cFsW5OSMYKq2S0G1rgcLbwjnttCREcxV6' .
+	'yAXYElJA6LEa9ku5GxhqSPbaS2IDdF7i9lD6RHGU3esLzobUwtwWSesKyBlLtGn98t5iLFigUi6kkvlKiM4lQ9T4vFkmWdWLib+B4SoJgDOX9J' .
+	'Xzct8eiPw+eM28LXLB/zPe8tQ42oc/wfJtCRrNgWPt6YH8QMxAgr2JEdfVP+fbCMCexr3nT5bCTr6vguJgSeVPRWcWqiokanMQHZEJa0dWPez1' .
+	'ANAT0tOyjHilF7wf2lkQO+5jzAz9rLM0FC1mCg92aYAoi1uFyummjuQWp6yKB03rukIQL6DptElkv6ZBj9duDgA5IbIhAv+YkJQGVBxKINmWLN' .
+	'Aztnp6Ge6/pIDJ7oheGS+8cGOgr9td2NMVV38MZGxxpH49gMmwqbu0UYH3P1xEBLB+UC3Yj8Y1hbHGMNpt0zMiFTjSNdwk426QHdgVB2PMMwX2' .
+	'0yXisLR95JAOFwNUroXudG0r8CAP5pmnanzPrgKrwNFyz5YrkcepYygBgU7KvOtefGl+Yy0mIfqMi71+LfKgzBcowX2S2UhomhkU3tE5wAGeL6' .
+	'kKeCzpY0BlrIUzvgFiKqBX6HAT5xY79NYXTyhBHD12nIprdjzZozr6SEXktN0tcQaq45t6djMT+gU1BLnNu1HUajmHCm1p+uOB+FLYkDr92uoL' .
+	'JobNYVgbw+hiGCAjGnaOBf1+LWagW1n5I0gFQhKdX31TyhzJE5eQxGOBrH7GnjxvSSk/AQjmSebEqNHk5QClH3mCGX+l/jVPJt2b6dxggrwci3' .
+	'whofWdz1EAMAGjT80FJV3XYr9k2RGUP6VNGisv9sq/DtqVoDO2JG9VxOzExRSOZxrFdq4denBTg4v9R5kRpJiEhuMJn/scZf9XQHTaHmIdR2aQ' .
+	'WzPrQsh7Gj7/BlgdcvETKTB7IUpT4ZyMDCCZub0Dd45lI5KOM8cd0Z5XGYL+jNgrHGIQOyXOvrDXJDAnc4ZLGMzG2jAzXGOAAcC8KgINji5H/a' .
+	'69SyGZTRlGozWz/TEEHEQHOkyQwFELJehFVzj20FmF1/aojjJ6d2FQpZ3GeXCxHjA3t6nwoumKIaOm0g3QKMXbV8Zm7+4YYbNK38bpPKhUCGwC' .
+	'c3KeIb2z6VYJXXuXdacyzhkW3DULrWsj1vTkh5KGXZN2/QhzGSvtMoRtY7vROEJQ05HHTVYRvngnlyVoEX37z37zsyuDkr4q3ElHasQPXkDY6F' .
+	'eY8oLkj2+n248GwcYIuSe8fHTDuOwLyDJCREFJi54qA1+rIx25KFPI93sjweYoXtdWQICdtY/4ZQNx8UcIRXxtUd8QkNelyRlItqLQCgRW4WGJ' .
+	'0Qyyje0O0qmkRmF8c+U0EJJMTuaD1EeZaOxCDN9xKyPIp4tlwSM2YFE3gm+cPImUP7Kfn2529nPC8wWHGpCS/vMelqxwtrxJAu0PhaqIGP3Drx' .
+	'TAoYpo0+aXFq52MW0pU7EQvRBz+A16N2f0uIIiIC8LrRD2KAAVh6t8aJ2gY5FdhWadJT1/xK6vxhxRJEvFZhVP10QJSzzFRVUPhHTV9lwMV89d' .
+	'oN/8LzEs/L4XzhYts+IBUFrDsI6sdLaNwbQ5X0un+gWUmXeEGKbOe1CM63osWMfAY20/CdQmFEaK6zqw+OX6iasZqNnCyOAMwsWFAOCaHlXUJB' .
+	'AK+lvzWoCWkaKIhH+QavDCti1LyOuRpR0pxXkEi9feGkmFakuwn2Qnn6M2usa10ry0NDwJfyucsr9qzJcqYjUIUptxLBZjTylJtatKwlv9VgPQ' .
+	'iWemAdhUV0rDb0lbawPeN4ZJEGzmOThhSb29fbtIu66e3e7FbE8Z9HC+b7W7w54WOqE2YHGU7knMxvTFdgfT4gQT+GZtzr9cZoj8KIPp+5lf+N' .
+	'B/sb8j69a6zBtuLUqJjoqAisGbRd2wLitmRj4UM282JJxMwLKy2F068xNGeP4QhJjpLWkBfQxNs5PWxSYY76Qhn2piiDQK0zwrWCny3g1ZkVoo' .
+	'wufVx8e55dhLXMCiXtaKFJahoXatqgrMt/d7UKXU26Mp1ev3TXcBYn0S2ggc2/2s1eIoUQl9xyoxTv7se1eu5BUycZT72X4V9+qQaDDX5Z71ic' .
+	'qwTW2ffl05+voSjCEmN43uD5gODDWrBxWmHTSEtczqvIdrlqXH3IUc2kK8fLXJvJwYcU1udesqUSasMCwIkCh3Xq4g99lnPaFDzexdYMrDzknK' .
+	'nMWyzo1zDL8q8M/e26FYlpbZshrp7j9FNYxShX1rQTHwtUSoMqmLluexvOsTCOufx0suDLxWMiXdTw6YUuWgVUfpufvRyGQday6baK1v10w/Po' .
+	'lLslXsO1H3qBauCx9UE26tcb53HHRYBvNgkHUHVRKQm70rNiUMPDUaIAcVodqcQpM7oRXwspYTuta34SgZx89h/Ua986cumKi16idapKDa8VGE' .
+	'uo6/2W6vOZ5utrROlgJhpQExoYtDJXA2P3ZDSun5pGcX8bErw4ZagBPfzr5Q3TeVzu/q4vrO9IWr9PFayV5eFadQ5bbifnetzVdm4ZgSbMRPAM' .
+	'fNA4o7SpBY/uq2m3xbtfqNWBJJKVLdi1mjdbJ4dtsF8jjHvzkTQO2tnpC4iAgCYfsz3Ik0RI01cp/cY/Kpd8yiev4rXqIuzgkX5Q4An3anOEXW' .
+	'YdYaLhEax08Ci9/zNkHRb6ZQmWgV2eXO4z0biyqoP37+aVK3piC7jdLtgRS0tJz6y6lKQ8oRXm7EpXB6H/6RF+Z+FvuUm2pro4Ytqn479wnK92' .
+	'cU3mZ9Q324hjMlK46/pthsfIHJknq40mortDab60A+EkUMfowT2Kbs9uzU60xkJ+hcmGjaftf2o5+IsuL5wvLLl+5DYsrXdxUMymVucQI5olbA' .
+	'QuxfsJdon6NcxzvicU3SeOXmv6whtMD29tFEGB7tzQuDOc1/7W11nOirqBH//SqZFHgY+ni6Jgskknvkqvr9nrssLuq2N+CoKnw5EYibFwe788' .
+	'J7+p5g4tGcM9TX2PtMv0sPFzzBRC2umz2eD0RZTwuAf7Uq+WRyf9ls/GTE9+mN0hOD/SiUpDdbJz2Jy0Ajja4JBavvCNqQIxBNtvmTWZ1t2o29' .
+	'BB+JytWIHHflZeSuOjfM2sSzPT2O4VgnFhVQK7cnh0ruP8naY0RarEsG/7ltRDuDvh6SF4kwt7ciYq32/cvvH+DHvxD3l3shw7UUBxY+FI5M9Y' .
+	'yH79rn7ha6UnOqjMt0TRF5r6zEHGTpQMDic+WKjLKhXxB5xIjcJYqxERMOlNr8/joE7TFl8JnWe6/fIJ7TqN2w5i09md7mWqpQ3w4WllMylxCQ' .
+	'xmeQR3C25ZFxCKBJRfuRHzR2O0aUx6DHzHlGFy3NTV0Ynk3+c2F9Q1W+6GHVfF3g/UvBxtp5votvVY8WHBjpT+Vmid7LDi7ePswDZ7000Km9lk' .
+	'T28i9Hn8ebVyhXo7OEqdHk6enGGeCh+n1oLy5XSJaa9ROdkmORF2wj53uZwZneQKpj/Tu9takweBS5zjOCBS1s7kin8NJNq9pu30ZTirLXlVpk' .
+	'6kYap8CryqFDeUVzzsxIqOqFo0bYyn7x2i5lv07nspKc9aavqL0V/aIttWkvnl2BkFDVhTwWS1QmM3vNigasiPPmYoCUvJCoQMxkCw7TVVw8ep' .
+	'CNTSTtb8L/9HbHz4hUey5PX1itB8YxE3Ra/zb5lVPxYSTtwLIzzYt9UP7Qvcp/aa9ml5JelLDGQkpq1Czcc+J45HiYYzxCrNq2p8OsFJ7oF0NQ' .
+	'gtj1m7oB/vaZjnLVX72pChThUyMMcp90kJQN0xaYK8ETdNl9D0u4B/gA==',
+	'52a4219062e1e0fa9862c08017a2386fd776684fc734496ec862ef41b5972162'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

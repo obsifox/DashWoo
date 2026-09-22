@@ -4,7 +4,7 @@ Tags: woocommerce, elementor, design system, fonts, icons
 Requires at least: 6.4
 Tested up to: 6.8
 Requires PHP: 8.0
-Stable tag: 1.5.0
+Stable tag: 1.6.0
 License: GPL-2.0-or-later
 
 Full UI platform for WooCommerce x Elementor with a local Design & Assets System.
@@ -52,6 +52,16 @@ status screen reports it as an informational row - never as a warning - with the
 to send to the host. When the capability appears, the feature switches itself back on.
 
 == Changelog ==
+
+= 1.6.0 =
+* Protected build: the released plugin is no longer readable source. Every logic file ships as a stub that asks the module kernel (`includes/kernel.php`) for its own body at runtime, so the file list still shows the plugin, the site still boots, and there is nothing to copy. A stub that is edited by hand - or a payload that is decoded and pasted back - stops working in that module only, is reported to the administrator with the file name and the exact fix, and never takes the shop down. `bin/encode.php` produces the build, the build refuses to finish unless every payload decodes back to the tested source byte for byte, and `bin/verify-build.php` re-checks it from the archive with the key the archive carries. The key can be kept outside the plugin with the `dashwoo_kernel_key` filter; keep a copy of your own build if you want to reinstall it later.
+* New visual identity: **Dwoo**. A new mark (a rounded tile with a "d"), a geometric wordmark drawn from paths - no font needed - in a light and a dark lockup, a banner, a square card and the four images the WordPress plugin directory expects (`icon-128x128.png`, `icon-256x256.png`, `banner-772x250.png`, `banner-1544x500.png`). The DashWoo admin header shows the mark, the account hero can show it per widget, and the Elementor icon picker has the new marks. The name, the settings and the technical identity stay DashWoo; `tools/brand/make-dwoo.py` regenerates the whole kit.
+* New: a second menu card. Custom endpoint pages the shop owner defines (`DashWoo -> Account -> Custom pages`) are pages on the site with their own slug, label, icon, order, capability and visibility, so the account menu can be built up without touching a theme file. Each page can be shown to everyone, to logged-in customers or to administrators only, can be hidden from the menu while staying reachable by URL, and can point at any template.
+* New: a content box for every page. The dashboard and every custom page can render a content box whose source is HTML, a shortcode, an Elementor template or a theme file, and whose shape is plain, a card or a section - or no template at all, which is the default when nothing is chosen.
+* New: the settings framework understands repeatable rows (`repeater` field type), with add / duplicate / move / remove in the settings screen and a script that renumbers every row field name on save, so a row that is added, moved or deleted is stored correctly.
+* New: the project page (`PROJECT.md`) is English with a Persian section at the end — a short feature list, the system requirements taken from the same floors the compatibility layer enforces, and the preview. A test asserts all three.
+* New: real screenshots ship with the plugin (`screenshots/`), drawn from the shipped views and stylesheets by `tools/preview/` — the settings screen, the account design screen, the account panel and a custom endpoint page, in English and in Persian. The public project page (`PROJECT.md`) shows them next to a short feature list and the system requirements, in English with a Persian section.
+* Changed: the default design is zero. A fresh install is painted once with the neutral account pack so the area looks like a page rather than a list, and from the first save onwards DashWoo loads no stylesheet of its own at all - no DashWoo CSS file, no reset and no inline variables unless the corresponding switch is on. Style it with your theme, your CSS or Elementor.
 
 = 1.5.0 =
 * The whole project is English: every user-facing string, the readme, the settings screens, the Elementor widget names, the release notes and the docs. Nothing in the source tree carries a hard-coded Persian sentence any more.
@@ -110,6 +120,9 @@ to send to the host. When the capability appears, the feature switches itself ba
 * First release: design tokens, local fonts, icons, assets, compatibility layer, REST API, settings center.
 
 == Upgrade Notice ==
+
+= 1.6.0 =
+The released plugin is a protected build this time, so the plugin files are not readable source any more. Nothing about your site changes: same settings, same data, same screens. Keep the zip you install - reinstalling DashWoo later needs the same build. If a build file is ever modified, DashWoo deactivates itself, tells you which file was touched and leaves the site and the data exactly as they were.
 
 = 1.5.0 =
 DashWoo is now written in English and ships Persian as a translation. Nothing is lost on upgrade: with the platform language on "Follow the site language" a Persian WordPress keeps showing Persian, and an install that had already picked Persian keeps it as well.

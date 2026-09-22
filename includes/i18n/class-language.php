@@ -1,300 +1,135 @@
 <?php
 /**
- * Language: English source strings, Persian (and any other locale) shipped as a
- * translation.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
  *
- * Every user-facing string in DashWoo is written in English and wrapped in a
- * gettext call with the `dashwoo` text domain, so the plugin runs in English on
- * an English site and in Persian on a Persian one. The Persian catalogue lives in
- * `languages/dashwoo-fa_IR.po` / `.mo` (compiled) and the JavaScript catalogue in
- * `languages/dashwoo-fa_IR-<hash>.json`.
+ * module: includes/i18n/class-language.php
+ * sha256: 17101f61e2cea8194a8632aeb9873d35542c3c9e268ad6dcd20e0dbaf3349e03
  *
- * The `general.language` setting decides what DashWoo itself speaks:
- *
- *   - `site`  (default) - whatever the WordPress install is set to, which means a
- *                         Persian WordPress shows DashWoo in Persian;
- *   - `en_US`           - force English, even on a Persian install;
- *   - `fa_IR`           - force Persian, even on an English install.
- *
- * Nothing here touches another plugin: the filters are scoped to the `dashwoo`
- * text domain (and to DashWoo's own script handles), so WooCommerce and the theme
- * keep following the site language.
- *
- * @package DashWoo\I18n
+ * @package DashWoo
  */
-
-namespace DashWoo\I18n;
 
 defined( 'ABSPATH' ) || exit;
 
-/**
- * The language of the platform.
- */
-class Language {
-
-	/**
-	 * Locale that means "whatever the site uses".
-	 */
-	public const SITE = 'site';
-
-	/**
-	 * Cached resolved locale.
-	 *
-	 * @var string|null
-	 */
-	private static $locale = null;
-
-	/**
-	 * Hook the locale filters and load the catalogue.
-	 *
-	 * @return void
-	 */
-	public static function boot() {
-		// Checking the hooks (instead of a static flag) keeps boot() safe to call
-		// twice - the test suite resets the hook collection between tests.
-		if ( ! has_filter( 'plugin_locale', array( __CLASS__, 'filter_plugin_locale' ) ) ) {
-			add_filter( 'plugin_locale', array( __CLASS__, 'filter_plugin_locale' ), 10, 2 );
-		}
-
-		if ( ! has_filter( 'load_script_translation_file', array( __CLASS__, 'filter_script_file' ) ) ) {
-			add_filter( 'load_script_translation_file', array( __CLASS__, 'filter_script_file' ), 10, 3 );
-		}
-
-		if ( ! has_action( 'init', array( __CLASS__, 'load' ) ) ) {
-			add_action( 'init', array( __CLASS__, 'load' ), 1 );
-		}
-
-		// A language change in the settings must be visible without a reload.
-		if ( ! has_action( 'dashwoo_settings_changed', array( __CLASS__, 'flush' ) ) ) {
-			add_action( 'dashwoo_settings_changed', array( __CLASS__, 'flush' ) );
-		}
-	}
-
-	/**
-	 * Forget everything cached in this process (tests and settings changes).
-	 *
-	 * @return void
-	 */
-	public static function reset() {
-		self::$locale = null;
-	}
-
-	/**
-	 * Locales a shop can pick in the settings.
-	 *
-	 * @return array<string,string>
-	 */
-	public static function choices() {
-		return array(
-			self::SITE => __( 'Follow the site language', 'dashwoo' ),
-			'en_US'    => __( 'English', 'dashwoo' ),
-			'fa_IR'    => __( 'Persian', 'dashwoo' ),
-		);
-	}
-
-	/**
-	 * The saved choice.
-	 *
-	 * @return string
-	 */
-	public static function setting() {
-		$value = (string) dashwoo_get_setting( 'general.language', self::SITE );
-
-		return '' === $value ? self::SITE : $value;
-	}
-
-	/**
-	 * The locale DashWoo renders in. Empty when it cannot be told.
-	 *
-	 * @return string
-	 */
-	public static function locale() {
-		if ( null !== self::$locale ) {
-			return self::$locale;
-		}
-
-		$setting = self::setting();
-
-		if ( self::SITE === $setting ) {
-			$locale = function_exists( 'determine_locale' ) ? determine_locale() : '';
-			if ( '' === $locale && function_exists( 'get_locale' ) ) {
-				$locale = get_locale();
-			}
-		} else {
-			$locale = (string) apply_filters( 'dashwoo_locale', $setting );
-		}
-
-		self::$locale = (string) $locale;
-
-		return self::$locale;
-	}
-
-	/**
-	 * Forget the resolved locale (settings changed, tests).
-	 *
-	 * @return void
-	 */
-	public static function flush() {
-		self::$locale = null;
-	}
-
-	/**
-	 * Whether the platform is rendering in a right-to-left language.
-	 *
-	 * @return bool
-	 */
-	public static function is_rtl() {
-		$locale = self::locale();
-
-		if ( function_exists( 'is_rtl' ) && is_rtl() ) {
-			return true;
-		}
-
-		return in_array( $locale, self::rtl_locales(), true );
-	}
-
-	/**
-	 * Locales whose script runs right-to-left.
-	 *
-	 * @return array<int,string>
-	 */
-	public static function rtl_locales() {
-		/**
-		 * Filter the RTL locales the platform reacts to.
-		 *
-		 * @param array<int,string> $locales Locale codes.
-		 */
-		return (array) apply_filters(
-			'dashwoo_rtl_locales',
-			array( 'fa_IR', 'fa_AF', 'ar', 'ar_AR', 'he_IL', 'ur', 'ckb', 'ps', 'sd', 'ug_CN', 'yi' )
-		);
-	}
-
-	/**
-	 * The shipped catalogue file for a locale, when it exists.
-	 *
-	 * @param string $locale Locale code.
-	 * @param string $suffix File suffix, `mo` or `po`.
-	 * @return string Absolute path, empty when the file is not there.
-	 */
-	public static function catalogue( $locale, $suffix = 'mo' ) {
-		if ( '' === $locale ) {
-			return '';
-		}
-
-		$file = DASHWOO_DIR . 'languages/dashwoo-' . $locale . '.' . $suffix;
-
-		return is_readable( $file ) ? $file : '';
-	}
-
-	/**
-	 * Load the catalogue on `init`.
-	 *
-	 * A forced locale is loaded from the plugin folder itself; with `site` we let
-	 * WordPress do the work (the plugin declares `Domain Path: /languages`, so the
-	 * catalogue is picked up just-in-time as usual).
-	 *
-	 * @return void
-	 */
-	public static function load() {
-		if ( self::SITE !== self::setting() ) {
-			$locale = self::locale();
-			$file   = self::catalogue( $locale );
-
-			if ( '' !== $file && function_exists( 'load_textdomain' ) ) {
-				if ( function_exists( 'unload_textdomain' ) ) {
-					unload_textdomain( DASHWOO_TEXTDOMAIN );
-				}
-				load_textdomain( DASHWOO_TEXTDOMAIN, $file, $locale );
-				return;
-			}
-		}
-
-		if ( function_exists( 'load_plugin_textdomain' ) ) {
-			load_plugin_textdomain( DASHWOO_TEXTDOMAIN, false, dirname( DASHWOO_BASENAME ) . '/languages' );
-		}
-	}
-
-	/**
-	 * Keep the plugin locale in step with the choice above.
-	 *
-	 * @param string $locale Locale WordPress resolved.
-	 * @param string $domain Text domain the locale is for.
-	 * @return string
-	 */
-	public static function filter_plugin_locale( $locale, $domain = '' ) {
-		if ( DASHWOO_TEXTDOMAIN !== $domain || self::SITE === self::setting() ) {
-			return $locale;
-		}
-
-		return self::locale();
-	}
-
-	/**
-	 * Point the JavaScript catalogue at the forced locale.
-	 *
-	 * WordPress builds the file name as `<domain>-<locale>-<hash>.json`; we only
-	 * swap the locale part and only when the shop asked for one explicitly.
-	 *
-	 * @param string $file   Resolved JSON file.
-	 * @param string $handle Script handle.
-	 * @param string $domain Text domain.
-	 * @return string
-	 */
-	public static function filter_script_file( $file, $handle = '', $domain = '' ) {
-		unset( $handle );
-
-		if ( DASHWOO_TEXTDOMAIN !== $domain || self::SITE === self::setting() ) {
-			return $file;
-		}
-
-		$name = basename( (string) $file );
-		$dash = strrpos( $name, '-' );
-
-		if ( false === $dash ) {
-			return $file;
-		}
-
-		$candidate = DASHWOO_DIR . 'languages/dashwoo-' . self::locale() . '-' . substr( $name, $dash + 1 );
-
-		return is_readable( $candidate ) ? $candidate : $file;
-	}
-
-	/**
-	 * The `.json` file WordPress looks for a script handle.
-	 *
-	 * WordPress hashes the script path relative to the plugin folder, which is
-	 * what the generated files use as well.
-	 *
-	 * @param string $relative Script path relative to the plugin folder.
-	 * @param string $locale   Locale code.
-	 * @return string File name, not a path.
-	 */
-	public static function script_catalogue_name( $relative, $locale ) {
-		return 'dashwoo-' . $locale . '-' . md5( $relative ) . '.json';
-	}
-
-	/**
-	 * Status for the system screen.
-	 *
-	 * @return array<string,mixed>
-	 */
-	public static function status() {
-		$locale = self::locale();
-		$catalogues = array();
-
-		foreach ( array( 'fa_IR' ) as $shipped ) {
-			if ( '' !== self::catalogue( $shipped ) ) {
-				$catalogues[] = $shipped;
-			}
-		}
-
-		return array(
-			'setting'    => self::setting(),
-			'locale'     => $locale,
-			'rtl'        => self::is_rtl(),
-			'catalogues' => $catalogues,
-			'json'       => count( (array) glob( DASHWOO_DIR . 'languages/dashwoo-' . $locale . '-*.json' ) ) > 0,
-		);
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
+
+return eval( DashWoo\Kernel::code(
+	'includes/i18n/class-language.php',
+	'IFxxXJ2TvvToBMCaChkWcLiYylT+7V3QgRwX7fBcNqsFHqarITQTKdc2uSKXfmCg/KiAXpDi+dqezHDI0dJaUgSEcgxL8Gk4DMVQuWtbiwafno' .
+	'gtIR4+erRCAHxO/SivUp6bcW7a9Z5CBvxyuyD0LwnkrD2Dyktx3FwzOAN3MejznqR1M7GokpSzoJx3Ntm3vV+Oub09f8iA/EB/vvxwwKYEZA+P' .
+	'Cjyg3ljvdWk6x8oV7cikScb28Zjh+4CIjlHrtlNth3ke3n8SEVYDLcsSPQInnS+FeRy1R5fW0+UEr7v7fw8Ye0Ure5LQyHL0RENk9wL6zJYjr4' .
+	'KzDwaYhaaFx1szTYjSFCmskNpumQoUMCGgrJe0kdBTmubaPa1+jEVUX5twplgk2R7zx4UsFxjdiSrtqyZM+27LpJaEnWWDrw4ledarCkbagCvb' .
+	'vkWDPtFXu0qZXcMXcK24R3KCY2eh2AkQdykTvXBWdKxIR17rQtlCoeCpvR0JoRS7WoXTwCxQZiro0XF+DwSNj8uSk0/gh9iayV13wWv7wfohhx' .
+	'zXMdttCvehakg+JNvkScgDuxHPTbzN3cyGJd8A4Kz4bS3Wj7Hvp7YWh9BzKKNdv2UcWukjHX28a+yyjObCRCVGliPW+zdm8Swm6dHDvb7E9bCc' .
+	'2bbQZ4gzQs/mMXS9yzvgRXF7aA5UQPP7dAWD9VGR8QdahthBy0mel5pEGWlsYDVXDuU0e3+1u41Q08E73J8ukff0eijuC+pm/0kgs6A2y5dwu0' .
+	'YH1fOEIqF7oWWYyuhKAZpXCdoIKf/ulg/c5pxOtvgLT7b0MMiuYePNeMj4pkLUk0SJ3nLJhDdcpQtiwN3BDA3FPHTjIexu3nCwmwHo4JvWeM3R' .
+	'+L09KG2aLtZQmqikP0yawy0YnRKDHrqBKlpZ6R09iVUZVYWGpc+It7asSvXNnsUexxj0DVhtZI3hdsdoZjvu/O1vnGN91/xvEcevJhFZe05HQJ' .
+	'Cl3QK2s5hJ0PdTwVIVJrisCDzUnHMSkS+D2iRhQ4YkhuRDUIUWZkgRcDckRHnJbBfWVu3IGMEWa9SimuuCoVa4aoroCb04H7oLDVT2nHw9ee4f' .
+	'hztoRc2tZlRGO50+yEIqGiES6u13G45gUlc6f9DO7e51P1JL4J9Czwj/0jn06lFRYkw7371PeirtWSicCWnjkoX5E/74T3mI2M3FTUd5uvkloQ' .
+	'OKDJyQ5FOLkqvz+Xw5cMHLEoUoifcVxBFfttb9J8muxhgUgY3OLP47HDUE8460l4egNNKuLPKXEL6TJz3unZjukbSWc95IluwVafYDjbQKk68N' .
+	'3bD3vmrTuy3xWO7bo4PjiYFY47J/PIQFMCZe433ESij4o3l4pMnOl+WtBqF59dw8dHOpYWVlCSL4YzAxqy4CvKAgmwpnfavEwBp7j+VgHRTXad' .
+	'MrBHv3g49FMOMkVmr445JYMOdPFWzV5QsjfAaeOBCdJsOneEzGCTl++LRWjXgRfXnQgS6xPvTUX0zcozmZirkSoHG03MsmUEgSgCcLt1ycOCHo' .
+	'+qvoeznhkear8Pv+ErjROcFrTm93IgqAhFGrewTSk09cQCJFStVtkTohBlfxZMR5eVCG/lK3RLjMO4eL33xRuHgbwHBvkRwfjSBiaBbqRjuh4L' .
+	'iJV1W8x9klJ6SaMhhyqzlpJ8olx1FFK2cuT9jvT9JoWEyj79w0ZVi4HXQMr4G+TQAkSn9zQSISM19ZUIQh4Avc+vmlxs+TCL2+KdLxsvT0/TIW' .
+	'zGUdfof5h4XAy2oW9ORLdseukDXYdtpRvZp8vngnJq6Z2MPbUVk9IG1iF/wgrDquJqCdXEIaNKI7o3CjaOrPXIGQrLe8DlBNzfpe0pFFTETCTk' .
+	'OaakvL++urf9Xahfwwkp/+iBHEmrmGvkakaH1fPl67yvWq9gLMjR5jbsGt3u+OCPnzNoOfNi9eNdTYtP67Uofn+hDHalSUiXFmfYO72ssyt6QC' .
+	'vqHa1DIIH/vySo7Q/uzi4dsD3NMHXnXLOMuT2NWQ4woyohSurcpmYtBVbgm79bZU1EKjUiLW8wQJecdncsoVKWTLawYt3exqZP8ge89qtx6kr6' .
+	'T1mWMB/Xclim/O7vH8GA5qbOCeWXCs8fOuDCcobu56ElefbzYev9sFMxpdac42AytRaYfDPC9EUUXu8GgHdGbfmm79D0oRX2YKWl+tczD/NXEx' .
+	'g1/NNqMksz67gUD8h2tfvYhEJ8t8totx+qnKHl/uD8cX49Lc53JF0sF7T1fpdlTx3oV3/ChDs95CvoTOLVJ6Jqo6/2GNST+/PDzyzNNczy+ojv' .
+	'OAPkkQwI1L58FPFRPIE21DDlmvX3oQotT28OONTk3GYzsIorrJX/7LWtJ6WOSjFYLkutZDYPfU2jbQVM63Vb5iR/YC1miIozbTktmUu5jBF95J' .
+	'8gTIs9JLnn3V3jE3f9I2OFIuybBuLGWGzeQoKnffQSgfopjCeIGpeQCQNa/BQC+ccMzEOsHE/pRWU0Ky4V0WxDprG6cVUQpPMS6wFdhINxuSkk' .
+	'Igsj3eaDgKKUIcPZzM7hw9td9Hruxefb7fz1ZAsMBSBj7uh40XDFJnIugd9By8uRFihdUzjprRVO7haLlJDna+7wkUwZrBUHDX0LAt4kXUcu1d' .
+	'QMjlRe6VhOXLQXpl4nuDj1XMgse+JvkSZTymuCVnl4NCviasoEGntRPpr5BZfMwdrDNgE9LlAAvcvkwT9xG6ROwSPRrSGsT19+90u9fc2cpmh9' .
+	'GkUfGek9tZTw7Iz+sbNdntHYYSWzyqesOnu12wQjy0VxS6aaXHdYZ00KQ4lyAJlkUf01KzAEcuWS/T81Ky4fByPOYsmsAFDkR4N+EETjyj4wPc' .
+	'0eERPwTAOgaiQkX1mvWQYsrOxS/fN+DmOZv6MF50q9QMDSh04578cWuVRxTVW3qHopC+JXWAT/booYe6WEa8czV6TagbYRQzpYd1LbYnLl8btf' .
+	'R9Z4d+R4h3eANaWFx1IYzXgxg5Zmf7Zejx9d3GClVByXIurVryZF0oAkMSJtnxjQpgrGEdUpn2+JrwaXmZQEmCCB9EhhQhApyxwtU5Pm9QK+Ib' .
+	'14+NcIji7w2DLDK0s3iSDmMYfABjBvt1AeBVc8lr3gxpHlEF4bSioZIX6s+OYs1MO9eYANvIthCxLXq/7lUg0Gp4Vv+mnpyvBiEXZaNsP31Z57' .
+	'qIvoEDKZjI4SCYJqipgloKpW4CXRTknT1+UoUUYZTW8KSwSlrnhUmAcGnZjBk88ZT9E6VUO76Wd1+LT8n7SGYvpgEeXlwucMuIc/fpO8Vk0PkG' .
+	'I9RYUV1aMlnKlfmgUhwSn0HrH/JMyb129XEV533dAXEx7Ip/GmwWRUqOS+YC4sR/jhD/n/Ia54O/BjlQDTeeDWXYO/NnZYpUr/JBoCevjPkfNX' .
+	'/F298IEUsuIUJuFVbI8IOlMg3QzvVpMHKk2eHH0oIG/0mBK7X1UOKzECpGXDkiUS9szNAovdhiDJeF2grZZ5DduBKIpDEk1FtDE7T4qVWlznba' .
+	'5jy5IHwzozjIMK3m8tOGSwlEcZqO3mxqLnIz5+nIBZiJhxHVZ9gFbI8uLNZIPA96ULpX2S7DPISnUdF3nAilc9b+5EYYWoFiia4yYD6MvKbStU' .
+	'PPUm6jRo/euMoS+hvwcLBYgxc0unO27mHLpHCIHpg80BkSzZfzBXKd4n4VlDGaCY7PQDgr8YYDZFfpGsDVdDuOSDWq87PAT0pgV8paYExA0J+N' .
+	'4pyEDJXSTSP+BY7v3qiS6jm+r6Cj8kC25naqBBoaG5UW5qzoYzzg4Bvb01UeBVtdNc5S0TXbArH3mq7i3lJIavdnqdUkOkkACdxxZKhzn/idfE' .
+	'tlNP6nFII2ZtwzI3i7YLmblvgZzrkNjmkdlo2BQZdTlauGhyMjyUAGwNnu6UtUbHI6KV9lU6JFFRwnnkPzZoeXX7KsvGT2elIwAHve21vTr7tz' .
+	'TcaezlWMOJXgce7ndaORIZtKiCvMiogVa825ASSLo4b1WrsP/k8Y8F71JEbcMnbZ2V8D6cvePrFn29MWORpiADRSd9eX9CAamHO8TfQBLVc37z' .
+	'aF/yjVmf6aQpD+QqSGHaq3guLpEtnGEiChwrX+oH+QtHcj/7pk7/u2MyZzKzTlfJlx4XjCKj27CnEAIE+k+3+OH38Y9Z1s7xZuKkcd79Z9Sm9P' .
+	'wAB4k0OpLl2KHettPZjP7cKksqqJ3FpO6pV8/dMQw3nVt60vpTUXIfEtvaaRhLg1PGttw7GTgZ2CgBDpZslRDTmE65eEYQp2Vqi61TpevG3TuT' .
+	'3JZv1p0prKIwcdJ9DQzEcGzqVDkwa2UwdP0XL1aozRFRP9RWIld95XHZE9xPKplMdV8A6+lV7FWs/XakGX+CPiCyV/OqnkoS4TFS2bfeeYzrM9' .
+	'aqMoGRp8w8xMMi1RujQOTs8g0Ya04ua6VUHMet6Ncoppu8Age2QAzxttjvbFX0vdb2s9B8jF0R6RFJsqo+fQtdW9Op5D582dks1rLAvSji6pWJ' .
+	'NhWFdA/TSsTKaS0PqZb/ZgHmFMEPiCSjCDUbZJGxsPHLRFaZjiSuq+8lE1l2m8K707e3AZglxxARXrKMuEphfNJ6OROcY51xl/i+TIoGlwvk2Q' .
+	'iEuiLOcTwiWqXcnD9VO2b0jL7ArCffaVCisxG3Zl0M0tEyP+ZgzUodT+KSJ5U/0C3lo3n8m8hlQHh/bWDcFd3LZ3nQJ46CgRruz3K67BvvnEsy' .
+	'QeYY9FSqAid/bVQKGq0L9sj+4zECuNX8OYcJB2OXp+01cHzQ2GJCW4kaxln861RwDa7rolx9s/DMgN6o0etIu5vKyo+s1o6wPwUnJova8f/VNZ' .
+	'7HpduSzY3qXGO1EdMwnQ+6Bq+pFPhpyOf6Rx2GYm9tJV5XCJLEi4UYZPXLG67aJtK1mfEZfT57/J1I4546dJLGgDo8k5B0VEOBKrOidMxeSAG9' .
+	'/vYr2bvNpWy+2ZdKZCBsft+kPpnGAl+g1k8TwP5hwe0TFiaCpwJgKOtRk64ToGBtvkgwdmqxEL4r1543JEoDK+eNgzjYE5x5Kea9SgqU6Jr8wS' .
+	'oVd5OEb3Cs6qnOpn/JAJ4BZLEJYIdt0LvLN8HY78IL/v57KD+YwUGNzyidaiGoxoL11Z1idHqTVRS7+c6Z4E2tRsF/Ao4R9Fh5+q7ft+uawmXl' .
+	'CM7FdUM6j9oQtyrHZJlFObsrH6CZK22ndqaApMZY22ZgZlRB/uRqLYJhmyC5Z4WGp5ONxFuNy8JX2qSnVHSP6vmmRxct49fvmmSxnUv3OoQx2h' .
+	'QJmgOmHIjsi0woQ3GyU/lz8w87nxNhGteOqlI4dg5wXO+rIql7ih3OHo4gtLEEEi9P0QtwV8twNJ9Pa7SPbUg5YAKPYvShlVNdhttLqBtiR6OD' .
+	'k66ZTF7kQaPAUmAF2qGG0T2163YKTXQ32+x8iAynXkLHREwixRPlaL2rgrXS27ExbpPgvnEMCdSelE/vg3uta/5/AAxSTfRmC1kpj3GmnJakZi' .
+	'/r+7s2Awfzg7X9i5hC9EsR53x48wag/UqcrHGmE3NesNS2xtWhew/griT1V2fCAmE4unWMA9Dw37/9b0OyfU0BLqM2yEzhpLhQNdj+Zuczq/Xf' .
+	'sfDR7zKcfLraylAI1XZa+RNRp3o8Jc0PB+wZObMkTr2vZKLXA9V5CMkqSbMnLJiwYWeSlujDQ+mrN9fehfDp4slEW02MjeXTFNChWL7p7pehhz' .
+	'q33Hbz2c5JFyepmo/PN8IClLDnP+NmD5tCr3L9DziysioMWgvPDG48agv5h7eWVbfapqLYEAJUM5XoMD5QBWJ+FKzKy3tf+Bm3lPABC5E8mqSV' .
+	'BUFOrNORVx84RwrgfCyG8f1FDDeA8WEXx4pErykI1Hi7HUz/kEo8EKW2XkGGgyzvAu1Qxm56css1ZGUNSdt83HMHZzTrBquKYFwTIb74sojiHQ' .
+	'IjEsqc5WDVFd44jmKtBN11AQ83K93VLqmQLk0cbk9NsTBPGk4tbD4dO3g06gEHNjzMZSAn9gL9s30cDAh1lDr9V1HYlNula0JdrdI7xeDfcn64' .
+	'5geJkDgAwSj/lqb1eGOyjLTtOQITWlrLbWZDcBTPrsiIlae41i/cYXCsWQ4UdJtd5SytGopRvnsIA58O/OQliGPtfiAyT6STBao2kWOZT5zXaU' .
+	'8/Jf9t6HbrDHJslc1g575gOPt09VzHhcJf2w/flGDo6AMh6H9JM7SZ2zNKpoFVuh6UmIj5ohPw3FBYpwjifWS4ImDsMDGRuWEVpZOs/NrRFUKJ' .
+	'ut0rzMria/U2ZTgP42uvQlsWpGtYCElGHPGKkyUVhj9qMgL/poH59IE3+dCKBwrUoN9sBKDNZ1gW2l9mJUe1ijX55ZAEn7rwBpzHhY1iIkTOlu' .
+	'W3pi0m40BsSZZ7ARKzjwXnpdSLHK7RQWxkMsL2EQUOTJCQwnLgZVmMj+tIK9v+FoRFW7wiIcBhUAbQW2iOWPCC8uVh0DORe4TFk150WFdrNnJT' .
+	'WdXpugmvAqKt3Kt6OYBqmgCvKBPxB2p4t9xOCBVZR1AWSHCnXeSUAdLvJxUfhH279h8aJxzXeMPskFjLoTjxRKXgyb8SIY/AT/g1ej9XKNoMyt' .
+	'eOhAKbLHcZglkeouOAwMNDdUhjbsDfFB0dz/HfFmtUq34fr/WdI8kOKfSeYkBK1URzyy3gs3StyNbKKsyEGBDau6nCRZ4sk7O3KtXo4/LaPR5U' .
+	'QZfpkbDEBvkSkSmQbPYB5eU58cGbpiFGwRg4/jC5gZM8Wifj3iyJViwh51od5GGal3LagnmAzOgPQtDY/qxH2x3fxd1+r0OKEHq7+9evaQ0+N/' .
+	'KJSZmZb3Hz7OQuNCIxompPNSCpToZsxNflUwPVK/+l8dpGWcMFEag1t/0BT55UPxhMMU1ZqN28FEVXTIeEcGtyqxPFy9bHznSp3gn7ZIc27jxC' .
+	'HNZfu9XNKXTKLUWYz2DvTIty7nTzLoLIX7eDRKYXIr4merVOqrPnr/FVZhiOHvt6JQMFTM3Wdd6om1c9sfMgh35WotGLxRKXgqmoQ/5VC5tNRg' .
+	'FTpJ29dLZCtfD72aI5xinKy9WvIoadWjqH6WL+Ql3/WKsmY8xGxGOWcIQDAZpLHeieunmayDo7Mgls7RvhiJSmH3ge3VakM8VNkXh+qkTj1+3Z' .
+	'mOzP8dzHqBKmLN0IgkhbVDxy6yDDqgR/a8p+qZQC7VcoY6w34JVi1+4s6kQ9Yq6tRGlPiRd4fMH1tZZ+oh5Wvc8qxkOgP/J4dMSzRLOrYNV1yf' .
+	'nkzEMFbLe/kslbVMG5MKkL7MD9t/6gaQmL1Rk0D2P+hqJ5ki456DtGzUbk7bPVse8ip0zbPuBKdIJ5+Onk+5I2LqH9WF4zkEOHnlF6u9bUVwLe' .
+	'XKtQI2a7pS7i2BHwfrxIHhSZEBU2KHgRPyobCtT9zGcyUwGOFVy1nrcnYGlq2opZQITa7RGTCMjqGJDJhmt+WkfI/3s5X6WvZd0Tb1yids39nv' .
+	'1UQp6Jz9ul5pbGnWKBnvyeZk9zSx6v+l4kQGFWcIRqIXpIuqCmvsupYeEqKDUbKRxSD1lvf1xrm5VBFv1Z8J32NuICyGvaPaIl2twSL/Hej67f' .
+	'DZ/Sqb58GsUwgkAj3xZ8ySmWHsgnZPSMaeZPo2uZ3oyku49l97i74oNnVkhWXXVXY16Kew59nfpNQQ8N5O/mYImeTDrPUGbNml6xVS34OT2yK/' .
+	'8TKN6IYaUOMG9q1F7d2EkwW9idMZjzhJyO0EAcR/XyonbrMNaMnF1vvv2+SFG7gYCFZA5UQfmRxfPDUbng1RLCL6gnIVpMxA5QfnzgzweCkVc4' .
+	'bJ7LWg7O6ixQa42u4m7uDka0/fJz9qAZB89i1fxaioGmTKaqxmew+U3Va9cR6ls5FAyElrOUjbcw1dK+njjKjaO+kHRlRktgunHG1YkMa1TrdB' .
+	'5+S379xMSOMcn50lLIKfPsdn8NUCgfWdORdZhuawKW9co66cU2r8qExCSJkkMvdPLTIQjV8kkEBwiwUCez8F/G5aGER39GsKaQ3gI8rqNwy1FF' .
+	'LqnBIGafkU0CQzqIlypTOxrKvIkP2Fd4m5j8iVGnewfwmQQmZhHWA3USd1ARsvreDq8oF565KWF/D0yVrg5LtSq8UhntkG1L8eOmOB4M02ACEX' .
+	'hPo9Dh7RELmy/laWOv0w/a1BYpJWXyOyDyyl9PvI5DblV5ZDM5q0pa/Y88E+8JucdIUnbyzZm80ytC5hHWJmkJz59ItbTSXRFtVus4pJcx6vSz' .
+	'0wShyqEeKMAZrIgGVAqp/4tMvCmsT2orTB+m2zFCF9hnNdAhvuqI0WqquNDx9f65hJCBiONttEpsvWwDDMkATPPcfaOb2D3+/9HqZyk3Zeqg7U' .
+	'xa6ixZFISPBdBsyGT5/vWDTjNBbrqGjn9mnLNAVDqnP9ZluqjRqDDVPH2nZ+pR+hD/AabMBeK5/0zGEai3h7Nm/dPvvafPdoVurzD/J1pU3nFU' .
+	'bO2L06Ms8Kz75qb9JAngVCnhjUA10AxSKAXJU+P3TP0hmbEMrkWmuKAe1YMKhWhk70pFsCqMnSW69ARpj7ps53qqh+tw3KcQaB5Y0MJnDy9Vfq' .
+	'wmx33OzinI1Lwrl0L6g9aIQwN4+kGpGEK66ljUAkO+DMzt3yU9NmZcKEzM0XMG2tea9MBeJofexarwHHT3G0XHyQ7BR+3tWQRs2oTDIlyVYwPL' .
+	'aZlPQAD25kXoJLlAFAuI8ChrvszS/VssaNPxf7uaT3XyFtky6Z4rJXnQfT/uaHYl8deyNIvOuD+VPcyirFubMTm90EGB3IIC/A461STrQ9dYlh' .
+	'8VumSiSOHNHnQq0pqkt9muK5E/qnOXzMG7ZWRNQ/mvadtYwbVHC2W0JLZGbJZrN/9DyhOl1a5ltEDr4F035+7JNj3FiFQsBAJpWD08XsrsPjCR' .
+	'xQQrhq5kjdH//S91GBGEj5YOjoBUNG9N3M1jVVvgLknd5I2twBw6fwZ2Zqxv95yGm9xmRzZrwj1o36uHnhJWpNlkGdryIVtEu0K0a2RqAAQawI' .
+	'0haIwC9Z/pVjbAxafeyhfFZRMA5Tk8dGjGLu5X9p7uYYZwi/zDy/xUT3VFkqnSPkltkSAmum/LnbatB1ws+Qz+TxkCUY7kaIfOPjWV5fRJIr2x' .
+	'UKSSgUC9yy7aukJhUUC6JIDouhM291BsjwAM7wZHRVUa4D7TEyCWDMGVLILInltd55iHYIe/0rAWLs49BGC+TasBaqSWqbWeudXCFspTR/A1Xc' .
+	'DaqqNI5xf+kLtGn1mrsY88xKAe38LL9csdOqOvk0FZ1+AljycVq/K86dBlJ+PrGNQYJpNVJ3CUQpi0meJp1ERJtwKquwaBulgCcjxAwD5Q3XlL' .
+	'CjQ6IH7QdgHnX7amBurxV04RClYHfsBzVohYmpYtdzVpGFX2NRBQ4Ood+p5dynRrbVnOfz/jAd4hSEXSLY0ez/C3l6Mqg7fGCwm/CFBu7oPlyN' .
+	'Djrnf1WfAATwQDM2pVITUPKPKqbCXw6iMS/Y+thLiZEDhBP5b3plIZOFxB275/gjOZ3aVGZXxei1N+86h6+jB4r00J3IWgIb38cZOt4O01cHS+' .
+	'z2Ugwr20VgjG6cdNrUIrcCGcf0WxIEiufIHbSF6xsSfQ6ImDRLWgzZl0jBvaP58pfhweS8LI6pW7NaEWz/89wjP9qqWzfKq7CEtReAmFX+pCeN' .
+	'3HHLEUfQElyDC761nzLuDJ0kxxbSMb6iZDqH2JlQs7v7i+npw8FnJwz9bePrOb4OF6/XOSKxkUYZ59sOG7RMDHcMKrRRFHRRMv1PzpHk85Vp2i' .
+	'Vl4uEAvq0ogwqYfkOhS1a/NNE3SGsU0kK0CG03uNIBhUdqFENl0XKOKtGocDS14+hE3Q+0f+fTSe0DqLhjjY41igor4EUOU8A2ZRD0sTZXYk0R' .
+	'FaaSO4U/LWLmPUyyIVtOYflBbLZ1/OK+YJ89tjz3slOPRCif3c2w+zQKDYBWBdmovzCzmwvbz5LEL8EAl+fS0jdUDcG3Ebe34LCcIbTvW1AxHj' .
+	'2bQEuYjk33jYybsYdb1JZ5XffrU2jXiWmaxA2cmIeFqb/OqTjyEBVAc+OrXb+DD3cPw1pBiCmyxoLxInuLGAFSZ/Y4MV5QcHkTtRwvGpC/YZRp' .
+	'38DwoikjWxIJF/imwJ3znEYL3+bcDjlLnUDwoFZc7QnuEPt+PmuHpkXvN8BSIXo62dhQUoyKq8UMtIq33gq7Wu8+j/6AOJqf7m8IY/bi99ucV9' .
+	'4jxiqwsHiJ7kNmzYdjzzsim28iImHqgmLNJdm2AaEE+a4m025a4z7+bCj/bRFkmV1BSMXha94UYRFRV/GgJa2zN4qeopT7M5+NvEFQfaSNMRh/' .
+	'7Pr55Rh6bLDGtrAxoeW4tnZzlzPJs9ihiQQzWyHpAk0YCDD7gbKjX6PlweemPYHqbEWoqXXe1G7Gyp/28YUNYg/nK6v4jCqMBoxzgQ/xZVfv87' .
+	'2UAevj/5bIGKuDqwgyrhKR1l/q++h505JU3UdfHgovUMPIuuA7EHfUDvurqw2u5ASPKpvxcTH3VAg6XVd5qJYuIuYG2+sSMLh0cxFzCXf4az2P' .
+	'/xRsuwoqeOvKW3b8QtFzDOEvjBUULKL6ICDGFbycMfwWcSabIypn1erdd3CE2y5CIc6BVOC3m9HW1rqg9UOrQkd46W8/N3MZXue20So8Mpglly' .
+	'3zguMqwi5V+LroybIjUq6d0uVl8odSAGzfr0pZZdqQCnfLZILtGFrI23nxmOlYYtKYuAeILXMF243Nx1pQqGiP0yNyDK/9Ik7ZEYmUWQ0mbAgX' .
+	'hvfSCdoTPOBjOp8Zcz0b+xtvKPBujN7qGOaTy7QsRlxmm1n+weOcaISu8dDp0FQ0d/3ugFWLhHvIqR/yP547v9MnIfm2JWmP4n3eJ5JtlDfpE8' .
+	'AB3jbOUKPtx+ddBQBG4dmJGIue2BBz8gygwHQFEZT2MrtetkcRrOCE1wGFFfnmqKOZ7sZH43qP5XGdCIpvpfJaf3z1jZtSN03ibHR6/NBEf4PZ' .
+	'H+cwfC/jazUmLOeFoaZeG1EU84Oqx7RkS8NP9mLYRUvYhMN8hXoGfEnFvdjuCfk5zcOePPtKP/0XbjnfwJer8U/AehYyDUeLmOPQWlGKkGAZWV' .
+	'sQWHJ7vWtpTjGGi0wkTWnlVZsgtP9P8mwDby8MfD6iR8sUGkqcCfzqaMLZxtk9GKeYNo3OMfdgk6SQj2v/Hj/3b4QAsawflIAOJe2xibL2Hjae' .
+	'gvbUv0es/rg5NUlzJiCGGufonjhCVnSQNtO5ZRRCv9eeOt+M8qgr1uhff0MfN5ZIx53sUJGcHA3sdw5GQNhCi4GwMGjSvd4Ryz52KOZFyVgZiF' .
+	'MUFmXwFdFNjZFP1up5twCSRiE7+qP4+upjnLTtWjDBj8HlO2a019asLk5kRGKgmVxCZmkoRW+NczPL9TcJzzrGkR8qiUOYvQe4LBMJAOebuS2S' .
+	'4NxU2zTTrpsrR0VNtVdh93x1ekaqNJSqRKR4FDGH7Tg3BmMuhZbV0YqNSl2q6T8sRMkBHTLQdMurbAsgni6U7Z2Be2pUKI+JlFgR82orVJ1ho/' .
+	'O4aGqC3iMKahQLvHgc1Y0LcpqYIMjYUNXlWhDTPydMilpdBT7Q57EBKLwjTT5ck7Ezn7RC6z5Kr93x9o7tiIs7+NRyb10V78c3XJ4Xh1GMAs4e' .
+	'7KJk1391nfbooc4cVWanWjpqTFMtKns/S14mDlg5I9/4t79ov/M92SSJjsrSr0fBSPUbY+0U5pKhEBu1btVQtDRARpZtU5yOefroTGWjYADL2T' .
+	'RFLw4pv23XG/Imyd2ybkjEOA8KvpRqeW8WgMoVJrFGOtKuPypTO65FakaSyusHLbOctRP/PvBtgzIamVOgy+rldR940nGaj+XlwUtr7OHtZnKU' .
+	'xb+NLe+UZcSqylt3xERD4ZSLxt/yGbxYRtwzf7V0UxBVEoUYyWaN8WydK0SwbyQN4y89OjofcjvlvRBfPcml8cYMmhHD0ftFzqdWEmbU11Ycmf' .
+	'eWb4IXPK9GTqmejAaBp9wTAerhRWCSs1qRW8aMfLYCNXutXnSI0W3f7qHnDKjWbPXXCcIiTl5KfgaiizZvTvuuim2ILy7C1rah9Jltt1INGbfm' .
+	'Xprfp+ItiVsiSiV3OXq8KiHvPUgh/7lGAgh/99z0ES0s0n4u6MLfFmsXfVXrXs+BMbloE5cDufzCuIIXdtv0ew4QitKU3e+jzhmmS0Vps+pXtu' .
+	'DT/CjF8MaENKhsGNc6OEBmUI/IyTWY3Dug3gQW+C/XU0h8I+Jb',
+	'17101f61e2cea8194a8632aeb9873d35542c3c9e268ad6dcd20e0dbaf3349e03'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

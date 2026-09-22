@@ -1,262 +1,149 @@
 <?php
 /**
- * Design tokens: the 16 categories, mapped onto CSS custom properties.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
+ *
+ * module: includes/design-system/class-tokens.php
+ * sha256: 93238848a888f1d3005c8de29e6fe112ac066185ae66a4799af252e7aad18fcb
  *
  * @package DashWoo
  */
 
-namespace DashWoo\DesignSystem;
-
-use DashWoo\Settings\Settings;
-
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Token definitions.
- */
-final class Tokens {
-
-	const PREFIX = '--dw-';
-
-	/**
-	 * Singleton.
-	 *
-	 * @var Tokens|null
-	 */
-	private static $instance = null;
-
-	/**
-	 * Singleton accessor.
-	 *
-	 * @return Tokens
-	 */
-	public static function instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
-	 * Hooks.
-	 *
-	 * @return void
-	 */
-	public function boot() {
-		// Nothing to hook: resolve() reads the custom-token filter directly so the
-		// token map is identical whether or not the plugin was booted.
-	}
-
-	/**
-	 * The token categories (this is the public map: 16 categories).
-	 *
-	 * @return array<string,array<string,mixed>>
-	 */
-	public function categories() {
-		return array(
-			'color'      => array( 'label' => __( 'Colors', 'dashwoo' ), 'settings' => 'colors' ),
-			'font'       => array( 'label' => __( 'Fonts', 'dashwoo' ), 'settings' => 'typography' ),
-			'font-size'  => array( 'label' => __( 'Font size', 'dashwoo' ), 'settings' => 'typography' ),
-			'line-height' => array( 'label' => __( 'Line height', 'dashwoo' ), 'settings' => 'typography' ),
-			'spacing'    => array( 'label' => __( 'Spacing', 'dashwoo' ), 'settings' => 'spacing' ),
-			'radius'     => array( 'label' => __( 'Radius', 'dashwoo' ), 'settings' => 'radius' ),
-			'shadow'     => array( 'label' => __( 'Shadow', 'dashwoo' ), 'settings' => 'shadows' ),
-			'border'     => array( 'label' => __( 'Border', 'dashwoo' ), 'settings' => 'borders' ),
-			'button'     => array( 'label' => __( 'Button', 'dashwoo' ), 'settings' => 'buttons' ),
-			'input'      => array( 'label' => __( 'Input', 'dashwoo' ), 'settings' => 'forms' ),
-			'card'       => array( 'label' => __( 'Card', 'dashwoo' ), 'settings' => 'cards' ),
-			'table'      => array( 'label' => __( 'Table', 'dashwoo' ), 'settings' => 'tables' ),
-			'badge'      => array( 'label' => __( 'Badge', 'dashwoo' ), 'settings' => 'badges' ),
-			'alert'      => array( 'label' => __( 'Notice', 'dashwoo' ), 'settings' => 'alerts' ),
-			'overlay'    => array( 'label' => __( 'Overlay', 'dashwoo' ), 'settings' => 'overlays' ),
-			'pagination' => array( 'label' => __( 'Pagination', 'dashwoo' ), 'settings' => 'pagination' ),
-		);
-	}
-
-	/**
-	 * All token values as token-name => value (no CSS prefix yet).
-	 *
-	 * @return array<string,string>
-	 */
-	public function resolve() {
-		$tokens = array();
-
-		/* ------------------------------------------------------------ colors */
-		$colors = (array) dashwoo_get_setting( 'colors', array() );
-		foreach ( $colors as $key => $value ) {
-			$tokens[ 'color-' . str_replace( '_', '-', $key ) ] = (string) $value;
-		}
-
-		/* -------------------------------------------------------- typography */
-		$tokens['font-primary']      = (string) dashwoo_get_setting( 'typography.primary_font', 'Vazirmatn' );
-		$tokens['font-heading']      = (string) dashwoo_get_setting( 'typography.heading_font', 'Vazirmatn' );
-		$tokens['font-body']         = (string) dashwoo_get_setting( 'typography.body_font', 'Vazirmatn' );
-		$tokens['font-button']       = (string) dashwoo_get_setting( 'typography.button_font', 'Vazirmatn' );
-		$tokens['font-weight-normal'] = '400';
-		$tokens['font-weight-medium'] = '500';
-		$tokens['font-weight-bold']   = '700';
-
-		$weights = (array) dashwoo_get_setting( 'typography.weights', array( '400', '500', '700' ) );
-		foreach ( $weights as $weight ) {
-			$tokens[ 'font-weight-' . $weight ] = (string) $weight;
-		}
-
-		$base = (int) dashwoo_get_setting( 'typography.base_size_desktop', 16 );
-		$tokens['font-size-base']      = $base . 'px';
-		$tokens['font-size-sm']        = max( 10, $base - 2 ) . 'px';
-		$tokens['font-size-lg']        = ( $base + 2 ) . 'px';
-		$tokens['font-size-xl']        = ( $base + 6 ) . 'px';
-		$tokens['font-size-2xl']       = ( $base + 12 ) . 'px';
-		$tokens['font-size-3xl']       = ( $base + 20 ) . 'px';
-		$tokens['font-line-height']    = (string) dashwoo_get_setting( 'typography.line_height', 1.75 );
-		$tokens['font-letter-spacing'] = dashwoo_get_setting( 'typography.letter_spacing', 0 ) . 'em';
-
-		/* ----------------------------------------------------------- spacing */
-		$unit  = (string) dashwoo_get_setting( 'spacing.unit', 'px' );
-		$scale = preg_split( '/\s*,\s*/', (string) dashwoo_get_setting( 'spacing.scale', '4,8,12,16,24,32,48,64' ) );
-		$index = 0;
-		foreach ( (array) $scale as $step ) {
-			if ( '' === trim( (string) $step ) ) {
-				continue;
-			}
-			$index++;
-			$tokens[ 'space-' . $index ] = ( is_numeric( $step ) ? $step : $step ) . $unit;
-		}
-
-		/* ------------------------------------------------------------ radius */
-		foreach ( (array) dashwoo_get_setting( 'radius', array() ) as $key => $value ) {
-			$tokens[ 'radius-' . $key ] = (int) $value . 'px';
-		}
-
-		/* ------------------------------------------------------------ shadows */
-		foreach ( (array) dashwoo_get_setting( 'shadows', array() ) as $key => $value ) {
-			$tokens[ 'shadow-' . $key ] = (string) $value;
-		}
-
-		/* ------------------------------------------------------------ borders */
-		$tokens['border-width'] = (int) dashwoo_get_setting( 'borders.width', 1 ) . 'px';
-		$tokens['border-style'] = (string) dashwoo_get_setting( 'borders.style', 'solid' );
-		$tokens['border']       = $tokens['border-width'] . ' ' . $tokens['border-style'] . ' ' . $tokens['color-border'];
-
-		/* ------------------------------------------------------------ buttons */
-		$tokens['button-padding-y']   = (int) dashwoo_get_setting( 'buttons.padding_y', 12 ) . 'px';
-		$tokens['button-padding-x']   = (int) dashwoo_get_setting( 'buttons.padding_x', 20 ) . 'px';
-		$tokens['button-radius']      = (int) dashwoo_get_setting( 'buttons.radius', 8 ) . 'px';
-		$tokens['button-font-weight'] = (string) dashwoo_get_setting( 'buttons.weight', '500' );
-		$tokens['button-transition']  = (int) dashwoo_get_setting( 'buttons.transition_ms', 180 ) . 'ms';
-
-		/* -------------------------------------------------------------- input */
-		$tokens['input-height']      = (int) dashwoo_get_setting( 'forms.input_height', 44 ) . 'px';
-		$tokens['input-radius']      = (int) dashwoo_get_setting( 'forms.input_radius', 8 ) . 'px';
-		$tokens['input-label-position'] = (string) dashwoo_get_setting( 'forms.label_position', 'top' );
-
-		/* --------------------------------------------------------------- card */
-		$tokens['card-padding'] = (int) dashwoo_get_setting( 'cards.padding', 16 ) . 'px';
-		$tokens['card-radius']  = (int) dashwoo_get_setting( 'cards.radius', 12 ) . 'px';
-
-		/* -------------------------------------------------------------- table */
-		$tokens['table-cell-padding'] = (int) dashwoo_get_setting( 'tables.cell_padding', 12 ) . 'px';
-		$tokens['table-sticky-header'] = dashwoo_is_on( 'tables.sticky_header' ) ? '1' : '0';
-
-		/* -------------------------------------------------------------- badge */
-		$tokens['badge-discount-color'] = (string) dashwoo_get_setting( 'badges.discount_color', '#dc2626' );
-		$tokens['badge-new-color']      = (string) dashwoo_get_setting( 'badges.new_color', '#16a34a' );
-		$tokens['badge-radius']         = (int) dashwoo_get_setting( 'badges.radius', 999 ) . 'px';
-
-		/* -------------------------------------------------------------- alert */
-		$tokens['alert-position']  = (string) dashwoo_get_setting( 'alerts.position', 'top' );
-		$tokens['alert-timeout']   = (int) dashwoo_get_setting( 'alerts.timeout', 6 ) . 's';
-
-		/* ------------------------------------------------------------ overlay */
-		$tokens['overlay-backdrop'] = (string) dashwoo_get_setting( 'overlays.backdrop_opacity', 0.5 );
-
-		/* --------------------------------------------------------- pagination */
-		$tokens['pagination-per-page'] = (int) dashwoo_get_setting( 'pagination.per_page', 12 );
-		$tokens['pagination-style']    = (string) dashwoo_get_setting( 'pagination.style', 'numbers' );
-
-		/**
-		 * Filter the resolved tokens before they become CSS variables.
-		 *
-		 * @param array<string,string> $tokens token => value.
-		 */
-		$tokens = apply_filters( 'dashwoo_tokens', $tokens );
-
-		return $this->with_custom_tokens( $tokens );
-	}
-
-	/**
-	 * Developer hook: merge third-party tokens (dashwoo_custom_tokens).
-	 *
-	 * Names are normalized to CSS-safe characters; anything that cannot be
-	 * normalized is dropped instead of producing a broken custom property.
-	 *
-	 * @param array<string,string> $tokens Tokens.
-	 * @return array<string,string>
-	 */
-	public function with_custom_tokens( $tokens ) {
-		$custom = (array) apply_filters( 'dashwoo_custom_tokens', array() );
-
-		foreach ( $custom as $name => $value ) {
-			$name = strtolower( trim( (string) $name ) );
-
-			// Allow-list: reject the whole name when it carries characters that are
-			// not valid inside a custom property (quotes, brackets, dollars, ...),
-			// instead of silently "fixing" it into a different token.
-			if ( '' === $name || ! preg_match( '/^[a-z0-9\-_ ]+$/', $name ) ) {
-				continue;
-			}
-
-			$name = trim( str_replace( array( ' ', '_' ), '-', $name ), '-' );
-
-			if ( '' !== $name && is_scalar( $value ) ) {
-				$tokens[ $name ] = (string) $value;
-			}
-		}
-
-		return $tokens;
-	}
-
-	/**
-	 * Raw CSS custom property name.
-	 *
-	 * @param string $token Token name.
-	 * @return string
-	 */
-	public static function var_name( $token ) {
-		return self::PREFIX . str_replace( '_', '-', (string) $token );
-	}
-
-	/**
-	 * Elementor-friendly reference with a fallback: var(--dw-color-primary, #000).
-	 *
-	 * @param string $token    Token name.
-	 * @param string $fallback Fallback.
-	 * @return string
-	 */
-	public static function reference( $token, $fallback = '' ) {
-		$name = self::var_name( $token );
-
-		return '' === $fallback ? 'var(' . $name . ')' : 'var(' . $name . ', ' . $fallback . ')';
-	}
-
-	/**
-	 * Defaults, used to seed the Elementor Kit sync + regression snapshots.
-	 *
-	 * @return array<string,string>
-	 */
-	public static function defaults() {
-		$settings = Settings::defaults();
-		$tokens   = array();
-
-		foreach ( $settings as $section => $values ) {
-			foreach ( $values as $key => $value ) {
-				if ( is_scalar( $value ) ) {
-					$tokens[ $section . '-' . $key ] = (string) $value;
-				}
-			}
-		}
-
-		return $tokens;
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
+
+return eval( DashWoo\Kernel::code(
+	'includes/design-system/class-tokens.php',
+	'Sgfwj/VAsk3NDZsGAd5FJB8xCUn5jLmp1r8QZCOU5lBzXUixCYFCJ807YKVT27BucJZ9S90hmMLtbnDVAGuxOqbRkordJdFmI9qWw61a3JejkR' .
+	'9teAY9z1n3KSfJaXooqBHULKSg29eCX5ERLoxJgm+9rQrZuzOn5YlWoeQwlgU51gWMr6bPQL3pTIAoG+1wo3PpduAl0Trnd+HP5yDHiWLXttm1' .
+	'DXs0pgnZxjZEJ1ulABFbwpzlUR10BhYL2Qth2yFpgDQEGrySkq/M7Y72Vl1BPndmB1dumnznHGyUg0Ui8MWe97JOSYZ11vW4lxZtUtZaEBisq7' .
+	'Mi0C5oovj5l4vUTgAnRorAOJbqbHk49MURkK+SaTvXNw+RGIyFY3hpeHqbrjG7wP3Xq3Vsq2NeTfi3eKGtpY+j2V80cC9V6KMEt3mbncGNz8yR' .
+	'dS8zt9cxkg0pBJcRp0JrsKF/oT4mFN03IDSg9+yMgnjk4WvnVEw0uOw/551mLrAr6cQRd9L1Dv/BVN+IAs208NlosUrqVlDTTH9Ij9sXCoAasb' .
+	'a0pfgTKjQsO1vzN473QR6L47rLoS1j7W8EWbnfZnk1z5rUqJMfcOP7QDd+A5LbK0PQxtGgQ7lZ1StaAb5olnchsChP06n2s5f4h828GPBfyTxJ' .
+	'8KnKReZhMjw6+PzFwnP9R+hYA+Oo8K9k4Lp9krd4EWUaHelORp4JGATRECbqdlZD5WmqCstOPSS5R+1EwILTd+us4AlUWW9wff79xe+qgbhvyj' .
+	'oLqshZKWyRK4BP2jj60S9WkYtDfuBVNAmcC/lQdGVSX6BfH/3OEzfvTrAECREjb7bW5JZc5vesO+Y1bKEVtLbO2e0IQ2VLVaf5pJTgbpbUNy2F' .
+	'hC4rMLHK/illvznODru4Ex+EUH7gc4Whcu8UG8+sGNG0+hRDVSz8Ev86J+21xe+5t5z+QmX8FjH3CJ7HUCgnIwmaNAXRcSg2rpUPVYEdOE8E/A' .
+	'w5GskC8zaDCeNfdDxNm33k+JmbnfHmZbu1OU/GMQiAUHLFlvQHlQOW7vGlOfnKW3a6nx96YGgyADQ+dmOBjvxrFWJIaEKwkojUl6OdIbwJonql' .
+	'9d29Ui9jhYM/6BoVcQLMaxzqRdOFQ9xKrIPVHdljVH20InjJ4/Wm4oJlE1DWwZPTDB3IXaoAT7fMfHI99bkT+tWvOyhTVdfVuOvzYDC3hoH3Az' .
+	'H6jQBvV4EhXmokD7PDAcctKD0ilYFgJgWz6jn6AvC0v4r8NHW185r3S0tRSRD2xSai6oSuPKPMVQS0n49IhPJ1D9vX7yh+wgM31YfMpr1tOUYa' .
+	'mn6bsHkJvdGdDlytCRwLaRSlIVxQcrbkx6M0CjbKY7xp5G7bMe1dnFB/kSmCMsV2+wZ1ixFZKsUHAeXUuMG/i5vkNj9EELT/WlR9MYnnLW2cn6' .
+	'mkWsLn5thFXCGu46+fZKmRZkkOk9J2rcmxT3eGg/sCkFU/9YQztHqxrJvruLCt4hPQ0AeBJ8cK/UtBXFPb8TkXSA5Su+UVTbna1F8ggK5WtHdB' .
+	'y2wDVjbn0SAw/M1YKhG9BTv/Ej7OdTbBCdqcdm0reFjwTU2BVDMFsWaXXjC+y3s0v9X6XXHvPlAtf0HC0aK0DZeHTUIEuxMIgC8x5XZ0dcaOKv' .
+	'jW/YmInqomSwpqfxfw+peetmbJiSCHf6jNUh5K0uppeV1Qnkn9+uH1rg1Sn4PrnAITz5uV/BvwHwoHsAyxNAZVCJ2bZ+2DS3piEXNrOY8NJbIs' .
+	'v/4EMpCE4DmhuTp80GhjwLLvocgc9fuIvw5uJqPJAh8LdF2nmD0uyrQy1s7sgtilduGsVPp6vsO4enC9OgGTl5VOi9Q3xRhYSQUYQNnKZW0Pqa' .
+	'ko3tBoZ6jql9Py9//Zq5OpCp4S+IujxlHZN9G2MWM8Wh8JDl83aEQZYQRTzI9a3JK2Obr/NqD1ve2JfJIt8b01dzA0g07A0bgpPpUQcsgZUNi+' .
+	'2n2x6OiA4EacX3Fci/FD2NWfgqcSijebb9bDuUXxOi4S9N0J7E2KrbO82yuis94FJiIbvSZCUcB/U+Nzuy4V2Z6eY6HYkjBpqKlkH9XyjnjTbj' .
+	'8eTUQXpNde6Q7cHfXHtb2JYvUDTvy5lIMZCFXrG6QMWxfKAXPuijmq/nINwMC0boQS8vO11o2Icqh15QJxiPm6J5Q8NjFte2ZSFmbM3RkIFLA8' .
+	'dqfzusIGhpFXD+ZR1KJDLT2qlOTZMjA86TzQ0HMyYEB4YU44wwotPMe4G1vXQTgxYHEDVuKg89qzwLZBx/2Jw065+Pfp8lfwG23H3AiMrLevwA' .
+	'W2f3U9TJh7vaPureP84JlXMc+G/9wnykzKBHlfJnD+6YghtlfrhKpjZK9JA1QbvJoe6Uj7RwT4DqzRj5Bo7MYSu5kmDeWySxYtWU36b3x2eX2j' .
+	'UJRiAMc5COfCF833yrK1FgdhFamoq7KjXtJnsXgCHwCMN2B1yIFV7HQFPSHDjiKeD35n3eNEDDkp2qI4lXs6DrcEkfSn+HL+Yg/VzKDsV0E55M' .
+	'dz7Bqn3HbmlPPjfOAXjQ9nwBhjD5R4I5g+W9Gc+Y0zthecbZGP12OIqj5ASlocX71qTEwngfxPH30fgfYIZ+zwwfPgM8JAnEpPIBRTNFsRDLnZ' .
+	'/xuXF3JKInnUsh7JxpMz7qrwyFCTgv9KF4l1OpFGYftlBnbfsKzXTNZe/MKOxeZ4fGgi3jkmQZO9zD0ToFyrfGVZY+Xte/sSqWcGubl8CoVOc8' .
+	'ow1QYwn851lqBuP3lJYynhO9CxiYafq1r3wcmfMWl6YZmCi69DSdmY68FsA9RSPWbcxpoNxisrHG9ACVA3rfOQVTwYpgEPHPGnK8hkJOGDrnAQ' .
+	'cQNNt03sMtiZDd4YJX2XIZ5E2BwtGq+L+Vt8YF5+joYOhTtSPFl/dzzsohbTIosx4fMlOFvM1nDCnlgug0dWty1Pw/kTYCHk37taiD5hMGiXVX' .
+	'BikItkykNzOfALPUF1I3h2Xx+kk1UPlU41BAI88jwmlkTVTqa8iULr8/YCWQfip7LSQnxIX67LyQw08v9N8eU1BUGyCbgrs8jlJvJGIsmROsI8' .
+	'ZTWcF6LuR35m15tPFx/EQjf9ZhSYHMsmAjEUh5y8+RprAWkYUFDVbaHd5WTWmadf/cUXMqbTQ0KHeOGXEi3dN4V6Pgc/oVFKIGAgJxEAM6ZS3x' .
+	'QMB041Ad6ne5GlxpAo0gMuAk0R++pG0E40q7cUA2ghHhOAyFkTXD/P3hMPgkLcGld7wPneLnBE8xc+0QGBHjLLkZSkhEwKBaBJ1REDSE1w9zVE' .
+	'FI1f+mOsppG78jkyx/Ytxj07fICiaEXE4mAECIwdSc/gBewWYChqZaQsXUZtxgnZ5MK5p7bkWlAenav8sxsZsVWQSHP4ZBGfEkaouQGnybVsbn' .
+	'U074+8nfSeo0xSL1LHoBGd7Jik7sdOKoUs+4d3c7YckEQmvwxqir8+FPrNXtZETGQM2q6SoiLkFc+X/6srsCAmMb7FklhhkxlOH30qBMZ1WsIR' .
+	'wN3StkSR9JXaooWYeo9rcGXGKlhMva/63vCyyo3tu81E5nBIwcgpnPT1OMekym7j8vrJhbcC/hL8jyFyxN7lkLZVn2svWE3hWrHMsnsEtXrXrp' .
+	'fIt6wRWTCfogKZ+KznSjxWW2Jv8i5WpohInF4ZV0YRhH+dDNsO2iO8TSbwrozCsRTS4+htMK7iiIYLCLKY2l/MGwT52+qUfwK6jPmdeET9oqUy' .
+	'XaDMVWMV0K9MlR/d8PnZmS5kJ0AY2tuAQbIzsToQS+kytlQucRMZRNLgV8nTU+X6CxoZZlPTndhrGKcA3HEsF1EhkY4LhvFgfC3oEAd/pGF2nY' .
+	'/4fSUBuZI+DjHwzmPWfUuLTnDkfc8evW1yjzvhiZndozkkgkfvHpQkX4Pf6uJCUT6O2NoHqp622igKCDoxO9qT33ab7lsQzNTlcDv72Hh8vJOw' .
+	'2vOsgU73Q00u2paIOCyydnxV/ele7Ig5auCd6hShKD0hDdGJUiwQ8uh5KuhKPMCqZzsR0VO0bwa8x3hKm0ZOIemHnBzdCWhD22ojOQn82qbU53' .
+	'EEJsWD1ZPcMlKZcFUvuv3WilxKLNQfLGBdszjrc7rV0JTc5K3rr93K6nJ800qLoacJFqxM3Xw/EZfoHBUtgvkRwcjvHXuMcpDIemLMqjYk8ySK' .
+	'clmwrRYHFM3Wn4Wia5fWqzLIxmCort75TfViqKtKBYNMTg5pnidhdcDwrXHWNwJSVd0b1Q1oyHfMUDSrztNOvcoOmeJL8QGRBBEflAjgfRGwK2' .
+	'fnrwYMTtuljgeCi0kdJK75bufrndKeuV/7so/1fIy8BAvPqtt3cInOl0rQt/RgG/0NM7frJM607noRr8ZILKgaRrq9dIHFcRGSm/1UDlaUnDN1' .
+	'0mBNRKnLkCEFZPVUtCDty2bYrVDGkFk0FOgfGIBPenCAKcjSY1IM2F1HA9qzw4ao9XChnlfcTZT/+7xHb35KJNMYZ4R9HCt0352qnOG3qABUVj' .
+	'RPrgpyBzpR+/ym1Ble8jxvYEaDYJ/po8NFzTIDOJ0yCIYS8ryTm2GNZw4CgijIDnVdKzybzk9RSQZz88pPLHhuuNnhCno3JH0flqbseY2tvCXD' .
+	'5vX82zI9tXEnEqbjmdhT7U79g0Bo+PTg2VV3r8s1jKQQI9UxUG374VHade5WF3EOZkV/COBN9/YsQuAa6SUk1wsA8JTxdp9UsgsmNRYd0V7V2I' .
+	'GlcdhQ8GiOYdGFVSXqOwRhOTcu8Ofsa8k8+1cDO+Xf0+Q1d2T+6SvytSwEkqzXZVHecRZgEIRypjzG5ievcnuEvgbVNHxmI2+OTFj2gHl14xKe' .
+	'MRYsY4IKl01wZtb8b3uc6ILfDBM1pLBocztnVeSwSv2sMwXD9uEc/ek84RUKFhCocn/O31lzq2pEjNXWjPZtjNMRFnj3hj7WOwtCvLcVqmvpPv' .
+	'Lg2uB08MSXZ+cgfJTqXoOf2BhJT+Ny9PSThvf90oe1VtL1s4TXyAIIM0v5Mdb+f4YBlY8jC3En1ZfdvaBIxncqlrbLcnZtKTNwG0AGcjKQ8HC/' .
+	'VRbTkBX909UTDUMvfJSAerLeCsV8Uik99j6LfrSmOUtq+uSwu8fVQkdO5hUBgNT5eyHAL7fo+HGCgZDG1lfM+zxJNRXNCkP7hvGkI8EebddYDo' .
+	'P4TIdUFT8qP4XPXVjMnw+lm25F2zzeNALJqG2YbyZANdPx7IqdKg9gxHA+z1vl3TS4nh3uq6JP04hkbO9G679lNwk6pheewknWpvii5JAU2kJN' .
+	'YcYLuQz2QPxduQaW5IgkmMdVFMMVT8SEtnZyaT3rqznBDUG61e1ulEeEgIePWXZ9OJT+y0GsD/eCXbQ34R05/ZBp0mtFJwpeBPnlLwy7E9FATt' .
+	'/oGG/N9T3R4c40Bh4E8pd7lKq/izbvhBFvI56chizHGwAybXygLS+SmdlUnyuzmxWAEFqszUJ1/5HtzZFvAk9tNHFcQSOtMw3E/zRuVkTuQdMJ' .
+	'Xiamat0+VwBK4rRwDEzjhoFCslxAxtgc4vTTjz486MMGPPhGM+zOC3hPFZz96fSFSjP5soc2uaqJWMTb2FKLfsLxWQVBicn8iFcohET1DB9XJZ' .
+	'Hi5xGNRkL+3VJXP+xmNTgGLRzxQDKf+VYyPfN5VnckU23JEGWLPVcpwfrKy0kWBqILgAoU/ukZCNfIFytJ29zriwzm+RPJ88TZ6r84j/Dj7t8q' .
+	'XHPgGqIdx8T9E6rvUyQ4vpSDaRdhnL82JIIh8Bty63YAOGfPxF+Cd/7XrrAyApl+k6FKWL7NwU0muOAlLs+aueQs363MHRcdzCaUp+3ZaNSPRW' .
+	'nJw3cH+RXpOtjbMtHnvfW6Na3BEZK0Vq/g7ds7OzzOzrnaEAQNuZOzMG0vxePU2cimjK7eaBQB29n0QSsWGUf2iFPQ49KTAaj1ByJ6B2ZJG8Uf' .
+	'vFNf1M+96Jx7aJl7ljl4JbQxw/vpvI6k95NWx0gygIweDPSUYLi7QfrU3Bl9bV3emeCudQq45o3b9rSM5uWZzqzujMv2uvVVdUlhsxJFHl741V' .
+	'9j/e6/yMBwLkxDUOom58zdJxE/+9OSbw/dxDesN5LzLpBQwBqDTF5+87yDVkqAalrqTp96C5r9tNQoKIl9KHrOtbNT+sQ5hjoxxpordYpJLhXw' .
+	'osJcyjf9s8dB7lAg2MvOcTcV+YBrbzWK2Bh/TS8h08SH1T7018TDmfnfWAjO3vZIV8d8plmsaors/DkzExJhopOBZDdgKE6E+YbuoW4Y8w4Zxd' .
+	'IFxs0TtNfxVbpT1c/h/VQC89rzjF4YIWwRKUZj8/DAgOKAh3uO1HyDWEeuBGjiC1OCTA1l7K3X9VYEViU4uoRGOywZe8US9wW53M9rMlEYcUs6' .
+	'99zNLQ3jGmM/y+lva3xQabCFAGzrUfUcRNDH586ZmHy5ggMcqCy+y757ETR6ZwGye3Rd15+jdx9Zyl5DzpEn9e4ZvW7FirFVpetu0+Sw/5dMW8' .
+	'oogI2EUfpY6KTdESqFvvOTxG42f9Cxj7A8QhmeXwMmoJGZQW79+ZjDMpqHwPQSw+sjV7V/0NvQHiIPMuenlerDpbWnT0tIga7Xn3EQowfODfoT' .
+	'fQwmYqZJ2W9PVp8Ct2tZ17/HynK4wuKRWT0JqQBcUBS6y2rhlNm4osVuI9tZfOybJcJej8NRlgORjFMNbPzjkDGGq7754T4pSN0N1/boTbBtTM' .
+	'yc+Ww6MjR/ACbzs/EnyjyVjwDLXBeZxUYkgi3oDcqJnhomAMYDTokC7rfdQlDCSGJuilN6N5BsoWtEedbcnLxh4dUkmUbI4O+qCYQfqg98xIo5' .
+	'k99Yrw2wwlYkkzxAp3oQQtN6GQ3421G8VuJq48tCc1rCDoWtGj1qZnf2gq2eU4Dgt073jJhj5NA8INenf53HT5teJLESJk4+RSOk+ZJcWSZ0M4' .
+	'VNvyeBDB7rdLKX+DXpsdVOoTcjaRokMOsK7sSfujXRY+UoXev5nMEu2GwDVt4nkMqqvCoPWnwfFQ+CYI6DbdfjqLbVRn4kdwdj3Ylw0LiysZG5' .
+	'CA7L1OBaXoCBEVDqSe641EyS5eP/+23ktbBLGspccKFfX9A10XWIpDn3fMKxlseHb98SKHYbZjVW+ea5vhv8NvUFirQtsKlhVEZkujpPQQEAWz' .
+	'yxFUfdTyZh9CaJGiR5piJPHmLo0rWwxubKsnkkBfZ1i9E/QwkGwlOaHyEonTpg7w5XpG2kOF8bvjWMtOoD9UQjKxL/74JmqGnSQ4hntUQ25bWC' .
+	'kUEEQG7zJGL7kHz3Zi0oaEkUy4Bj+WwhTRFsQ+9GVs4H4aJ5twl+l0WSSts/JButM0Agk/7Ulk1vKPeFNBRsb8jibJiE4W6MQzn2ahsAWyRI5x' .
+	'JTT/uV7zmMTsOZsexJkhyChcV08utHRLTc6cFW4lKd63r8WsPth+lmr0RMnUggFJM1hYQFoklkOp6t4cy9a8MFijG29BUxPTVnDoq3mUd3b5Hs' .
+	'GmBbdnN9xo0q1ljG3zYkOlZl70pdz/I16CdvQp3DiCQF8RLRqVNUXqKJJrBPqMox00YEhpne5gha4tn+wAgtMzo/pKRFII13JITYbXe0mtcAeH' .
+	'hROFU+hM53u3AcxTxAJrXyLGkEvize4ma1E6v8GjGGsZLrCBeWh3iOFNly/JvZyvHwjkwMP7b6rYgVgPJk6Ihctj30w3gSdXcLCYb5zA982bTc' .
+	'Pitg/UI0Ll7kBwvavlNC2MFKUd0+ctxU0ecNm6wrX2ZpRlZh7qNJUkxs4eUUU1eICfa8FlALTdQSSaH9/cYrbm6TrNh2S3lrrJIaRDRQVv5iWT' .
+	'3vLDnWFLfVoUgzBWK14LFiVqsLyD0N+t1e/eK9tYPpbiUK/VqUop/IsyC6ty2+fVpQvYO99TaGYH4Yp7kL1SqYLHGadEQQQQEruEZcaBmQs2a2' .
+	'x2wkeHht09gbuuaSo1Wm8k9x1MnAvj/zWhvZmbFjSkTVXEII8favS05zqdP2DMmCgCQXVjsqoY+0vo1YOETK2VrOxCXuuvKOp06IwEHaaZQVKS' .
+	'ySPIW6mphXK3L564Hs8Z5ER6JtCNi90KsGaMH4J4b5fLo4YtC4rDAIJ870ygzqkWG28QzGepJzfyLUwPuDyxJQURmjdr1eB9d/GDFk1+DyfNIC' .
+	'XemrnVqDV3+44hQnkeatOrCnoRpDSuncRTc+lngw8sfu5qGUwjKTrQLBwyT0eaAIRbM3aRpLnW218/94gZFtls/wvmUnG59Oej3S7O2J6OXcoZ' .
+	'UHP8lWHEhzZSzjMgIYltFgHjx0nLH067QSU7LBA2QQtQiwLwwGtPiG4BomqLQBWRNEHX9eGLxrJH29PFth1bhEirtLCY5kQ3roiynnkRTkTzrD' .
+	'MzTNxS0fXOfQphf/mCS+YD1mUsL0lPiMVjkPGBUuwYUlHojv7nk3a5hUEKPiDgJG+hmxfhUY34uUvBzHzYWegjE2O742UF4CvJue1erEvzYgSM' .
+	'jlv3dQ7zFlyZAs+H4O1GcuRwAMQ+tZkCVp5ch4MPKSHVKaOaG3n/4u+HQmZ5mGnZYK7KEpTlNNfxYkSU01GCCI5XCdK72ZbW2WEb3qapMWyjkL' .
+	'hSjQlwta1L0/U7NPLlQX+NwbsrxsSs5cmCuoTLRVd8Oz+ySrhM01V4DcQ2YsBZBDwYZhKp+oZKau0BmaPwxmnQDrFpfU3Azwtv6Zukal/e9mLo' .
+	'1bKiXnre5NrmBnY3asvuQbAy86hCpXi3/OywgSDuRzlovLBzZ97PjFjkYb4oaTRb5lLnELEL5IJ5rxG6PSY0KaEPWuKin6FS1hTs6FsAXuqt0E' .
+	'OU5svN4XOjDw53d8t0lBqx/pHQo+LRUIT9pvWRVTYW5ZAoWG+Uh3ekh/X48f62S3FNJbVRx9YL1Z7i7y0QJ5apJyoSb8XjP8j+Fekcb7xIReJG' .
+	'U8C3W3a5u79C/G5R4Yi2TUmCCvYxwNbdj0CgCa2wu1999jaKiNm83u+vNupkPx9P7mr9ndVKKMLbk4gOFMLZgd62UvXrwF/TlM6/HtnmNdmCPd' .
+	'j0gD+onl1tqzQIRLXl8mlrZ6Pfm9sBWG9eN9kyE/CtSAiXki4dOhpy/PuBwyDUg3yv5hDoEXdGIv0Mw89FtFA5+kKcaih54Uml6Hwf6sayaLC/' .
+	'n2xjN4wQKZqHwgR1rhHX/+WFDIYno3F2x/55fiMxo2OPVc7Yzcif1Hugi7HfgNd4vOe7jNyVIjn8kZKpEGCZHxi5EhorZo1geii6JgcRB+e8kG' .
+	'n3lsjEzIO40NE+bWPVzOgNkEjmi4LwJ/4c3UTAfna0eY6irzR1m/Iw3E0hzu+raQ7f7nmeVRSWYxAi/fSm8Jw76MAN7jls2/xDSQ9dfniSKGAP' .
+	'kHciDNPSQlNHjAO6IWvw8jPWAMh5mgRRFEogOQVk/zMaPsQqVdFK9Y16jIleF6MVpM175UKZTH4ZxdCs5fQZh9dC4XVqBOHwaRFuj1yIh9ROXz' .
+	'QKnGrkRzu3bToVLhYIzQHFnC4UaO87DY9ZAMPr8xaTNgxGYSSpofoHfKARSTRV7v/lS6/hl0VqtuCHbu5D+IGfM8T7R6kiCCACTUXoNqyTNix6' .
+	'FlFi8HsGDwwE3/L2Ie0aSrXw+bsjr/p3V7BHQmrbAstqHxdlDJP9+RdrNn0uyIuwwFZ8QVZjCDbAFCmZTu6/wliNZknMCFAM6MiAbkhY9QI2sS' .
+	'OlMaZCwu5JQoE/U6t1KJZaWzrzjOI9ieRcir8vVl5YP8apQBm3UxrWkykJfOLpWVIPs9Bs8AF65UQvWyVY/yj1B3pHBOM+kJYhfctr/aRB6rW0' .
+	'u5kwbpHbkgv5sZr7YLxjOOUeUehsp1TohwNl9jbVUfX93jw8+XNocKYlb7paP3Norn9xedjpzEjD4rAfE4VsPUuBgIm+lfDnwj3+MyoaUYGyQT' .
+	'qFZJfxrsYyZh1ZzCU3iIprOSc3nFU4mx3tjo9ca64InvzQYyY4z1httjI8F8yRNqOxE8gnKq9RN96HR2o7qfnoNRgy8nDlur1VZXFsSdB4su3/' .
+	'Wuax0EnEqIhBxhKzhKAqQsNhOTH43fYNAUB95cyrZmPSbvuvR9QWWXQLaQg4vJwZK+pGbO+KOoSl7R8ulcfkU8U0WTU9keQ4XjyGJNcDCRvMLb' .
+	'r6bXH8aUpgMoNsS9PFW8Hmj+DnMy4UsKpLyXKA7ncBAAPWNcJ9Ptd2i9x/7oC1It1rRMDAftyzGexqjd8V3Gp95W4l4nTqpNOOArAc2+eFZ8zi' .
+	'x83xtKs0ANW8RBX+UBuaHWAJwY8Tce2w5p5n1g1Jmt013ap/an9iJHu6Fb/gCRhr/dhH8YKEBX2lsR8FioXrtr+M6j6y+8iBy4i/AwX1Y1z9JC' .
+	'yqP4Sb7xPVC8xtoHlIsTbN1q4lA5LaEBn8y/Ojch8pHTMv/yTxK8LYIo+vAc3zgEhLt/3CKJzLlmP4ZkCDv5nMzpqKnLX68LU8GT17YCjREL5+' .
+	'AjbD3GZtSNcs2dxNR71ICoT4hWq2lZ/nSdwcvdP+8LTjpAav8Ls9hTx+7nUDseauJ9HPJEheTKm8FY+ITKEY/z1R2OGOjXk953gSfz5IQhqmRS' .
+	'yGF2xRTdo7o/hIv0VNrghR2nYb1wLnqJBXeoKO0hHREmhfMt3wWPbn6tqi4N2SAHUM1cTbkjYwMKYRqyPIjPHu+gTDB4RQ6KTfNMx6HcEbnJCo' .
+	'ITlkpnZOgF4zIKoYqVoamj95A6VcjB0M3KNFwV40vU6v5y9Ga9QiI7A7UMGbwVP8s928XxvWx3ozl7jYJEg7UR8QMuuEZD8dkJ50rp4OFfM/fq' .
+	'z+rDR9sLYZbORKXkZ68ky5iQ2Q6MLMysN+4CiTM6BgBRfHOhd0v8fJO3qcoX6KDj6IflzbDWhgZNT7eINBjN/E+VmhxnHeqLkxfNv2XaoInCoW' .
+	'nKusVF3tPSw5eZdu/2LbizCigaX+d8ntCDDNdhm1f1CfpkHyi4UX7B6zyHkbYXA7ZTASrX3Wf3yKkFLHBlBmUCrt4eDIv38ZPZH1pYaY2bamGv' .
+	'vyicsm8WrXlKjYWuoa2nei09g+/vL22W4DhUoWy67Ku33DnSuDzNIacpKx/MuPkKVhrof1mPHYBjY/Hg8KtdpyoYkzlneG9ker/N4aXHlE28Px' .
+	'Sev2PGfrwvc01VQGnoSf34YTEJIwvbrWCxhq7x/lSl0pBReLjp+2OShymLwW4Ct6v9s8HVhpQ4D6r++aQ9XOt2GWZOcbWV3Ss7Qc8yU8kT9GzK' .
+	'YojeQ9NmeBTIVKovpymgw0DsSHbaA1Sr/oe5CJFLXeluVPt8omZ6qoSipq7/i1Agjx1lRlaQ8NWlZe+zifDpNOktLTZW9KYy3Xr9rtk1kLDSFd' .
+	'v6yqk1icjI2ALsFWZ0xzsXWukF+2hLiLw1/JPpjHNNed4dynZDohww/MNj/+Xg4f2igbmtcgsKl1DhRN77MRmwth9dIzq6HYdCJ3Mi1XCNXrc/' .
+	'nFn4+xzaIZfELUefZjwrSAb6x6xnMM3gdPdodHXaeqOEze682NGzGVqrKD+aHPQSNLtEXsiuNLEqrMWW0a6UqkZx1se5bm+8YDdhI0yub2ZG3P' .
+	'cGXmBqagl0iLhUIhp0b5iIXHW74iyGXmwkNrRAQ+Jq+mmQNCYJjTdssjZ7LVBEOXdHlQBQE/3k6z04nPhceTeIwc93jCkYG6q9z+8WVgUwYAh/' .
+	'sc25EiGx2k7mJwqNUjzbJ3Bwh+zU5770XCb8Pv6h9lJNi3Ko0g1AFy4HKmJU/busIY7Rs9wX4TlmgW5o/mrZInEUwqGVqHXkHY3y/wJUx4R1yX' .
+	'+LMM9qqAO6GPlbXikTd1UELDvDcF2e8lMAROnctEvBdsT+DpUeUBMQ90cmEAuc98DYotRDT0+YOaHxRufzviQ2nZV8XamsdwXqF/muZwZoluTC' .
+	'NdAZ/2BUKYguDTkLEHkNgO5oxpgiYXOm32KscimZmBBaqIWKt4/mfL3CfhoZM4plKrn1EJkxgmYsbdf1mbe0O9PdvXessaIDX36Q2VEzNznSF7' .
+	'4I5drnzPGpsbmTVa/bSUSnKMsduUDkkGimmLFP5zRpx6BUusT5t54cntC5IJCbU0pauD5ayXV3SnQnbi/fYhAAdcd2EukOAYLbPXcggL212LDp' .
+	'nEsnZcCLGAu26Hrj0s6537nOAoGkbZ6MUqCXJb2o/dfuozOMDocgORWG2S5VAsWcpILs1dVUrOpvrWqNCwn1CJGgEBFIliWZVQV8qkI9V4vqWt' .
+	's8Am2xkgcKbYtMcD4ZhgOKGYn7Sxh5Rld5ScViyUNMZC0gaO99RjSlU0LiG8MLucckLar1Lb8vPg9m+kvByQR3TJosuKqnFKEl4sCkdrSX6oFu' .
+	'VKNXHhnGYWAkj3rgI5OFRwEF5VXma3YaY967BlzOq+WVDJ0+LxWF3N54HVSomR/rOnonwHj1KC8Skd7DCepsfYBPziBYihw/GTmNW+rEsfa1u2' .
+	'gNZtdMbV24x7zI1SCVECpB5MdCMG7CslyifT24kZDghC6x7GmJB7f/LFxNL3xBQ1uBqwixJU97dh51Vfg6G5Fqs4pA6vCHYfjf9KArsVH+4V8j' .
+	'l8mgPLHPpmR+4bOLgwi/kXgpaAU/tiMj9R0rmNUxG0pscXKdEYgAs+T2xQA6YzxuI33tS9KqsYfaV5/Or6MY1MAesxouj9rH1rdn6WCg7+ieob' .
+	'7b7IotES70L/SDWMWjkgXfQ46RkPHLxLfiQVoB9tWFq+wGnsMstSv1q69AfWix6EQyoZA3S4ESY5CdY4dTunw24XSv48kfBUs6Os2ND9gn1wyN' .
+	'IPknFI7+H31Z+2YWiOkW+fZXC+G6KtZQY5uiADGlQbkXrN4Ujgxdf4Thrlp2AGMYv18g2YUml51ZFwugN70qjyvpGTi52h+Rjp3cJedD0ibuKS' .
+	'86np6biA6oBqqXjtP2cSRXYIZ6liwQv4kAiYc66L4MtussgpoL4LmH09Z1qu2Vzv5ahpwQA3qwXHJZmj9XP/ewxBfd+OQTqbtl2AVCAjg/h+41' .
+	'pf5kgEBBxEW30u8oqDOu6Woh2ReDgkcH5GJvKctzQDX2XiYeE9Aqr3PZvD6lzHk7sGP6DFqku6enBnltVaoO8io7sJHbiZQIQ89YMv5m91yLa9' .
+	'ohlMICnFKCB3nVFq7WTzIFcy4SA8ME8eCEzxyARnvQ4/HkkZ5t3Q47lo+KvhmVroNAMbNUnhOaAjb3X8MwRptY4a3GjpIUjUTg5yiRL6UYI9DB' .
+	'J+N3C1FAUO03y9NTA04jCUOCj/Nqq/iasFIHpoCGsz33x0ZxXtoljL8yuFhqLm2O06pisIGTWK41mi6rdxWjt3Td/zMbHbZPMheh5Y3cDJv8fn' .
+	'PYMxXZkphaZUPKrVNedSB8z2x/YTJgLBOM7cUXlgeszLKXXFMr+diTRZ88Y9Ax6q6LYlcJLz+tFZmKpv4+LUL2UomhmxmVwbNqNE2cvFc48VaO' .
+	'E1SdSHJdIgjtw0NI53f31RhZaHQzRU4HvUzyQKU/qeI5gamxITluziffXXjfeaOi7aMVdDpdaepE30jkIJ4IUabB4F7FT32KIh65ztRa4GJako' .
+	'4Pp1kE9jmjeDnD5cHhJdsaPiQCLVRbKMs5pqPp6oIZjvqEFOZqKbks4pa3sIUyqHvi+PHZ+ARf6xrqugSRdQQwRU/jd/HGkzEdPZhnsIk/p2kK' .
+	'5j8K4wtkBzLlVZduU/jUKlUiyabyTf8/Su3bWuFes2Z/UF6KrHs1oFK+LDUuxlw6W6SscaQWfAPUkz/fH5XBD+OSLmDHXb96VGlARCrLwwgSAF' .
+	'/MPXtuJPd8dx+tzlR9S+8TUh4ybD3SiXpgia1OsAkSFW2lLyr0oTI9Se6V9asw9ftV',
+	'93238848a888f1d3005c8de29e6fe112ac066185ae66a4799af252e7aad18fcb'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

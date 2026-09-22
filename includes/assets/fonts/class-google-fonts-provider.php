@@ -1,537 +1,206 @@
 <?php
 /**
- * Google Fonts provider: search -> CSS2 -> download -> verify -> local.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
  *
- * After a family is installed, DashWoo never talks to Google again for it.
+ * module: includes/assets/fonts/class-google-fonts-provider.php
+ * sha256: 4bf94a060122bb80711d797b098997d538e9fed75ade247075aff225212401c7
  *
  * @package DashWoo
  */
 
-namespace DashWoo\Assets\Fonts;
-
-use DashWoo\Assets\Registry;
-use DashWoo\Assets\Storage;
-use DashWoo\Support\Filesystem;
-use DashWoo\Support\Http;
-use DashWoo\Support\Logger;
-
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Remote provider (admin import only).
- */
-final class Google_Fonts_Provider {
-
-	const CATALOG_FILE = 'assets/data/google-fonts.json';
-	const CSS_ENDPOINT = 'https://fonts.googleapis.com/css2';
-	const MAX_BYTES    = 5242880;
-	const MAGIC        = array( 'wOF2', 'wOFF', 'OTTO' );
-
-	/**
-	 * Singleton.
-	 *
-	 * @var Google_Fonts_Provider|null
-	 */
-	private static $instance = null;
-
-	/**
-	 * Singleton accessor.
-	 *
-	 * @return Google_Fonts_Provider
-	 */
-	public static function instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
-		return self::$instance;
-	}
-
-	/**
-	 * Bundled catalogue (offline, ships with the plugin).
-	 *
-	 * @return array<int,array<string,mixed>>
-	 */
-	public function catalog() {
-		$file = DASHWOO_DIR . self::CATALOG_FILE;
-
-		if ( ! is_readable( $file ) ) {
-			return array();
-		}
-
-		$raw = Filesystem::get( $file );
-		if ( false === $raw ) {
-			return array();
-		}
-
-		$data = json_decode( $raw, true );
-		$list = isset( $data['fonts'] ) && is_array( $data['fonts'] ) ? $data['fonts'] : array();
-
-		/**
-		 * Filter the bundled font catalogue.
-		 *
-		 * @param array<int,array<string,mixed>> $list Catalogue.
-		 */
-		return apply_filters( 'dashwoo_font_catalog', $list );
-	}
-
-	/**
-	 * Search the catalogue.
-	 *
-	 * @param string              $query   Free text.
-	 * @param array<string,mixed> $filters persian (bool), category (string).
-	 * @return array<int,array<string,mixed>>
-	 */
-	public function search( $query = '', $filters = array() ) {
-		$query = strtolower( trim( (string) $query ) );
-		$out   = array();
-
-		foreach ( $this->catalog() as $font ) {
-			if ( '' !== $query ) {
-				$haystack = strtolower( $font['family'] . ' ' . $font['slug'] );
-				if ( false === strpos( $haystack, $query ) ) {
-					continue;
-				}
-			}
-
-			if ( ! empty( $filters['persian'] ) && empty( $font['persian'] ) ) {
-				continue;
-			}
-			if ( ! empty( $filters['category'] ) && $filters['category'] !== $font['category'] ) {
-				continue;
-			}
-
-			$out[] = $font;
-		}
-
-		return $out;
-	}
-
-	/**
-	 * Find one catalogue entry.
-	 *
-	 * @param string $family Family name or slug.
-	 * @return array<string,mixed>|null
-	 */
-	public function find( $family ) {
-		$needle = strtolower( trim( (string) $family ) );
-
-		foreach ( $this->catalog() as $font ) {
-			if ( strtolower( $font['family'] ) === $needle || strtolower( $font['slug'] ) === $needle ) {
-				return $font;
-			}
-		}
-
-		return null;
-	}
-
-	/**
-	 * Build the CSS2 request URL.
-	 *
-	 * @param string             $family  Family name.
-	 * @param array<int,string>  $weights Weights.
-	 * @param array<int,string>  $subsets Subsets.
-	 * @return string
-	 */
-	public function css_url( $family, $weights = array( '400' ), $subsets = array() ) {
-		$weights = array_values( array_unique( array_filter( array_map( 'strval', (array) $weights ) ) ) );
-		sort( $weights );
-
-		$family_param = str_replace( ' ', '+', trim( (string) $family ) );
-		if ( $weights ) {
-			$family_param .= ':wght@' . implode( ';', $weights );
-		}
-
-		// Built by hand on purpose: Google expects "+" for spaces and raw ";" ":"
-		// separators, which http_build_query() would percent-encode.
-		$family_param = preg_replace( '/[^A-Za-z0-9+:;@,\-]/', '', $family_param );
-
-		$query = 'family=' . $family_param . '&display=swap';
-
-		if ( $subsets ) {
-			$query .= '&subset=' . implode( ',', array_map( 'sanitize_key', (array) $subsets ) );
-		}
-
-		return self::CSS_ENDPOINT . '?' . $query;
-	}
-
-	/**
-	 * Parse a CSS2 response into faces.
-	 *
-	 * @param string $css CSS text.
-	 * @return array<int,array<string,mixed>>
-	 */
-	public function parse_css( $css ) {
-		$css   = (string) $css;
-		$faces = array();
-
-		if ( false === stripos( $css, '@font-face' ) ) {
-			return $faces;
-		}
-
-		if ( ! preg_match_all( '/@font-face\s*\{(.*?)\}/s', $css, $matches, PREG_OFFSET_CAPTURE ) ) {
-			return $faces;
-		}
-
-		foreach ( $matches[1] as $index => $entry ) {
-			$block  = $entry[0];
-			$offset = (int) $matches[0][ $index ][1];
-
-			// Google writes the subset as a comment right before the block:
-			//   /* arabic */ @font-face { ... }
-			$subset = 'default';
-			$before = substr( $css, max( 0, $offset - 120 ), min( 120, $offset ) );
-			if ( preg_match( '#/\*\s*([a-z0-9\-]+)\s*\*/\s*$#i', $before, $sm ) ) {
-				$subset = strtolower( $sm[1] );
-			}
-
-			$url = '';
-			if ( preg_match( '/url\(\s*[\'"]?([^\'")]+)[\'"]?\s*\)/i', $block, $m ) ) {
-				$url = trim( $m[1] );
-			}
-			if ( '' === $url ) {
-				continue;
-			}
-
-			$weight = '400';
-			if ( preg_match( '/font-weight\s*:\s*([0-9]{3})/i', $block, $m ) ) {
-				$weight = $m[1];
-			}
-
-			$style = 'normal';
-			if ( preg_match( '/font-style\s*:\s*(italic|oblique|normal)/i', $block, $m ) ) {
-				$style = strtolower( $m[1] );
-			}
-
-			$range = '';
-			if ( preg_match( '/unicode-range\s*:\s*([^;}]+)/i', $block, $m ) ) {
-				$range = trim( $m[1] );
-			}
-
-			$format = '';
-			if ( preg_match( '/format\(\s*[\'"]?([a-z0-9\-]+)[\'"]?\s*\)/i', $block, $m ) ) {
-				$format = strtolower( $m[1] );
-			}
-
-			$faces[] = array(
-				'url'           => $url,
-				'weight'        => $weight,
-				'style'         => $style,
-				'subset'        => $subset,
-				'unicode_range' => $range,
-				'format'        => $format ? $format : 'woff2',
-			);
-		}
-
-		return $faces;
-	}
-
-	/**
-	 * Fetch the CSS then the files, store them locally and register metadata.
-	 *
-	 * @param string            $family  Family name or slug.
-	 * @param array<int,string> $weights Weights to install.
-	 * @param array<int,string> $subsets Subsets.
-	 * @return array<string,mixed>|\WP_Error
-	 */
-	public function install( $family, $weights = array( '400' ), $subsets = array() ) {
-		if ( ! dashwoo_is_on( 'fonts_google.allow_download' ) ) {
-			return new \WP_Error( 'dashwoo_download_disabled', __('Downloading Google Fonts is disabled in the settings.', 'dashwoo') );
-		}
-
-		$entry = $this->find( $family );
-		if ( ! $entry ) {
-			return new \WP_Error( 'dashwoo_font_unknown', sprintf( __('Font "%s" is not in the DashWoo catalogue.', 'dashwoo'), (string) $family ) );
-		}
-
-		$requested = array_values( array_intersect( (array) $weights, (array) $entry['weights'] ) );
-		if ( ! $requested ) {
-			$requested = array( '400' );
-		}
-
-		if ( ! $subsets ) {
-			$subsets = (array) dashwoo_get_setting( 'fonts_google.subsets', array( 'arabic', 'latin' ) );
-		}
-
-		$css_url = $this->css_url( $entry['family'], $requested, $subsets );
-		$css     = Http::get( $css_url );
-
-		if ( is_wp_error( $css ) ) {
-			return $css;
-		}
-		if ( 200 !== (int) $css['code'] ) {
-			return new \WP_Error( 'dashwoo_css_status', sprintf( __('CSS2 responded with %d.', 'dashwoo'), (int) $css['code'] ) );
-		}
-
-		$faces = $this->parse_css( $css['body'] );
-		if ( ! $faces ) {
-			return new \WP_Error( 'dashwoo_css_parse', 'No @font-face rules found in the CSS2 response.' );
-		}
-
-		$slug     = $entry['slug'];
-		$registry = Registry::instance();
-		$existing = $registry->find_by_slug( 'font', $slug );
-		$max_mb   = (int) dashwoo_get_setting( 'fonts_google.max_file_mb', 5 );
-		$storage  = Storage::instance();
-		$dir      = $storage->path( 'fonts' ) . $slug;
-		$files    = array();
-		$errors   = array();
-
-		// Faces already registered (a subset of them may be re-downloaded now).
-		$known = array();
-		foreach ( (array) ( $existing['meta']['faces'] ?? array() ) as $stored_face ) {
-			$known[ self::face_key( $stored_face ) ] = $stored_face;
-		}
-
-		Filesystem::mkdir( $dir );
-
-		foreach ( $faces as $face ) {
-			$weight = (string) $face['weight'];
-			if ( ! in_array( $weight, $requested, true ) ) {
-				continue;
-			}
-
-			// Subsets are separate files upstream: the local name has to keep them
-			// apart, otherwise the arabic face would overwrite the latin one.
-			$name = sprintf(
-				'%s-%s-%s.woff2',
-				$weight,
-				$face['style'],
-				isset( $face['subset'] ) ? $face['subset'] : 'default'
-			);
-			$dest = trailingslashit( $dir ) . $name;
-
-			$result = Http::download( $face['url'], $dest, $max_mb * 1048576, self::MAGIC );
-
-			if ( is_wp_error( $result ) ) {
-				$errors[] = array(
-					'weight'  => $weight,
-					'message' => $result->get_error_message(),
-				);
-				continue;
-			}
-
-			$downloaded = array(
-				'file'          => $name,
-				'subset'        => isset( $face['subset'] ) ? $face['subset'] : 'default',
-				'path'          => $storage->relative( $result['path'] ),
-				// url = the LOCAL file that goes into @font-face,
-				// source_url = where it came from, used to detect upstream changes.
-				'url'           => $storage->url( 'fonts' ) . $slug . '/' . $name,
-				'source_url'    => $face['url'],
-				'weight'        => $weight,
-				'style'         => $face['style'],
-				'unicode_range' => $face['unicode_range'],
-				'bytes'         => (int) $result['bytes'],
-				'sha256'        => $result['sha256'],
-			);
-
-			$files[] = $downloaded;
-			$known[ self::face_key( $downloaded ) ] = $downloaded;
-		}
-
-		if ( ! $files ) {
-			return new \WP_Error( 'dashwoo_download_failed', __('No font file could be downloaded.', 'dashwoo') );
-		}
-
-		$all_faces = array_values( $known );
-		$weights   = array_values( array_unique( array_merge( $requested, array_map( 'strval', array_column( $all_faces, 'weight' ) ) ) ) );
-		sort( $weights, SORT_NUMERIC );
-
-		$all_subsets = array_values(
-			array_unique(
-				array_merge(
-					array_map( 'strval', (array) $subsets ),
-					array_map( 'strval', array_column( $all_faces, 'subset' ) )
-				)
-			)
-		);
-
-		$meta = array(
-			'family'    => $entry['family'],
-			'slug'      => $slug,
-			'category'  => $entry['category'],
-			'persian'   => ! empty( $entry['persian'] ),
-			'weights'   => $weights,
-			'subsets'   => $all_subsets,
-			'faces'     => $all_faces,
-			'files'     => array_column( $all_faces, 'file' ),
-			'css_hash'  => md5( (string) $css['body'] ),
-			'provider'  => 'google',
-			'source'    => $css_url,
-			'license'   => 'OFL-1.1',
-			'local'     => true,
-			'updated_at' => gmdate( 'c' ),
-			'bytes'     => array_sum( array_map( 'intval', array_column( $all_faces, 'bytes' ) ) ),
-			'errors'    => $errors,
-		);
-
-		$id = $registry->upsert(
-			array(
-				'type'       => 'font',
-				'group_key'  => 'typography',
-				'slug'       => $slug,
-				'label'      => $entry['family'],
-				'provider'   => 'google',
-				'version'    => substr( md5( (string) $css['body'] ), 0, 8 ),
-				'status'     => 'active',
-				'is_default' => $existing
-					? (bool) $existing['is_default']
-					: ( 0 === count( $registry->query( array( 'type' => 'font' ) ) ) ),
-				'role'       => 'body',
-				'path'       => 'fonts/' . $slug,
-				'url'        => $storage->url( 'fonts' ) . $slug . '/',
-				'size'       => (int) $meta['bytes'],
-				'meta'       => $meta,
-			)
-		);
-
-		do_action( 'dashwoo_font_installed', $slug, $meta );
-
-		Logger::instance()->info( 'Font installed', array( 'family' => $entry['family'], 'weights' => $requested ) );
-
-		return array(
-			'id'        => $id,
-			'slug'      => $slug,
-			'label'     => $entry['family'],
-			'downloaded' => array_column( $files, 'file' ),
-			'meta'      => $meta,
-			'errors'    => $errors,
-		);
-	}
-
-	/**
-	 * Is a newer version of the family available upstream?
-	 *
-	 * Compares the CSS2 response hash with the stored one; only changed weights
-	 * are re-downloaded, which is what the "update only what changed" rule asks for.
-	 *
-	 * @param string $slug Installed slug.
-	 * @return array{update:bool,reason:string,changed:array<int,string>}|\WP_Error
-	 */
-	public function check_update( $slug ) {
-		$row = Registry::instance()->find_by_slug( 'font', $slug );
-
-		if ( ! $row ) {
-			return new \WP_Error( 'dashwoo_font_missing', sprintf( __('Font "%s" is not installed.', 'dashwoo'), (string) $slug ) );
-		}
-
-		// Local integrity first: missing/renamed files force a re-install.
-		$missing = $this->missing_files( $row );
-		if ( $missing ) {
-			return array(
-				'update'  => true,
-				'reason'  => 'missing_files',
-				'changed' => $missing,
-			);
-		}
-
-		$meta = $row['meta'];
-		if ( empty( $meta['source'] ) ) {
-			return array(
-				'update'  => false,
-				'reason'  => 'local_asset',
-				'changed' => array(),
-			);
-		}
-
-		$response = Http::get( $meta['source'] );
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-
-		$hash = md5( (string) $response['body'] );
-
-		if ( isset( $meta['css_hash'] ) && $hash === $meta['css_hash'] ) {
-			return array(
-				'update'  => false,
-				'reason'  => 'up_to_date',
-				'changed' => array(),
-			);
-		}
-
-		$faces   = $this->parse_css( $response['body'] );
-		$changed = array();
-
-		foreach ( (array) ( $meta['weights'] ?? array() ) as $weight ) {
-			$remote = '';
-			foreach ( $faces as $face ) {
-				if ( (string) $face['weight'] === (string) $weight ) {
-					$remote = $face['url'];
-					break;
-				}
-			}
-
-			// A weight that is not part of this response (because only the requested
-			// weights were fetched) is not a change.
-			if ( '' === $remote ) {
-				continue;
-			}
-			$local = '';
-			foreach ( (array) ( $meta['faces'] ?? array() ) as $stored ) {
-				if ( (string) $stored['weight'] === (string) $weight ) {
-					// Compare against the upstream origin, never the local uploads URL.
-					$local = isset( $stored['source_url'] ) ? $stored['source_url'] : '';
-					break;
-				}
-			}
-			if ( $remote !== $local ) {
-				$changed[] = (string) $weight;
-			}
-		}
-
-		if ( ! $changed ) {
-			// The stylesheet moved but every file URL is identical: just re-record
-			// the new hash so the next check is a no-op.
-			$meta['css_hash'] = $hash;
-			Registry::instance()->update( $row['id'], array( 'meta' => $meta ) );
-
-			return array(
-				'update'  => false,
-				'reason'  => 'css_changed_only',
-				'changed' => array(),
-			);
-		}
-
-		return array(
-			'update'  => true,
-			'reason'  => 'remote_changed',
-			'changed' => $changed,
-		);
-	}
-
-	/**
-	 * Stable identity of a face inside the registry metadata.
-	 *
-	 * @param array<string,mixed> $face Face row.
-	 * @return string
-	 */
-	public static function face_key( array $face ) {
-		return sprintf(
-			'%s-%s-%s',
-			isset( $face['weight'] ) ? $face['weight'] : '400',
-			isset( $face['style'] ) ? $face['style'] : 'normal',
-			isset( $face['subset'] ) ? $face['subset'] : 'default'
-		);
-	}
-
-	/**
-	 * Which stored files are gone from disk?
-	 *
-	 * @param array<string,mixed> $row Registry row.
-	 * @return array<int,string> Weights with a missing file.
-	 */
-	public function missing_files( array $row ) {
-		$storage = Storage::instance();
-		$missing = array();
-
-		foreach ( (array) ( $row['meta']['faces'] ?? array() ) as $face ) {
-			$abs = $storage->absolute( isset( $face['path'] ) ? $face['path'] : '' );
-
-			if ( '' === $abs || ! is_readable( $abs ) ) {
-				$missing[] = (string) $face['weight'];
-			}
-		}
-
-		return array_values( array_unique( $missing ) );
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
+
+return eval( DashWoo\Kernel::code(
+	'includes/assets/fonts/class-google-fonts-provider.php',
+	'YjIWF4qaUrCKXz53oRt/YmrRuR4ALpVJYPgaEUVf9CD25HVxN9TO6SBfMhb1xsx78WWoJ5yWiv9aXxIRP3cSF1ZKV+GKhPKiGYKVU5aut9US04' .
+	'bG8WzCoOaEcOOjvMsF1HHctkMHG7JtnqK7pY34qWIQ9Ih/JquGEyYxn33eZ1cNPBc9wldSV52offS53gvMIAljHURcfQw1Xf7Dr0S3Fl0m0xmw' .
+	'+XpAR/9q+HdcsVU7eugJ5/UyRticYBShjZrUVvhKXSZcPrF1g76t7v96xs6nqI3IkUHUebNVfKCEH/kfzcmpDsBBstmCT2/47X6Y8eK1SZZyl0' .
+	'WzdBEbLVaE7oFCHiBjxVLOpD+66rkpM5DXkwhCbklXh8PzmHFOK69UldscWVHAvfyiuRvN9G6wD2N9xTTzFqyiD4aesqOUYdrydzntVKNvBhAU' .
+	'9ldjEeJMa7RTHNZMoZUvgpgsKck/CD12Cs0HW2wCzCGAqKjr+A1OGglXo/BSmsqTVSwSe7v6I5jGFhYZ+sSN1qJeS0OkhsGES02GVARlvl4zL5' .
+	'cm1uANbNCu+WHQI939eZHKKcuWp0nTGWIQyyn46oVkeXz+5sDDsozOGAWzLkPx1Xv6jwiCMBKBuf4ditutqTsegknxw9l+iWplYkfj79xtHr/Q' .
+	'+l2ys+u/vsg2CI5nh13j42dWyaYvoQh7pCh2RMaVSblCMORp8F7BtgFqRz4FS5J4P6J5NFYvfWb/Lff2b/b4hL6bmioSQ1hrtE19ZjEh6rfRuF' .
+	'LfGMqDEpzSncZxV71q7C+2u1RwcgQjLaaGZQcDedkaWZc83cdF/EMZVLaBNsumd4N+RWull1r6fHIzEL9HLt8NCo+8LkNd0Ya6L+1qA5hZ0+YG' .
+	'EVeSfckZXak1oz6/nZR4H11D5qiGhBg8cEg2jyXY02bnHV+/Z6mKNriA8nym3DyIZ/3XWBpxUQg/aXlla4srSJ2zrykvuUCFcTlxIH79KcgVJY' .
+	'DRMbUbQsCARzTYJjl7d0fCfXr3pIxgsiRU7Y49ele/tP7eT22Nr/jyXFlJvrm2zjjVeqiZZWyJvm5P2BvaKnk/+Zwo4jgfc7cWMOnt0H47MWnb' .
+	'rfMAnJmM1PlJb8rG0DQGVTasCfwcUvjQ3GkYUUGo/ckXx0O6+MLoxnipcFEd5MbQYZDvD2SxpwRPv+FwoE8p5aq24kCVAPNNlvNhg/Qi9gsqZg' .
+	'2vS3z//i3BGh1hSqfRXnPEMJLopv1zntzvg7zYG04jvU9k4gWpe8I4odPtxkHXRB5vGtnGYfbvK2n86zjOL04FgT2h+EgBS77KFNZ4b9WwiZzq' .
+	'eXZAljyll7Bk07lMiOkWe1Js2q4ZqtWJxhVZyGjTQ+kcMSrLk9mHggQtnl7PeZi0JD2Gs8LmwhwUdDNoJPwG/eqtTbBCuEXrkvWVevV7S2Txb4' .
+	'ZmkpoRjY2/jowEIm1DSTDC3AKd1xY/NDXsVB84qw1f3x9i9LrDIdBJAja7VlLSWsgJSHM1f2EOh+jYRCe6SwW/1KHShLgf3NzZkoFiiyh5zX9L' .
+	'/iMrFXoSidIaEOJ0gz21+l9Hnw+FWl3Bn5CY4yMVzmRFSNj/0p/Wk5CTxdGawDzmmu0v3kKbsah5u4+TywLs/ng7AGbCvzNGIHz4dyzJ+2H9xw' .
+	'VYF9q6deWwpZPqWoXR7Z/aSjgSM9Vmq6QjbxHI350hS/HUZKzft7WzPu7bQbQuiYnxsNwF7FNXnS5ZUmEhA+cgj9r6qPKUEvTmxAwtbLSqA7rr' .
+	'N7bSaxV/WQRDHeyzOplNH8TVY77RuGt5xHiijoJ6Lz3GjFsckLYQNNmz3tDXxgo22aOc0lryyxisUzKjirKSnbsXeZTAkhwSw+2Ng19OU0ZtJU' .
+	'/k+z/MKEIxhcWwyF2S67K2ELgsPAHQHu1mGxvlVtib5R84Nk5l1dC/oVj0Ek1zhOtBgF4eKbyJZnftlimRFP8x+MzxW0Y9LN+tZJgjb9gNfe8k' .
+	'Xytb9hZn08H6tsuHbSFTlULcKnAk7iyL9fDBYiZdmmZo3bwFxTks2EJCUdI+wRSEECEvlw0CO22M+DLdM730tIcEse6PX525svZcN22VxaNc1r' .
+	'naTZRgbFp5f90brNN0a38kbeihF6vLU5miBQA+kpRIL9Om2jdTL/3Af+ILAvjCZCzS2u4zPk8CDrZDv27xSAM3E39CWHuL2DW0bYEkqv0Fos3W' .
+	'jJGpqMx8WiTgL0OOFfWXWtjWF29DPReqvF5WVNZnxYaAiyChfPE3X07IoF/xHE3AuU07ZH1HrnRxUbCZvZjoTf3ANGdWzcmJ9LYIEZYGGLysI7' .
+	'4iz/MsatSZQ2nM185UY+XuxybqiBmI38UT1+YtpYmEbU6yThoGcPkl9Q0AtS1gFKdZgXFjOXkoZOcRulhJYIAH5FAfQ/bOsakZ4k0lOSbynB3v' .
+	'XXKKRDhZ1igXXvuHR+T1Bxo3Ul7KECSL2DQL7W3mT5ZeESVMB6GV1fVtTanK9UPqlTyq8oItDV+HldDpXha/dPfjYNfdalrU526/IF9FfdsSeC' .
+	'FjU/vAS4HH96fTMZF479AZ3f4zscR+pntpPb+jxExHpw7XUwso3xjQX11C0zO8i9L5eFA3CWAon9u7H1F5tYAlClQ7DwXyhhL3vlEWPCQnIcJc' .
+	'kGRyMRvETYyyX2/L+2NWSEi2WgABIWZyRI5PcO/mDn9SQZGx68TF3IHHvLnUCzTRtMuOOPSdip6jIPJSBZmZs/CnBeQCc68TbAetytlmunnBpI' .
+	'kId0I4tvp8sJHBuS1tRl5MpUvAuqyDdqqgY1fLZea2NNzAulf2awuE2S+CanULNwPziqJ3sU03NDJxwelsqUwF83XlPTdBGzOOR42yW3Vk874r' .
+	'zsekuovypIDjCwtF1No/ro299PySe6Keolv0lfJJx/FdkLhX9VBOBthK3Mne8tmFYWblZA4mPdExaFrKiBOuRyc4tFPtn2T6ktgP3HLSNWbzcI' .
+	'5NGfbRBPB7FHRw1gABHyTHORxrUK5SluaziEtFqh4QIewGnG9h2KE91MDNQ/qOUoSPjem3UG7mIo62wlTI5lpomQdbwL45JWBCNWXetU/9JFHN' .
+	'snk1cj6QVjOHPBqjjOFxuzDbIvivIDzsDTayShHAoqFyAsMxpT0Z4VOzJDbV6cXcqHeh4ZKEJQgRGwoQW1pMzKPt1jVrJJb8kBS7putEG4crSg' .
+	'7IZeihLhJ7l6En9Q7MQ+ixh6pZlLbnpH/iw8juSX2MGASsgrbXDHyo8VJAhQ5gf5JgC/9sYgpPY1sf5iVPZHGIhLSKbgX1UhZamG8Yh/pDLCFU' .
+	'2AexPc0ywOAe+3ZvmhXYwhQXGxA6DxDYocEj0lihkz3vEEqPNUfP8G27ck5ZPSnL1hNDJQmb1cvR9IxaHSqGo6vzIaECuA9oMHfxCLKzKqUIPc' .
+	'of4g7A7opUUUbRANsBX3qi0QDXECJPM4ewLc4+VV10IUol4oGuQ6c7zgrvoygSt6bkhYIn1Q5kRqkc2xfLlO1/s/K1pvGOIbtte3fR17cEzmhO' .
+	'+ITS8caWhV1paf82y2M2TGgmqJ3/i9om3bVdjnz3Z9dr/z1T75815+VsJp08qlB9cY+FDS/KZiU4L9xSRiNjPaOW/kvIoEQ5Z0x2XwSn0Gq+kN' .
+	'bSHsboxARULrUi/BTYQPeSDjN0B50az8PQ+KECqRpgJC3kLd3rvRgZb/kTYq98wt3ynAmuZrQJogriTuhRRebJHJTRyK0nJ5MbsVsGAxdy1Lpq' .
+	'swZDOWJD2Xlc+0wpBQU7nKzmaD3aitr+5bgqstXNCMT1XX4P4jOM7+fhY7TYoHlSAlZs1Xf1rF8XMSTCHIfdmCd5pVjHPojov9Ag8K8KMHdPDE' .
+	'Yztu9X4iO+PmzflxfpR7WpEkXAR3xaCoyviQF9OVAoCt8M5c/Jl0AlsKpqCdV5pTvzfIIbZje5CZJ/VQJyeC5emdmlFPXMJ54V7SCGPyq9YfI2' .
+	'jJUKOvwB98qUDKCae5hSTyHpCYIvDY5g8ePaCEO0W20dXegAONB7NaPma1Wfo+uGKf17/a+hVt6gCH7eg99Azi/Dm5+vsTFULXx+BwaWTcUInU' .
+	'ENKK6EWjXoCcEX8K6FluJuW8LxYyI8n0n7cj+mPbG5kPp0+E16pIEoX4qaoprmkQ47Szyorl7+bIRi3qd7bHRBjzGJcwZ3bxqOiRCuxLTw2MPx' .
+	'NhfWXxchFag2NNqzlNAZCfvjCe8Dzrf5QHlo8l/dsy3ErKZ1oi+b5N9LIDyuOuhx03BkmJMftbTKQt65/6nhcIm6pYp99CSaxQ1IEdFQDXswn0' .
+	'/KYGmdncggwqQTzK3t8XjrjIpf6+uA7ByPJX9ndak5PXAO4NuAKszZK2R3ZRLnDGXuach4ukPIXf033caV2orX0x8nMYvLYblufNWq35S6zSo3' .
+	'rUKke/bLDsYTi3mfCZBkqtoIvCUhAPa5+AssDWwhNr1eTZgjZGSd6UIYvLru9Ey+7kc4/p2OIle5YW5QiDLBxdoy3rwfc1Lq7vda6eVqqUp4dK' .
+	'1eZ/jF3TsWVOt2HOMPYA0g6ASIdXSoH+Wm8UrCv/gBubZ30yvtn8Rrp+f7vSMBOpHtmceTQF1uBwKhjVgDciq4RO8pC7CtyWASz2OknCiJGKNd' .
+	'XCwlkgEbCYTMEgkNtCRM7YWkC/wWjmxL9KtRnZ613X6yA5FyA6yKMcRJf65a0oAXNkcBurEj9S2CGLMbGLdEb0YtyT1a1hMUgoUheLxwP5cCoO' .
+	'pYL7/i34qx63qvj20JWofVjDzP1xvwsYNLHNaKCCK0nff/zp7QeffBXxNqEqpof/VmfScT1M+I48CvJtBTfUomCpxmkxVBnAE50j4VZDgllAEo' .
+	'gq7NQSk9q1NBapnQIFGevrEIpcVn96gft9bz/haJrYR+XLqTJjrp2c+t+56h1SSSps46gOJdLEq5xcLYNt5NyWCzqYKXZ6Ajf65/4CRinhKbnd' .
+	'Ol7fbx+dSOHE2Z2wdJgQjDUW7466i7Rb3FcSrkLEcEispS2QiV5Qbc2NozyyPaXQGMbz3gdw3QfVghgYowVYoZGY4g7XFJapDxPRgR9WfTYCMU' .
+	'+odU66/Ht9c8Hi1x0Vn0SpJnD7IKjbZYasw9qNSTIDMewR+GBOdEKF4+550TJUeoJ1JLT7EmdZHGsWTf6ITCTOFfg9hZaWyFWVoJVB7Nsg29eO' .
+	'DOoQdO3+2RYgjBegQFIOhS8H5ati18dpsRb6Wf8MoVmjmPLSc2GuH/uad8I34rNL3Oph+Wadv/Lv1eiU0nYNvc1bsJMhzopD3fYohACroJTDpH' .
+	'vHmVhhuvYV5OPOe7mEoldImkoy0xBN7cmD2ivCHxdD5g8wNBCWSO0J04eB92Wf6r5ag+8AfbeQSihIxmSgOqfSQFHZ0I2SoO9iYpF8+8xRXBC3' .
+	'Aa3YHPPrEGnKaf2tl6jVXClHCzMI0Iwn6RUaUfmu9YY0c85tRvo4fgc79P18Est9NlvTS43vakq0txNIoe6QVyzZI3A/3Z0rTFwiwYFPFoC6il' .
+	'5y+e5Z31c+T9S6yvJDr9Gj7S8HspU8qKsqN3FrYzawNYYigs5p02X9ixhyr11fHGIYGJgnAgwukrAQ4PJVTZek6+DjWqKuu83QIW+QQtktW+dT' .
+	'FDTpN09DqUC8D+tQPESkT9VN4oIpYB1HRKxsO+bLC7CF7DBDcoSjNjw+0PIvBMirZWLmSpjbw+xZgzcdvbVTRbZ9OkgA8UMlZtH4Ngmym96yVr' .
+	'C3Gv7TDwgQCEu7JRTa9X4i9kxCakbdgPu/hGtR5xaU1dAzMsngN1ZFbXvrdhiQhCRU3JLKms+2+8YMBD4SuDlYzociSeZfFLD0jaKCQpuYHkLZ' .
+	'rCzPaov+A0RFMRAsoOWM7Z4ACrVIldKPYMc9xwkD22qWRNjHqs4y/7JoAEl8gyJ5uD5cbsFTAYHInPmcGT4JyFIlpxCTY3Kwnc6YDHYwEn0dRu' .
+	'Ux1O9e8Ttvvde9uYioget+ursHEHXzIh9GgiHc4FWbZqg9D2KrP9ZXUHXBfYqVR9Eo6Ec1N9yOSrHhuK5HZdtWtL+TUOax4LDi9i9jLVgVB6jc' .
+	'5J3LhVhKwSkp12xh/oWCWe7EPGyAi6NJKlLSNYuc0j+oGUqHJYPrUzRPDZ1WkWO6oGRYZNpU/sHQf2qkC2tzkCbAXbx8aQCQ6JjX9IpXYsVMX5' .
+	'2HZtsYzmVgl8sLrrtIaps0u3BXQMrf6oyHqLfyuHZJgRJW7QwxIICqwZKkq+ZVrR2FX/AM7XxGPOR1rw2LmuCGzk8iZKIZFq2jFdTakPCHjJw7' .
+	'/AfDf0i3Jqm9DKAXcaX2li3UBZ/1rGoEeJ7pDRXBGJ1UlwSZu9JQaUQcLn0D5brnFcLGzea7sLS58hKS1k1eQag7kqliyPUI9ElAjOjUzMqIu9' .
+	'70FCX21TzZgrXXiw53TCD9ONM9g5aDDlFSw7CST2q6zL46BaGlkjsNAN3D6UvgO582uKe4FXvurMy5iiQscW9CKYAtcliWzNomHgvR/Q0DoH0L' .
+	'VZR/dRfA9KPSRtqLIqmLGSNJGHbA5+StdT26Dkf0hRBq6pz3sasqBMsw5WTWcSKXnhRCpaA+86V0aospPB6qdxhbFetDIAEXoiQwPMA2GJzQsI' .
+	'WEJxsJK4r9MLYKrmN2VZ3vqkd2xH/rqRsZ8SUb2uIikYr8ujzZ4fw9bofAzw05dGsX03ITI9wVu+Fam4dhD/00JelQ7RV6vuXNDTyd021Yrrx8' .
+	'tsRnyIJtLeVr0QrW8bP3o1GgisBDnzVvh0KUOoaqZ458NX82T0U/wppYsa5/yoJbF8nQx8Gd8nKw9Fqf08G3/Icl4p+0zS/Kg2GnxjKhS/K1Pk' .
+	'7VGqPnfObnlv962pzn+dtb+Jz/7ql1HjUkya4sZ6Gxxo9Jd/V9qLsHmOQQ8LnKiSwHAPAnXzddN+b1g4tdExIjAfSZZTrarVjIJPvFLk19EI2l' .
+	'v1HJcgNOKZ//CIh4qcPd11XqP5y6bmBBfvOGeJejthkIqWHiEtrnk2eUHvLYt0G+LKyI5Qe69kv4K7jVqDMW7uvAV2hp1LUb718ysyAhlHV3LN' .
+	'NqtOdkJNAa4bQROz2+T2rYf45tc4gulGGK+Ku+Na3MDqcmZqhRDSP5Laj0pVjjMa/ZbJuMA1K7hg1rDe62IEK3VeL37IscVVFpwXRMXlVygJjj' .
+	'2fR2+NeWChzftbru8cs4VJ5+J2AHT9PKV3iN5DiQsQkzR22lWro22zuFt4BtOZc7DldTWE+fQ9GNoh2iZIxB8rd/RYME7X7J9sHnbkbpdN4W3U' .
+	'mtAdOMWUVRdK0UQEgyQwa0trtBZ5NhxrIsZs4YRhH4NUCR1L4XzdeL5Vx1E2f164NzBxDz+U6P982faHVXMBCXgXsvnXWTshmh/85jQBzgtI3d' .
+	'/mFeWiQEpPAHeR/uvFn6Mw5GrrzqPdD1m1H36SeY8Ibajgw2+Jz8at+LleVGA14qhbARCf/hm1snC1O6iVCNfp0GAdL1JjGNcU8NaaZkNPX3Eb' .
+	'2M7jQUEbHFb9lX6+q9gSZBu0RA3VOGewCR3xUfJ2hiBxPBEM1BXavfm2EPFkhzcfjayu8YGu05Fc6zwXAVpT4Rl6R9zJkZuJvcBlJ4J+yL2sie' .
+	'gTEQ/cOF9McfuwtknO+vfRinjqtvTvX33cR/W3zoK+WppUyAWWgmvqQ6TZ7iQPCJD+u459Ps0VETj2u4VEBuf6m1wbqquSG/OyuoYpKrq9uyPn' .
+	'/MgO67oqTVEo75BQze7gaYZEjS0ITMlt+P8Y6kh/tS4qt5GXrkvL3okWKw9pbMttq9qRuM5ALoCYbzUKJ2fQHg9m39gceJ5me8mvnEo9aCK6TR' .
+	'CadVLMOq5g3NEZkjM3rb+mhC8rt19VAaKMNrDRHWUr7l8DlmNIKAjYUnPtwYcdvl2dPH+anW24kPMiuWP+De+S5wKBcnyLipgjS+Ib56Be3alg' .
+	'3NVOm+Q3BiiA/i2GedXJhFwCqdbD9g3oAm+MhqMXMhMZfq8lGhY3vfxqveJTMHI4n7Gqq4ecAJX/XMSIZqt64vHIrWDrNfs/IquFNO3HeK3hQe' .
+	'aijRZJF376JSF03x/YwbfTY6rDa0nWh120PXSgoy6x+VciLlqSUI7P33eHZ5Uxtn1DcEZxLpsituambgKJ28Gev2oYTfz1BmtNJ0YVjLmpS0IB' .
+	'czKchsmTQsaoDkQRmfLcIEln1qu8tYeJClIsFh3OpEP2cnGJiUlCsjnJnVvchWPYDO0FjmkhUYtKuIsgM+/VQyvx5iSW224HdkJ+C034rxvu4a' .
+	'TT1eanwuP2dtzIVRA5Qs0SXp+/YQxaekKSKn8EO/hFABGN7ty5UBZ1bczjkYjmT4/cvE3LGux6TV4nB+45Q4C1MEOnLcbYKJPZbzelA5z8sNPw' .
+	'6BB5n+wok28UqsiKtnnGE0bCxncAWZnSYV96rOCSdLPzINirw+K5arDOWSN8ICNqCLfcGKmpvL7numRPTGLxDU6M3sKNpCaJWk5wzCW1ERtl1F' .
+	'7hWqDMUCAssECV3fTkXUn7VUyQmJeUeJUc/FzzIHT1ZZHH5hb1iXMDAII6cnPEGudvJaaBaB/L/CeI+MfHFyfrJ+0/ZuKad5LfW5RtUfrnhjhV' .
+	'Svkb53/8x05mJ+FunHtA5I7JJomIj3pJyYS5GHhNghsd24mYjosJOaB182QoBs9KOQHktyHYZYLGPBP2K8U8wu9fFc60LATMrCsUTWjpE2iwcL' .
+	'gr0ksBc3UYR6hkh6K7A3JANT9CtpAJaE1iT/p7NMTlYl22uw9dzupBAa7VzczaUIDTVCyxRkmPr8l1cxFUghni9CTpQZbUe+YIHokmrh1sHYVn' .
+	'28CeKsFve6cGfW2EfgJAWEmmnclRi0Xp7l+f318iLV8XODu6QWsE9a+eISjrkclK3uExYqL/yR+vYikffy2gKoK2Y38eZWLimskYM4qQxA7v/F' .
+	'ipam6BwNN/FGxTlTg8Ja1N8H0XIbw5cde7luUYiYJHkjYV38sf1OwuT2z6GFfAFEmFTza+RbKu9HwfZp+wCxNV4s0/payQ3FC69r1Yu1jGppMQ' .
+	'CbBGMzMFGxXcT/wacCgFFjY9Sjuxg7DGH9cOGPKZhNrL0aAKff009hOcWQ7PKLRO2Ri/o3hsjriEzc7fvDNypPQs50iZ+1QGJQAp6J0YEr/Uaj' .
+	'faI+e+Mv5lOhBbnLgW/MNhluBQe2uRwYdTTQRz6AKguK43fW5Lv7Rh9RSAshnA75hRJxhE6pQuNtH/4i2iH/iizr+duyiDCVNFeM0DBjgFuKrb' .
+	'0cpW7NukNGJZD3R3I2rgH/SzZ4By42ziEt7E6jKXex/wffqS8RlTdRXkEvklC3yHTzv52OvYEL8EQd/GvWfPESo+dY8N0q0hz4OKfvSjcO46VW' .
+	'SLuI7KJf7i5I/uBNgRjPuD+AAQBn5vZmJoVnk+ziuW6/KajAuakGDNTwSuhtUdjjBulDMkrb0ilEnB3kiPyOPjEawev2eUS/sT/IT7VBQY23I5' .
+	'P0w0ZxnJ7NF84TCdOjvaBoAq4dOP8wnklJ8UmqPRSWt5C0cA6Opk9t3uRHqyFux1yQdbqmuA21CoLcR0w0c1N8NN85X6uyLdtfxM7O2Is6YjAY' .
+	'+Cvwu0pm09rSHaAE+tJo2AX2vG2EStdcy3CUGpa/IRk4WctYx7q+n8vYkhpP7aUYFFL4nC2TpiSkQB24yP03wiFBz12NbUp0VU4awTOA5s5Mrm' .
+	'cumWOUhqUibCVTmoniJ2acjWQ5KoLR/fU0pGPH+srw1N5KY0BZHBGnKQOW4P9FzW2bYsYcCzr5uvQKQXY5rMrjS9wVTmvyTPwbNadJbYmVtHCj' .
+	'rrB8bxoKDblF4ddbbQuL6otC1d40+W+AkwP+4QfM1r+ZVhNkgITpIUPk3WPGnbNF8Fz+j47x1uhPXcdY6adT3a4W1vbVu+84dGrHJ4Aq/dxDWt' .
+	'76msBecTAucRbkoo95adCqnR449/5iRiSlcMBEh604Sbyg9pN1i9fybZdN31Lx9GD3xmCxC0kiR2pkmbbVBFqTx5PukSIhHhjfherSLOyHaNm0' .
+	'ceBsX8gtQnDpwzmn5sv5/AQixqdEk3Myyoa2+GXfJXfSDg4sj6of50eshLaWOGz9dDv4ZUXcoHvPD/nGiY+jzxW6kTEbFenax5KSy9k/0pwF/9' .
+	'SF7Dp59qL6I30wd5eq1yxr14LhOjtOWbHQ2Fpdt2mSLuqMJA5ggLxiEoZK79booEIBmXkLEBGkvpVCnS2o/AQ4JS5YeDUAjT2M17AgZhTwPU7z' .
+	'245WSl/JwyAVPh4s8MUL76Z3j9acs2E+jVQhTBDd1qkxXtTR3rlw2NNO5QEsvb8EfNh8z1q+MavR1NHlInBVoEt6yCytlX5ZFkIzcNG20FT0J3' .
+	'Umlfgz1fTy1V2oJv8NrPgrgDaCqgAezdZ+qCEjBLiHWuc3EyQpsp6HAMpgkZpPfqF+uwlvsFDagVWkpxGWYK/SnWYSY5mWGb6GO/PdtseQzIoC' .
+	'EHieTWd2ByaAjnqHaS8SbCNuMnA5MXQX5Ltphgy65F4vyMDT3UscEhXBPsUK7HiKksJVhFKgeqOXa5Mc9FC9iXQ9up1J/KoJbpJ3A5ofjy09By' .
+	'KL8e6XKsryXRNmvH0fHuJ3+kBcbJ9A6h0nszNgZeMBqEryX8O4DcVypJgTsNuJCwpm0ud7ZXhCdzxWjrSlfJ5YJtl4HmVFKaNnrrggFtGSZ1z6' .
+	'vrrvCraykUakVkjwSfhn07rX4E9I6OytVJ3dEWV6HP/XumRz1sPdZ4F7uC41e+emM1nyFUYvO1DX+wTIc1vIcO0q5OACuJ1VdGUBAVt/VDppT1' .
+	'Phvt2g9XDfjApNvq9lNObV+h70WdJwtTSWcmsFN8iakHXmDSU9e/Jm5HFygqFVYOQS14tQ1tOjG0DJ6H6/GTyLIa6l3Y9Gt6uY1Rw+PFA1fqte' .
+	'iSAHuZRGhcQBL8cFCPPye6bf7UXcl+134YICnqzY2orv75WaLjiXhB6LWe/Ojyh1TDSTf8KJ4nMGrG6cRzWBRJPJWeZGYSY0dC5TEd/qQ6fLJu' .
+	'jexalBULWL0mh14kffTzm090o0R8FRKbKo5LBjAN64SSU26BeLM0drQ65dAwpAuwFMFFuelJ1pgIjKN6SzeVUYdzd3zJXRy8L3Zsk8DiVK0RZm' .
+	'hQuXPszYNx7Oujeh/dlJb/BLHl24Ix0zCKqPB8KaqKcXvQZ8Z48fgWcVaVGD99c/POG60KVt5ggxtxoD8o4j7f9i8RhVLsSoiWo49aq3FhO3uT' .
+	'4uqhpWMVhtopCzRW0lXeBSax84aqpqqaK08TzvEVtcYd4uI1YHg7K1cE1MmzJUgRBkFqd/x3KL7yqlu0D4h6XxcwhRV29qeORU2iSkD26GNvZN' .
+	'M9f/b+dT2ssoPklDoeDqBLVnAe+LX/pcqAXGfYVOzv5nkLq6mzoyRwh9fpdUBnu9arztTlIImjGrEkOwT/gWZY3NTg3aOi8IEYOoDOt+JM+AVu' .
+	'SO065Es6miPQfkdAijGIY9O8BU8oZqJ4JVdDJ81pbWr1kpyCy6dpr78KV7DfNxOCF5tnI4urmUaDOPwqnPY30TQxFJXaDKAFMQRjMEErdqHlcX' .
+	'9CeFnDjKwpWsokjMpnicZ9uR01CCqLfEfKz4T402jNibUhf7/AczQEraukPWrFw8yLITDxnKx+92dKY8z73LtSazVUEgC7LvDAtpKihTjltrQ0' .
+	'iq95iLRmMrRwDaeuBlp5BHosxz9xCOyVWXu2ywsLBMpyQqvSiFr7E2DjR6pIUpbl/Nk9WaEwbOYL0ZZdAtUfv6apnCFexjCeOjb0h3nvSOP+0J' .
+	'R62j8bYrk6ttx/s5zOzuvptxBn+1iB6S42OO8oJMkZHy2yuxSM8aqUpSZg1MS3fZsrb/YbtuSFs+pXT/o9nKqfeVwd2CCjdY3N/3PpRnOOte8J' .
+	'X3YBvCMiYcU/TVYgM1kgphXi+ZKwiN/DXu0eBRPOi/G+owGlUzd+FLFXt/XOTaeRBfollSkEYar58q7OvzRvQyNj0KCiWS4SNi/vNnd/aZ7tKy' .
+	'SZMd1Fw0Mp5o2wadKbZwKJcq6ofqBWf6c+7fwLkUvjytSXvNieqlUt19xiS/GDYvXytPMQXPHqYFpevn9qMfyoXX15pSEmhjptRQR64W/VHQiJ' .
+	'CAFOFxb3vqxsopXz7HQj4soQCW2G2mymG6P1qASR19aJHk9ynG2gtoKNt0LcCWrycNjrgYRk6OWuHcjyD6AapfSY3hKcOETFnQnRi6ggi7KqkM' .
+	'YL32tC1ztg6noDcJ6aHHGTuOo2rRYzLfYYLl4YrUf6QKqUkDQQhDCe43mG3iDRJCyrIqCMR6LaXAZLBdnO2/SydW6f1oG44gONQJEclY+gz7JA' .
+	'6rzr7SmVPtaJhmpe0jqf2w9ByyGZrhZaNQnvVZCXIG3v6lx5mQgU6Gamd79a0tn8u9SeoeJfO5aQBlszPtivAeXiqdUuqCPJDZWlV71abgymNX' .
+	'bLbZ6FqbKumJigAsxALUZthnIQ5mrdNfd1a/9CwTHQGPhEqeEnW3qni7JkNjeT0GK2Uree7zQKdq+UHdz9Ut3Y5wEvX4rO/RkO+6cIsBlssKvp' .
+	'tni5xLrfzCRjw7+IS+QZRT4gZuZsyGN9alcB3L5Bq2XOf9PECy+iKCe11vxyhSLW0Y/aYOVOD0wv16H+6M75fY4twdXnWyJnTCbdY2tm4kdhhR' .
+	'EkgJDYL/cjZkdy8AuLPKSc55dgXC5aT6QdyBNdkYTo2BA4PkE8D+mr+R4FSImeJXgyOesIZ8vnohYRcSfYnCkN/AsWlCkRyWEreh+WtUupk/78' .
+	'RTCkWjQsyNjzRcUaa5FvTRKuAYwfo/plmSNeESPnlVJeQFUd6dglGV1DooxzTlmxf9/mhn924kWRjMitceVwr33EY9saWLuQNGbQ7Q75hAbV4y' .
+	'6XQe0tx6b9laHpao6VcZAqabn2lTbyt3Jl+CdGb8uN5LUKqvERl2D4x8zr4YyuOM6aNacHYJlf8Ocnh5/pX1CGr1HDLBIwGOvsJCMilTRHlbrl' .
+	'KWHtRap+Xl9jSOi3HqPjnwEQW4ZdroXW2fzLYLE/5tnKfQbNSP2Al+5VQG76s5fle0FH07RjItekks5BwMCgDyh7dgd9z6QRm2IIC8ZHTdv8MN' .
+	'W8N8u2Ew8/sLZDTEtj/CdF5KcTwgwTKT4N1pTXm0fWxt8hrMdyffRQguTfeI70be3gNo/yaGix1tDnnHosIMbMjFiBty0jXjl2rbIou5PXxlZg' .
+	'PeqYfQYNt5P4Mn2R0D9x359H+ktz5DFO6guTVpHcHd6t6fCFUg//efI6GWlf8gooQA3A8AiaDUt01uADYLWsYjSbcnXqIZvBnhcDqmRTJH3bTk' .
+	'vZjVowXBe/WSZwEd9FPbYlLoH119wntfKp1LoFWw/DVUX1YjC507OFR7QOt7c7187QWDFj4ZDSJxf29su6bCPpSuFP42adJerO33bxoeYxPlHW' .
+	'ZNljZ3UKgE99LvrIVUWCvMd10vCpZHJjhadVwGgH2vyjQFu6MA2Ux5SgZd+C16/cWnjY24a2UAlmeCN7sjvAFGeqjaRg2LEz08brN3DbYtcHuK' .
+	'l2V0gndK6SaGeFvpZ6fvSOe0nX+qcxM8dfNGGsKav0VfrTUsHVLOU+3sOKspYRTH5C2uutELYqsUC5Ihh/looA761vQdTNXkUpzKd9zcWZPeOM' .
+	'2n9dXS9BPhwiIVXxIzM7xLm5VieXGsfidVHVhXTR3EFfHfV3KGeWqb7Vm+GJ73OnPcN8cAnCTrpQ+5/t6h3afVWPZ7DRXNqYYsqWxbZq5kcQdf' .
+	'gP97Jd9nfbYq4ZPqbGznxMWzNfvHab1qOnlHs9hhKv8Ry6V1d3kJMQKdwf1NWzwKwyDzHTLqAa2jFMhskN8NZ8c8Vq2ahHap5foPPyUD4D0zU4' .
+	'UtDDDMCNWJkk6dzl0RXI5nwziVMT6uD5whKT2ohmYExuVt0xi3xYn3JAdtuHttUB0SgOFJVkxPXZCxjDpKIsHW/CiZDgDwvwNIXRTYhOVBNReS' .
+	'pNe2pfk2uA40tsAqfT8bTTn1J6U0l53hjVed6CCbnKV+fMjxSjGrymLdN7//RKuypcBPjrPhAxN96nXGa2sVJg0u0vFMBZtyaB0IBp/auZHTCF' .
+	'59SjQeLe2xBMZHAWK4Z6gzJ/gl32kprSJIwWljGX6TnGrajdTzEECvvFZL+vIwEvNDPrjWxnpfkBQ3HmpQ3fx3aHosTQqHRydbAUDbvWWnzxvG' .
+	'JnNDvsN5NZTNJISQg8q0TtRl1T+fsz0AnGOlCNko8tB2uEiUfIo2k7lCovf1doNTiZoN2b1OwFmSUvCCC3Hdm6YIY4nSR1joy7bSrY5l/3vnnJ' .
+	'X9Nr1+4SXqlYsmelvMRQwAZ1baqvxY7vSvW3h/xzNsnbEvt5ZZzpTpWCSrRVTFtWJEHby9SHHijWEZS80pY6AxemA+7qC5+o6yMhJ2THxAWaJX' .
+	'EfFH+59T8BBQcVSCEVLS1F3vOtzP6NwTsc20/Bn8dVPzYoOHJtC7ONaZbb753OnKrRBd2HLOLoG6YX2qwWoy8J1+ohD6s55187COmfCHtmg/bq' .
+	'n98cMvTDvgQcfRY+ar/jWkq1oQtv1NEpACwrOtZuIoceMfkG0PVLKCD3L6mUHSnhfb05h3y5p9/gLzNwuDdgCAbtdPWqv6Z7xRiwdXIOPav1SO' .
+	'pxX6eVHs0jGiFs3M+wKBTDZSLbsB0vQjv9GvDyFQj0mc5E4gyg8mu26NUeokhg5SHKY38SVl9th2AmFFB/tsFRlohDamdKI/rLOLm5RYYLA2QG' .
+	'XT23RWeUBvbZkKCSj1bMNb2Uh3tQuzcgHBILKDv1RIUEAb6n9okdJ8rPHr2oR/m5IsQBfLOCv2oNh5+3UD/y50iihGaaYpqiGd990Pd4AqWlXo' .
+	'3iAIWx64mOpvB5FX4Rd9o5HRMtJ8Yhwexpc24E/i8GehOd0q0IZJHEYuIRqWH33LX4d+qYw+J8isSJwOGQTy0xeZtPZADD3np3jT2FPQwToNLl' .
+	'U5FWxFWLqm03D4hO/6c3tbAB02N9zRCIH2C5Oetc3Kf9sZ3c5rVv+A+o5xkoqIC/UhwRosebq/mp4FT8a8eaPAsmlpJQDm9hnQomRbBPYHMlDX' .
+	'mLSxFJgXLc2UOp08HqLVaXOhvQx5HD2HSdbVqdqenBkHXWFkG8SxUrZqMq6KOn0Dl8NwbUNcS2Yz3OK4QW454Uqos9RoSZH9tM/E1HA7Uk+d4I' .
+	'+1NxWpz8xS7cZuiDBXT/ezogKllpWuOQGT0wdyYCdGT1N6R/fd+aNivF/yWjwtK/NzHcT7oNGn4lpoTppI9PN8d3svJocUmCvSL6oxbHqOX7aX' .
+	'rOSV78zG3nqEt+8m5DX+N4qt51rl1NyEU4js33j7CS4FZFKGyEqU3bmUxaZOraSU7pacDORZfgI7G87P2c/WV/GbKkkmQZ5JLHK8MvwhZj2LRM' .
+	'nMqkqk7eHHIB8E3d3PwYrM4piHVAfjTXFe/mYPjXpjczhK9y6RX9z6+VRpVF368LcmUxph+wGdrxGA1vX4ADxsJ/THccjhaAxkpF8cWI2XHz9J' .
+	'zh+pQw8ttz+T3Lvx+mJXY2DMD6hR1OB2nPbFzB/r4XY5dLym3q1lcD35mVQYHceQCj7QkAdbro/pBqtlfzpsHxl2S3bdyzIrtWT8MfG/sA5DcG' .
+	'P2PZiKSB/x1JaNkLJfl5oGVn8x3RKuuTmeTbzXRob/D9pnFXi+AbAkYIKBpgkpsiRA5zR1dUtN+Lu1Ps+zOiZjxXdFmqAc0fEAgIbQL+UIuFrv' .
+	'/UpVfDcdJhkjpUwoO12XeNBaEdVIGjDPDVnvYw4w823bO4Vg8hRiDCwXpxT27a9DmaKcfb8ynVYodYvdn6yDJPq1yA44jI4jbozi/NTavZzM1K' .
+	'ZkEt9GEPQ1yFNXJIPlFBA0b+PaHrp+B++KPiZ6I1Jg+I6jzbyuMp6mDqMxA2YTp+2syDu1vivzxMlcMgTIMW0/cFIczNKrcfN5HueZZucXndob' .
+	's1oz3Lrc6iWMzgxeHO2Vu3e0c7eq23N9WWUhV8J3dov3nYZ47Sx8AwKpWzDACcDPgJiAKJPMCmcnbzer5gpnRfqye3TowoBT5mqDqQBjr5INKK' .
+	'oIPM/hymfFM8uUxhgbhmgpMdF2UWuMK3vmN4imtAh7mSjm89K74TncGbcDrbD4LSqZ6FEsT/kSsoLWIj6+TmaKvyVj+GBVJI9SN41rh6c5dGz1' .
+	'/JMdS6f2QZNujeZZQqTniuhvjfBw6qbSNMmCSJGrzEF9EHKXFJHlioyDVIMzNz9l33f1fvsp46aOmzgVX1mQtKoRZBGsvrnCMF+D3l8yQrfIwF' .
+	'3osLozUVu/pTr8LLCEIsGo+YTJQMta2Mhku1F74UraT2k2q2wYgczR5YcyZXi73BiYYeIrEZfQvJuH3VAuzr0pDyj61W/VZc4/9htzUChIF/kH' .
+	'OKsrAGdtNHSQaQ4nBkq+baYhSmFSvwBqFzKqTIO5wm7FLgjjY+jpXZJdZaYRnaBDDQMGtN1OQam7/QS8LJm8jUmjfh2+uBSMYslFl09n4Xmv39' .
+	'bnmmXTZ8LVe1nUY+aNGxBdhQbN+1H7uLTOv0M19nfs5a6SushNLW4MXW9YeRx71OxSwDY6R+PSdp4KeqCWSoThtkBXtcmW2BlebkLoJRynSjGR' .
+	'1jIw6Ufn+ILETHVzFUaNGFznUphLR65i0ueeuT45H7aeN/m9E5efpj/e0BMYdINDVC3g6I11p/HQsflnC5P3UUPpoOupbJA2teQcPcWqdu2p7T' .
+	'JiiJE7IKt1sRIq8BnAmkpLje44Cg2IEjYfNBl9TAWW1JJnanL1PoKvUPTR4RXgNz7rbNC4JdrLyd6nvVjvy7nAw0O6cOWrMoqeONEY4KGTwwgt' .
+	's7CZX3U7yRVMYi2O8TbN+MffWrPKkOuepJMw/37PD2SX/nVKBfmQEXux9O4aOUoiyaIf0qPZbtFN6BQ2qIiO3+AwGqSnoGQ57kAqNtYgJYdCOT' .
+	'Q2eBdwck4PcS6oZFFvFxTFDoQ08ZzrLrEbG5UEFgby6HugVLcGIsNMCnSO1vNDRX+ychNn//LYYZbzj5HuvJjB7h7PJuEKU3ibP/6dEXlkJMdd' .
+	'XAkJ93Rs38Oy5nROstCfQdXfttGUKeLfQVOB0dgPXLRylEq/Pk2qcrUkDzF20c9M5NjmTfHtahUD6fPB0nPzFZNRwH20tWZAs309XP9EJkX5O2' .
+	'38VX22j7H4F2aBRuDgjHHn8+70BYEsePLi2FRVToEOmA6lTCfvQTGEIUSY/qasnBPa121+c5RhEYmG/PjSeAyv05J5ea23awhxSiHJTg1AjwDc' .
+	'apGlLDjz1xhmiXQg4Au2K2uecxlCGrnpJ2t9dWcsWO7gQQL6/X2PX+314XiFCH20Hj05UPIvfvyRF+74Bi/OY+VAavh/EJC4q5E2DAWQOVNbsF' .
+	'N6Whqd67UQrS4z/K0FDIty/L2al7yIMShX5TfkUHlE37QELvyvkQt7A2eQ/8LetmlY3RcHdX7xkifqCEUBXrjPL1vTFYpnEruXsVjL+VLg+Q1b' .
+	'H8ZXqhZr7BDbi5MQMoKuJ3w0BivbN1Dd9A2KngFbXO/girCaGLsT609Cw3SzkfKkPK8Otb9Xb2NnnHY2plrpqYxH9C0NIjcBzZ3u9v4t+e/UYY' .
+	'N0wIoX5zaxEqu8eCcXw787UyTHzsMYpE7TdzO9cP2S2HHhW2gKYAdQs1p7KWadcdQeMWXI7W0vnSznAFMDJJ9YWOfPUkQlTMOyWX8s7eTgQVG1' .
+	'+4tpLQY/c17CN40Cl9Y/Vxm18J9EhGzCwuRnUs2CvBOEBwrJOE6JzZmsycRyCxj6PaEpqv1dOxIksd+vGL/k4Qf3yPusvSZ3AvYHY4b50of3lv' .
+	'I4nF0qeWgMkSYabdkXTMM91ljU8TtStGUh5jOi2ngZG1da+XugUK4VsUx3ureS/nTCCNhQFRl7s+x9Czn6NTAm7JgnVUTA+gXtgSvjbzAMRPWk' .
+	'4lREYEpCwp9T20ySO4HUsSBODdfHrvECIf6Gcv2AnP/PvzPfIxyjzFRWC01UKstdlHGvw0i+AKWiq1ZSoY62OP+uxK+HWi3kx63BmvD6okG4SE' .
+	'TymQzPYuNNPKXft7VRGUIqF2n6VnC2uBNSERgh09rQpA1UH5u+cZAunRF2kcyfIo9eQ8pn26fxxmL9gpClTQICXFp4ez+F4IUToRijtTI3FRx9' .
+	'ayE7RzyU77lhpeNltZXJ00ezzRs/HaWFYjkTV0pNEIIA7+QbL2WMtTHaj/Swvru2i4q696tYnsFQNTBhGtbcikEP14HShsu50zH0yyRRTM8m8/' .
+	'/aoUXZ9bjRkNuFfjzroxuJbirJHbGJ09tyC9p71E5JeSP8ATxT4S5Z9lQBKrG/JbTq+EH2QoO4xUAYIAozFWYgFOjGJjHcg7ttITYbAcKCXB55' .
+	'F0bJB8ToXwZKandYlXc8hz5kaK4bsMhMFHkUIHuc5eVAI+84RmwKwEqYq4tmUe9wzsGPaaDXYWSxuw7UwqX+j3Qfe/rfMlDI2zqsNqsd5hjuML' .
+	'rdcSakx7imgH0DavV+so7Or2GP3KHg+E/RclN0Df91Mz3kLBknrrZSLicp2S5B/LomltY5C0/snoYI/sShdx6NIrio47sclFI0r5Bt0bZdWxvJ' .
+	'nllHQbhiBKydHqqLJGrdftrjvBTYHJSNsbNGg4A1hfWdB2u+0D0g/a11SvAAtsFkp4AzAVM1BG9WgPTXp+3bzoWk1mUgZQ1qTd74NM8cyjbli4' .
+	'JeJj1DKAXvpRqIhJb4hHk2uWkSYM7SR2YD5aVR3OxyzT2c4aKgNCv2Xi0S00Pl0zu2wEAva21ReqyQAhpBEGDP5Bq5HjpWM/ktm3bFmaQ5nGcn' .
+	'dT/3StPSnLywX9mD8MTbkHqkhXn/i2S2RniThb1OKiK/RcAYobmDIDU7qI2M9GDQZC24Ph1wSD9AM5e++QYR3wjNpDIRXUxats9gyPMj7mR4Fn' .
+	'K7Pb8Ol1FUMZ2watOOMpYzjkDLp1HdJDhwR9/0sdoYe6kVyeepfZHws/cU/RU2uJ3FyhX4k2RULNvXwRdvG7bDjUI2oYUsnRzj5LKIymEpJaUO' .
+	'8M9QiZKgN4kZ/zOj3ozJkM57Io7evf7yDCrGFHBlGeYaBKwOvtpkKsmonwM6IUH3pQ2tLykSqEVeL3ymAez0ET4Rgj+YEyJFu3zNGUrEkWvMU2' .
+	'xXTbGc0FrCWLj2hvMLCZ6eEBHrQuhXxM4CGufZGBmL2YJ00U/6T5Xw3lYpIXxpzrx/eKizBpGjUpdZ6ctVms8+qxT5q/NhctmjREalWkEKJU8/' .
+	'ePxWeepDQyRBjbZOMgJufbng5bpsFRMWYgOgfSonjrRbb22AgxyxGH3foudCwZenfa+ibN41+L3R5m/fvE5kvxMf12Yr9YBV8ZcL96zgLYqQHm' .
+	'EPrrsEt7WbREfmWYlvOO6rKZFeYAJSa0hcInSotrpMeIoLM6awthSQ0xhvkgoiLqzVY4GOMKc/lmtiTVW2leS8XI/ScDvbjLx0heYSgx/kN9sF' .
+	'umgP9zS0hlhzjqSjd5t9aDdrSHw/28S8/5gK2fy6es7usdRmcuu9eazddki+xTgxS8h6or5sB1QWaveItJdPg/WD9QqdnCdg+Cv+QAvrDcxZ3x' .
+	'V1nqlmfngR01x+Q0HOuDER2/kBo7amXyo3up+Jov7z7ihwkTuLnBMKl4dW2oAnfkk86IEzU3qz4d5a8b1q6tQ2h8S3iy1B70GR4HF6oLI5CUMY' .
+	'UQ5hURNPoIUcMsfhr2jLCeTVqrjWx6uJS0e+jJKSVgbHIHx747tsDxAld3ASwo5o/1m0hrqIrMAfKyiIl51OqhCcOwkvCQyeoGss2r4/N531cc' .
+	'msJAjMVzqAW5mnT/A1vVLq8Ma4NpfzBFAqnXVGNaPajPRji8yQPBkVOmKXSGovgAJGC+ROZ1CT5/QHxNbVUbK4fHOCmemyrTHkxxqQ7uFLNNCB' .
+	'Trb6dyXIcqWTpEVJux8DpoRSBQGowcKxnJqhHBdYwTiMc2FB/p8YDgM3x6fhb3cXcPtyWlxbTQy9g6S1hAH7c4FIUVYnZSODXmIOi6pEa9sJbU' .
+	'uf/OzI20p8NAb2smAC52Qlgg3LYIIqUAmwaVfzgv1weHV0vXvIakYKrMyLK/v056bhqsO/q17WplvGsQnSM0ifOcLRRPoR4=',
+	'4bf94a060122bb80711d797b098997d538e9fed75ade247075aff225212401c7'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

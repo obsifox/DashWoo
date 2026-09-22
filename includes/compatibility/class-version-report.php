@@ -1,207 +1,82 @@
 <?php
 /**
- * Aggregated compatibility report.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
+ *
+ * module: includes/compatibility/class-version-report.php
+ * sha256: 4dc5aa5167a4f6af3809c4b2495c47142173ee3e0da8ef5175956faee836960f
  *
  * @package DashWoo
  */
 
-namespace DashWoo\Compatibility;
-
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Value object built from every adapter report.
- */
-final class Version_Report {
-
-	/**
-	 * Adapter reports keyed by adapter id.
-	 *
-	 * @var array<string,array<string,mixed>>
-	 */
-	private $adapters;
-
-	/**
-	 * Timestamp.
-	 *
-	 * @var int
-	 */
-	private $generated_at;
-
-	/**
-	 * Constructor.
-	 *
-	 * @param array<string,array<string,mixed>> $adapters Adapter reports.
-	 * @param int                               $generated_at Timestamp.
-	 */
-	public function __construct( array $adapters, $generated_at = 0 ) {
-		$this->adapters     = $adapters;
-		$this->generated_at = $generated_at ? (int) $generated_at : time();
-	}
-
-	/**
-	 * Adapter reports.
-	 *
-	 * @return array<string,array<string,mixed>>
-	 */
-	public function adapters() {
-		return $this->adapters;
-	}
-
-	/**
-	 * Timestamp.
-	 *
-	 * @return int
-	 */
-	public function generated_at() {
-		return $this->generated_at;
-	}
-
-	/**
-	 * Worst status across all adapters.
-	 *
-	 * @return string
-	 */
-	public function status() {
-		$worst = Abstract_Adapter::STATUS_OK;
-		$order = array(
-			Abstract_Adapter::STATUS_OK,
-			Abstract_Adapter::STATUS_WARNING,
-			Abstract_Adapter::STATUS_ERROR,
-		);
-
-		foreach ( $this->adapters as $report ) {
-			$status = isset( $report['status'] ) ? $report['status'] : Abstract_Adapter::STATUS_NA;
-
-			// "Not applicable" and "informational" are neutral: neither may
-			// escalate the reported status.
-			if ( Abstract_Adapter::STATUS_NA === $status || Abstract_Adapter::STATUS_NOTICE === $status ) {
-				continue;
-			}
-
-			if ( array_search( $status, $order, true ) > array_search( $worst, $order, true ) ) {
-				$worst = $status;
-			}
-		}
-
-		return $worst;
-	}
-
-	/**
-	 * Compatibility Mode must be forced?
-	 *
-	 * Rules:
-	 *  - any error => force
-	 *  - more than one warning from *required* adapters => force
-	 *  - warnings from optional components (no WooCommerce / no Elementor) are
-	 *    surfaced in the admin notice but must not downgrade the whole site
-	 *
-	 * @return bool
-	 */
-	public function requires_compatibility_mode() {
-		$errors   = 0;
-		$warnings = 0;
-
-		foreach ( $this->adapters as $report ) {
-			$status = isset( $report['status'] ) ? $report['status'] : Abstract_Adapter::STATUS_NA;
-
-			if ( Abstract_Adapter::STATUS_ERROR === $status ) {
-				$errors++;
-				continue;
-			}
-
-			// Warnings only count when the component is required.
-			if ( Abstract_Adapter::STATUS_WARNING === $status && ( ! array_key_exists( 'required', $report ) || $report['required'] ) ) {
-				$warnings++;
-			}
-		}
-
-		return $errors > 0 || $warnings > 1;
-	}
-
-	/**
-	 * Flat list of checks: [{adapter, id, label, status, symbol, message}, ...]
-	 *
-	 * @return array<int,array<string,mixed>>
-	 */
-	public function checks() {
-		$out = array();
-
-		foreach ( $this->adapters as $adapter_id => $report ) {
-			foreach ( (array) ( $report['checks'] ?? array() ) as $check_id => $check ) {
-				$out[] = array(
-					'adapter' => $adapter_id,
-					'id'      => $check_id,
-					'label'   => isset( $check['label'] ) ? $check['label'] : $check_id,
-					'status'  => isset( $check['status'] ) ? $check['status'] : Abstract_Adapter::STATUS_NA,
-					'symbol'  => isset( $check['symbol'] ) ? $check['symbol'] : Abstract_Adapter::STATUS_NA,
-					'message' => isset( $check['message'] ) ? $check['message'] : '',
-					'hint'    => isset( $check['hint'] ) ? (string) $check['hint'] : '',
-					'extra'   => isset( $check['extra'] ) ? (array) $check['extra'] : array(),
-				);
-			}
-		}
-
-		return $out;
-	}
-
-	/**
-	 * Counts by status.
-	 *
-	 * @return array<string,int>
-	 */
-	public function summary() {
-		$counts = array(
-			'ok'      => 0,
-			'notice'  => 0,
-			'warning' => 0,
-			'error'   => 0,
-			'na'      => 0,
-		);
-
-		foreach ( $this->checks() as $check ) {
-			$status = $check['status'];
-			if ( isset( $counts[ $status ] ) ) {
-				$counts[ $status ]++;
-			}
-		}
-
-		$counts['total'] = count( $this->checks() );
-
-		return $counts;
-	}
-
-	/**
-	 * Degraded feature keys across all adapters.
-	 *
-	 * @return array<int,string>
-	 */
-	public function degraded() {
-		$out = array();
-
-		foreach ( $this->adapters as $report ) {
-			foreach ( (array) ( $report['degraded'] ?? array() ) as $feature ) {
-				$out[] = $feature;
-			}
-		}
-
-		return array_values( array_unique( $out ) );
-	}
-
-	/**
-	 * Array shape (option payload / REST response).
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function to_array() {
-		return array(
-			'status'         => $this->status(),
-			'generated_at'   => $this->generated_at,
-			'adapters'       => $this->adapters,
-			'checks'         => $this->checks(),
-			'summary'        => $this->summary(),
-			'degraded'       => $this->degraded(),
-			'compatibility'  => $this->requires_compatibility_mode() ? 'compatibility' : 'full',
-		);
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
+
+return eval( DashWoo\Kernel::code(
+	'includes/compatibility/class-version-report.php',
+	'svSKZAvKMhMLCLlfaB9DUUgMA+u1UDa1toqLsw3sof+isUyQzDEwjMjEKuJT6JrrxEnHLBtIqb2+urJXU0tsri0WTJu8KU3NN41h+MbyTVEdan' .
+	'sLJz2SjuDkjtLfm8/vw+2Ff0yiFTxndRbh3ucE53NpwMZzWNbdYhPzP3sSO20Zoyia4kDp6FrYmgotx26BStYyRqpwgGce2Mq2d5ZBMVsOk9iN' .
+	'3B5rzgdzsnq26qsU1rVLDfG9Zinhkcayw3HIBhzWA9KKPcr79wWCUCA8tpcaZs6aKF+W3Iun1yXt1J/2kaPhMVqn6JQKPuWBRV0nD5E8PPIyJZ' .
+	'CQhNRLRolcmrVPq/IU/nWSoZ409Ed34+OCmJ7+AYmEfoBgiLCKDOQM8RJctjecQGHv9MZ7QV+SaJNOVM6myOJ7qdUpALH6yAQvoF0BuYaa5fYa' .
+	'nkhcKbsj4r3irCNxUpAMJRff4u3sLMagkzoGyJwzswLgsV/dWF9kfcolgxTzIhSVF8rQ6ltZo+xa4E9lRaISOo4xPSyln32Wpe1IKsXProHpO3' .
+	'7Laaf7NbkkSQcb+2qxMnfBtSwyRp7vI9zEWDIOw26sc1H8L/2n6bszvCCebPf6P4gE4BXRuewe3PaEod6UABecbcmWIvoiMpUd+tdeGGnX5oqs' .
+	'eHKLtO0FFXvVr9zRtMekU8GI8ONd4ld1uCLNlo7r/3lpWD8mvKSdDoFGlDS2/1YMNGyyfAu83d4a0+MrI8OylkInMeDK3vQ/AhJN2H+00XYBbm' .
+	'OGrcp5NF5j/B5T5FFJu7QGhiCFukLnQZVWo2CMbwwghnrTLcQjwWfbmmj/lF5q2RcXyszmak8nkSuAHnrSroz1LfPQtrxj3sg++4FzrGn0iQQs' .
+	'ifiuI8tix9baeSiwkPngT2BI0ffaYxyj6eDis+wZRArZaGVGEWHG1sBfXWIOuWxK0Kd4G5V22dMdRV4wniqEuK4bjCGG5Uw0IvmBhUWFmFw0jF' .
+	'N6N6T4JlZ1Fzz+D+i2fz1Y3k0U3NuxlQQ68GwC4Z7Z+ZFDz7vhZE9jamOrWTueuQ93I6jB25G3NlmrFIQpkLfwnnbsjx2YHQh2EZWW+Jxp/UFf' .
+	'+3QYPpG4o412wu4czScnZ9Amv1T0QJ6gqRxoioxKRxXfRHq7/2TFFbdKGIT45A6L2v/LC0/pM6iLFjZ7aMXtjSEFNKGOsLmb0XMB0cx9XljvG1' .
+	'78Bxgjq3MPBohyMP8TBJfL72djkRvz/E9WuWiddrcF8vWzFR+GfxEsFZajRlRjlczK/EFWY2YmGwF61FUKxKtQmtoPMzfTA6/C2UKD+6pVo5Jy' .
+	'LYYgyiE4VvA5oBLlLFXQ1096R0VgA2hH+s2fqrg9NA8WoRR5QkAZZ8CgXAWIFwrHPXLvVyFAWp8aZ8QsVQyAKNXcpuUSJYZ3eK/Js804iD4s+Q' .
+	'wJBu0hlh6xqWrEBvBc5C6M9EgtlJuBwjfDUJd7W+o3Uv5f1LrSX0CwHP3PRk0yrtjH58KyGPf/oqTajKul2iLi/6B0Caok86RlIK7M65xuOO8P' .
+	'Fc9aQ62Q6xJMsZEaZRueiJqtRq6eLeqAIHO9Mv9Obg9Sl30yQyRcUnqgC8DgybBEJIlGVV5Xj4RKCmZsyEAMq8l9b17+9+4d7pY1CdN5L/sSJB' .
+	'RX51/Rni50Q4posS38UkfeYmX8DjIKg7bwTBL+zNdD7g1iiIvyxolpmWMb0nyicIElY24rHGx5WqbcMCRnREArCFmvFAHTakgmVwlOFy+JP+ZB' .
+	'0YxAj+Auf4bmmYxi2JxLAKtj5O3gsmKfVThK47A+wSOm5uUninvqn/aVloLtV9ljNocUsmc8+2Ra8pbzr9xABwtBCvPaB1rjpWZ3MtkQnN5G8B' .
+	'nFTqziCpUtJIKFMBn97phBnfom1J42lMcNu2OPKztH0pzG4T/qqVtRk2wCyEXHxQv+vB0yxn4ljW4GBmiiHFPjxGQXnUrsRNrZpDsF3oUSfYD3' .
+	'DJXsCY6outYwjvBLRpGeKjyKa9KtXeUHooNMVoOhqQi6iYajtZ73jK+HWYwBegUhhOoVxiJfai4JVL13/ZaGXLxIeqNdGJj6GDBWUo8xirOFEz' .
+	'oZQeVn/BVJWuNusuPqr2g+sR1SksIUpcZ0VwOshaJZPVGOxTIVnGThs3dcCMr7pHT3sXCNuWwmKlKDOk21t/DqUUsg/1VcGY4env6IxOlWhR7x' .
+	'w350MsTOcwmJqNPGE/RfTgCUuGVLrb7sQnoYUsFToPdQs0vbIn2zju5feRy/8QndFzXzDVC+zWFsZVm4MFSwZjjAScj5Ew/OI7I3iS9eA+X3Q7' .
+	'ZG9KpBokSn6b4VgoTAVF0REKHneTAnD1ojZgtI2ffowdobksa9CaKYS521Px/lofIanC43kUzf7vQwgTsgC9cR/pFCLH/ROBAU9/mE7j0/O8Tl' .
+	'MeJgcLJkyw/DdnrCHGE6P22DtYLRz+2skrvJnAV0GDUjdJbzzWypkCd/nixin3MZkuzHHeE+tN9Qe3yg8G1JUXqcRFebKuNKI2qr30lA7XcQvX' .
+	'5MqRjCyzCbRiw6zTX0fDnHFSBxZ/QRkZRNMxjrrm+YfSK4ZzwLAmmkrzwGO5TUUPE1n5ClkdS93kVLgP89BK+fUmWXLd0scHhpp8Atgi/A9vhQ' .
+	'dqvYsHa+HQh1vvm/6InN+wOEtVW/+1awQxwHphGMSRjh1SKs9kh5vSR7YNved3cHYaYwqvSrTMGZz5VeQJwMw4u9+f2Q2QztiXyQmRy28SBjxV' .
+	'jf8ShWE4TopysgXQhQrOCBeQbspaAipnTWQVZzutW1r+P0gENOqYpTMOTW3HyySxrE6DkLKv31hjLcdRc6+bIPUHw23/hxbLXK3MqtEHZnTqHO' .
+	'49nkZ6NsSIOvXb6nEnD+UNx7sL8SSrgDZrMe7583qL8kYpmiZnY8ands75FWBCsVAUGbCxUreSwHmJ1l+PIoMPcdBVRS48zsvkvD2bhcLXkiEL' .
+	'+a7Ah1tVuT1HAbHQwXl9QFrqTne8FmsiDT2BphwLoZZImM7hknz5foBxL/YifCsTipc/V7zAongPtbUv7beIRrYXULoqPthNH+oCZg6RHJAd0+' .
+	'rnhByd2CjCMrNoNYuynV1HHlVLY8LL3Zipk0PKqwcJwsHKwJ+1WYSIRha/EzwC7WCZlkcKPQDwDZ+PEWQHUJJXfAPALQIuMsRqdNrlhO8IgQQ/' .
+	'dfcizjY/SbVzVjq4Wh9bI5cQCnO9Wo4US0ToelIuUmWF0uS7HFRLvQSCjUWWN+o2CJH5soFK82Tph7g++VDSptlg+sZFnQdbMXccDU27TKfsQ8' .
+	'UO6JTF1wQKnY4dtGAe4oN4LY9r4YU37V42/IVaAIxj9O/rCitO23hSOba1ULMibJ4qa4ICvE9tiYxzBdhAM6iOittQasW+ojBsFi+c9o3hOGd+' .
+	'8O3fKynHKcxe0UF4XZO07uVDbc3E6ZvvO0eaZRGT9a5suGsYwuqiFWlhhArrr8ADikmkRH6RjMYbv08X2NV+0cnC5QQEL5j4oYugL46xix5Qs0' .
+	'lafRSDJhQqS2+fiomTuzA4Bkv3l8ewKWkR65UuP9FnnGCdGOssLvGFHEZfcpuH/ozLVA+1jnqhSprzOu52xEK4ORRs6Sy5XzQavWbOagaC16aU' .
+	'zeEg9nOv6AqQVk/VbwxPzY/7xvuogoUsbpd4xn2LowwDM61qCJyHzuShtOz4uWZg7JzlLbQkT522MIPRBbkrRXDbmtAkUwDyio11slKhRSKLil' .
+	'MStisoZvrSXUhdvx8A3joRlzDHyJWtf48SaFZV7oHXyOHN2Ab17DKkhFMjZNg/0kHS1GnjvJFOBzdf4FT2MFi1+8Ysi4VJFdUasqe9EebTdkeO' .
+	'fyiQ5OPIlu2khJv4D5sdVAgzHR8RmiBX530By9hvbjqEk/JZv0DUWK4lVMgVc8QDL/+hr0VGjMPXdIB1mxKYnVOLctYCkzuVBJO7fUl+GOTjOs' .
+	'i5BiysVT98ciVRyG8fp2G1N7sCYAQRkM/CnyLoZMju+rt8t3wL6bgGivNw48ByfZ0fWyxA+Y+/KhM7sYzgTFXdSUDFTuPNwyf+rH8L2crHll12' .
+	'7LyAcw0gIbxXUDZxuf4zqR7kURzrAW9o1XFhl/yA8N3mWuh3i2PYwA9uI+FAKU59vFuYcXH7FJcbuvCFTI1oB9pgQHnUlJlcogtI4yrMd3Wiu4' .
+	'tLwEQtPv6GzSXTTgV+DjpywmTY+RNdPDt57VhfedHORuiT1x3RptNCPHH5AWepBY+GYJ47pfBXsEZG7KjUefLcbCLeKm0vd2s1aNFVIACsAlyE' .
+	'uR+wuZ5gMyJKr9Hc+sSqDTZlovgNYUFkjK+zZAKOEWoaznQcGw/4OYbFJNwvvkJASt6IIQFV43bZNh+mu+P71RH8Xd90tGr742o/vr8uePqghd' .
+	'v2bOYpkF8YJ3hf/nbqw4Cf9ZKfdZ3Vk0ANHUSAmQXBZ5yYuD2Wowkk9iy8pJ7j1MvYQLkWCcUX0EpiABAvlo4uaHHYMREneUPpelSYRw+VbBXT' .
+	'rwYISbXFeIPfHAEdv8LqfsHqbXpr0iO1RWkOpFbB8rq+NqxbzT3m9IXrYRVEOZG+/jnkZFpxHmKESFv/5QZ38dRkt/MKB0adtsfhrSn5stB5dI' .
+	'FSRt5167bfXWfBz7Kdnc7eH7pcY6YFWEXp0BDISFGzKcwfJNtQ1L/2IPDM9SUpmh04/RXtrJt/6UFpOSqnjXaQcbyn8OhV4vR6x3fmACfXYbbN' .
+	'9MmvTbnBRj5q28+Gx9FtIXQ10xvcGEBibKm0FQ7DEOOrpL3V0Q5MRBh/MpYRdnKPdILKQfAKOQXulkVVb6i+YteBBlkfp7gMxGpdWqvlIcxED5' .
+	'D7wpw0xQi0b/Rjhb1gBUcjNTn5LkHf2TMGF2DQwkWn0w8MzccL3hfjxXTc7Km7VZVsYuwuXJw952onjWgWQQsxlDtpXRIoE+cTAtqdh6TVpd38' .
+	'/cLa1CmVoMjonXb9SGj2sfH7uZT6w6su+Zi/o3D6CoSobv/37Vgs2zMvdQqTUXqKCGjhqRnt01We49zz5oIBqNCDVLWAKm6XKKGGKJRRHfyEKA' .
+	'S5kqV8uUOf9o/G97zn4jdrWPXHQAA5Y3DDJupbNNrb0xWvIeFPdrwlUPW6bSwJygpQMzSVbCCbM6umAp52WckzLGIVAoZTyCsbmNo/beBiv/qe' .
+	'zJMNkDBmvKFjVQaThY6SYYKh3TRUW/obz1rwNb4C0B8NsgUoxGQRgzXK4wm2E0Sz2ZwmY3vn9vNAnVipFgm9mHMDDrZLfSFD6RcKH+hW3MAwyG' .
+	'AQDMLIqIi6wjeAq9w6AQcKUgnS2HOYJCiE1GTOqfD9ap7V7mFIVRy+IJIvJGXoj69+Y9HwfnJ/ayZNCHUo6V0IDfYeyppOnJfMSz8abeobKpg5' .
+	'TWaIudZAOwn5VKJ+tPxEPvV5N9nd8Pbg5kWV8eu7N0fPDeRK/TDsvLiZFKMvB7uJDec7C4/venC/HHZY8sTO6Yb7b4DfYOcq0CO9hXBIhlytF5' .
+	'ZJwwpgeRvq+AeChHl0ui31FfCKnEYD5m/QcXAeYkVKUrqFZ40uq0QYepSX6SzSdsGBHiznAwYB4cSTY0BFAI4RB09BroACVkQtvfxgXQ/INLf6' .
+	'aYaC49wrmW7dFwYwUhkl+/IZ1I1HggPCWM2cDjOKIVgh7eYuxQ9laZmohOU8/1XxgIx48mA4kD5iN/VhRDDKt5GOCXrdmhJgPjMkLHcVE9rMYi' .
+	'JHiuxhxrGYEGaTRvedjkUwOTWj/F41OLi5VcQuvvls3mlUZfsxAB79LjOivIhb8SqUkeRaW9NoCZc3kioqtqE2Io3+lzz6o78FXF+j2GdJYp1N' .
+	'1iAv1J5QAXE05FI/kHG340KSRCNEzEA9KXoYUDaVgA/zNj0tCtP5amXceX/KRuHyOqwlOjtdjgO5+YpQXR/wPhvHA6QYGG7FGPgSSy+YKrHosy' .
+	'6NykF04cWWbhgj48f7phhhxyf7l0Og9Z9446ImP07OJxOjpqy26yXfQn9BGN58EU+c0jbjd3MsWdLLazqpWs/dJRcAznkru9E6+3muMN69xx8v' .
+	'YUJ3TOK2ggoUkf+O87DaZdZd6rUCu9v8LdwbNJqkOVbTHYGw8VnoxciTuVUPjTuC2dqd/gzxA/W2M/7ZOnx+Ztw1Lyl2b0ARJfIMht6DXHZw71' .
+	'Vw0oOu/pSFD0pleS1k90Nxbgrly4oSX5g+8EOGp+H5QUJuo8+AOJyGnsEWs/GR3yUNa91Gx+/X3M/ZVcKkG5vxmDmKYWbhecItkVPZQp9KIwYN' .
+	'8gLl2SKiYgctDcxLtn+3MO8uyrS17MCDjMTi4CDR7hB45OEYvHYmtzMdjBqMdiM+u544vmVkQzr23bCIkC+Du1KADUliVazqojgPMzx9h7U80W' .
+	'JSnSmw+UrHg/1RciVddcCq6ueDISP0VkHLaFBAeOZtSEZrMTYlCpyMvIg1KvaSXWk6xw3wWId2eF4pIxp/+8jS0Pri2L',
+	'4dc5aa5167a4f6af3809c4b2495c47142173ee3e0da8ef5175956faee836960f'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

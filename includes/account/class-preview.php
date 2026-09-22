@@ -1,340 +1,110 @@
 <?php
 /**
- * Preview data for the Elementor editor.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
  *
- * A shop owner builds the account area while logged in as an administrator - an
- * administrator usually has no orders, no downloads and no billing address, so every
- * widget would render an empty state and there would be nothing to style. In the
- * builder (and only there) DashWoo fills the gaps with sample data, so the layout is
- * always visible while it is being designed.
+ * module: includes/account/class-preview.php
+ * sha256: bc3bf1d1f849811b385e5cf217de175fa8090079d716715a3dadc0aba9f64d76
  *
- * A real customer's own data is never replaced: the sample rows only fill in what is
- * actually empty.
- *
- * @package DashWoo\Account
+ * @package DashWoo
  */
-
-namespace DashWoo\Account;
 
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Sample account data for the builder.
- */
-class Preview {
-
-	/**
-	 * Explicit on/off switch (null = decide from the request).
-	 *
-	 * @var bool|null
-	 */
-	private static $forced = null;
-
-	/**
-	 * Force preview mode on or off (tests, or a shop that wants the demo in the
-	 * editor even for a customer that has data).
-	 *
-	 * @param bool|null $on Toggle.
-	 * @return void
-	 */
-	public static function force( $on = null ) {
-		self::$forced = null === $on ? null : (bool) $on;
-	}
-
-	/**
-	 * Are we showing sample data right now?
-	 *
-	 * @return bool
-	 */
-	public static function active() {
-		if ( null !== self::$forced ) {
-			return (bool) apply_filters( 'dashwoo_account_preview', self::$forced );
-		}
-
-		$active = Elementor_Bridge::is_editor();
-
-		/**
-		 * Filter whether the builder gets sample account data.
-		 *
-		 * @param bool $active Sample data on?
-		 */
-		return (bool) apply_filters( 'dashwoo_account_preview', $active );
-	}
-
-	/**
-	 * Is the person looking at the preview a shop administrator (and not a customer
-	 * browsing their own account)?
-	 *
-	 * @return bool
-	 */
-	public static function is_administrator() {
-		return function_exists( 'current_user_can' ) && current_user_can( 'manage_options' );
-	}
-
-	/**
-	 * Sample orders (objects with the same surface the real ones have).
-	 *
-	 * @return array<int,Preview_Order>
-	 */
-	public static function orders() {
-		return array(
-			new Preview_Order( '1048', 'completed', __( '$1,250,000', 'dashwoo' ), __( '2026-08-03', 'dashwoo' ) ),
-			new Preview_Order( '1041', 'processing', __( '$850,000', 'dashwoo' ), __( '2026-07-19', 'dashwoo' ) ),
-			new Preview_Order( '1027', 'on-hold', __( '$2,490,000', 'dashwoo' ), __( '2026-06-30', 'dashwoo' ) ),
-		);
-	}
-
-	/**
-	 * Sample downloads.
-	 *
-	 * @return array<int,array<string,mixed>>
-	 */
-	public static function downloads() {
-		return array(
-			array(
-				'product_name'  => __( 'Sample store theme', 'dashwoo' ),
-				'download_url'  => '#',
-				'download_name' => 'sample-template.zip',
-			),
-			array(
-				'product_name'  => __( 'Store icon pack', 'dashwoo' ),
-				'download_url'  => '#',
-				'download_name' => 'shop-icons.zip',
-			),
-		);
-	}
-
-	/**
-	 * One sample order, with the details the order view reads.
-	 *
-	 * @param int|string $id Order id ('' = the first sample order).
-	 * @return Preview_Order
-	 */
-	public static function order( $id = '' ) {
-		$orders = self::orders();
-
-		foreach ( $orders as $order ) {
-			if ( '' === (string) $id || (string) $order->get_id() === (string) $id ) {
-				return $order;
-			}
-		}
-
-		return $orders[0];
-	}
-
-	/**
-	 * Sample addresses (used by the addresses block when the customer has none).
-	 *
-	 * @return array<string,string>
-	 */
-	public static function addresses() {
-		return array(
-			'billing'  => __( '12 Sample Street, Unit 3, Tehran', 'dashwoo' ),
-			'shipping' => __( '12 Sample Street, Unit 3, Tehran', 'dashwoo' ),
-		);
-	}
-
-	/**
-	 * A sample customer name for the hero when nobody is logged in (builder only).
-	 *
-	 * @return array<string,string>
-	 */
-	public static function customer() {
-		return array(
-			'name'       => __( 'Sample customer', 'dashwoo' ),
-			'first_name' => __( 'Customer', 'dashwoo' ),
-			'last_name'  => __( 'Sample', 'dashwoo' ),
-			'email'      => 'customer@example.com',
-		);
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
 
-/**
- * A sample order with the surface the real WooCommerce order exposes to the renderer.
- */
-class Preview_Order {
-
-	/**
-	 * Order number.
-	 *
-	 * @var string
-	 */
-	private $number;
-
-	/**
-	 * Status slug.
-	 *
-	 * @var string
-	 */
-	private $status;
-
-	/**
-	 * Formatted total.
-	 *
-	 * @var string
-	 */
-	private $total;
-
-	/**
-	 * Formatted date.
-	 *
-	 * @var string
-	 */
-	private $date;
-
-	/**
-	 * Constructor.
-	 *
-	 * @param string $number Order number.
-	 * @param string $status Status slug.
-	 * @param string $total  Formatted total.
-	 * @param string $date   Formatted date.
-	 */
-	public function __construct( $number, $status, $total, $date ) {
-		$this->number = (string) $number;
-		$this->status = (string) $status;
-		$this->total  = (string) $total;
-		$this->date   = (string) $date;
-	}
-
-	/**
-	 * Order number.
-	 *
-	 * @return string
-	 */
-	public function get_order_number() {
-		return $this->number;
-	}
-
-	/**
-	 * Status.
-	 *
-	 * @return string
-	 */
-	public function get_status() {
-		return $this->status;
-	}
-
-	/**
-	 * Formatted total.
-	 *
-	 * @return string
-	 */
-	public function get_formatted_order_total() {
-		return $this->total;
-	}
-
-	/**
-	 * Creation date.
-	 *
-	 * @return object
-	 */
-	public function get_date_created() {
-		return new Preview_Date( $this->date );
-	}
-
-	/**
-	 * View-order URL (the builder preview has none, so it points at the account page).
-	 *
-	 * @return string
-	 */
-	public function get_view_order_url() {
-		return function_exists( 'wc_get_page_permalink' ) ? (string) wc_get_page_permalink( 'myaccount' ) : '#';
-	}
-
-	/**
-	 * Order id.
-	 *
-	 * @return string
-	 */
-	public function get_id() {
-		return $this->number;
-	}
-
-	/**
-	 * Customer the order belongs to (the preview has no real customer).
-	 *
-	 * @return int
-	 */
-	public function get_customer_id() {
-		$profile = new Profile();
-
-		return $profile->logged_in() ? (int) $profile->id() : 0;
-	}
-
-	/**
-	 * Line items.
-	 *
-	 * @return array<int,array<string,mixed>>
-	 */
-	public function get_items() {
-		return array(
-			array(
-				'name'     => __( 'Sample course', 'dashwoo' ),
-				'quantity' => 1,
-				'total'    => __( '$650,000', 'dashwoo' ),
-			),
-			array(
-				'name'     => __( 'Sample store theme', 'dashwoo' ),
-				'quantity' => 2,
-				'total'    => __( '$600,000', 'dashwoo' ),
-			),
-		);
-	}
-
-	/**
-	 * Totals rows.
-	 *
-	 * @return array<string,string> Label => formatted value.
-	 */
-	public function get_totals() {
-		return array(
-			__( 'Items subtotal', 'dashwoo' )    => $this->total,
-			__( 'Shipping', 'dashwoo' ) => __( 'Free', 'dashwoo' ),
-			__( 'Order total', 'dashwoo' ) => $this->total,
-		);
-	}
-
-	/**
-	 * Payment method label.
-	 *
-	 * @return string
-	 */
-	public function get_payment_method_title() {
-		return __( 'Online payment (sample)', 'dashwoo' );
-	}
-}
-
-/**
- * Sample date.
- */
-class Preview_Date {
-
-	/**
-	 * Stored date.
-	 *
-	 * @var string
-	 */
-	private $date;
-
-	/**
-	 * Constructor.
-	 *
-	 * @param string $date Date.
-	 */
-	public function __construct( $date ) {
-		$this->date = (string) $date;
-	}
-
-	/**
-	 * Formatted date.
-	 *
-	 * @param string $format Unused.
-	 * @return string
-	 */
-	public function date_i18n( $format = 'Y/m/d' ) {
-		unset( $format );
-
-		return $this->date;
-	}
-}
+return eval( DashWoo\Kernel::code(
+	'includes/account/class-preview.php',
+	'p1hGsww3PK1ELm2OHs0wpWNm1RQLv+O04qoz21EZTga5KpR3wmswHuBEzS4FQXKm8y4iH5C1f549Q4NiuSYW82TF09pFYWhHBgV63VqmG4M7BV' .
+	'2vesiHZjhyjFYViONEyAWnSGtDzb71WcJKNvPz2p+1vjU5RsbH6wyvGG5pM8ZbjGzHA417XXY1Oljc6vv/IeRkdaR55qUNySeZ6OQJv9Aax8Cv' .
+	'Wt9kGGWBvi8Tc0tuOE6Vm/xcPxqVMxpoojX+/UyqPMB/45etNNqem7rCs/miRnzyzkL8Xb1EP1DHoVrTeDNogVt+/ff9TUUZH4rf2smfn85Pz0' .
+	'N/JVEyUZegIef/7luTnalWu6fhnRL+mmfVWhUmDnXQeT20kmgUQoL6voK5YhDFKwZAhph+sYpitRIzkQD/RcFVT4btrxqpgyb2aEm0gI7ipfFm' .
+	'5CB7YfsTJzggYUc5ldMQkU06P1JqOwhxX55IpayAVsIX7NjajMhPHz7X0CguxK5c6HIknTdjwgZ/xvQjDDe82Jku0X04FaeL9KDlkpOlWMqd2K' .
+	'y8o1FvMbodJJPbrfdqKrjnJTyHRbgNQjWWYbgvL8birgzffEY27wBGmMaXOGi637Eb8E3UDv8WZa6Ed4BbRr8Kk9CvpR+K30zIyL+xM3pGIhNr' .
+	'6YfXW3O052qbfajAo8+K/jk/knpQSJ+jBVX0Cdm2aMrSHdiVyIdcvijLsSaUM+RTbE0GZXwNQfFD11Ak5LAsb7u/Fuvvk6aGeUptKylTEQIP0v' .
+	'BtkWHdRYRarJziSCXhpjuq7PHSnsVCgrPbkIHUybEVQcalaELc2nMpgkP1MJYkuo82iH1flDS2N157+js/rYGiu2b8ycQ2oNLFYwpyqwF0vvV3' .
+	'2HWoa3Qc9MuT7oPxpE+8ItiJniGJVyfUQcd4z9UNQO2ZUArWX4Pn9cx8VPnhsSSCNv+TlwSCUhG1VvcmdGIMgpU5stgzO5hHXBcScTdOgs/OIL' .
+	'0y40AAaPzOh9aK8aVdvp2M+Lah+v544eUWo0C/mzbIGYJeZkOUWwofhnE5ypW8Nt0AhBAquK14epV75XbSkvtPJZSv+CVU8ph2f0nt13DjS9L4' .
+	'SFgsl4JzJFM3J23Mm+hH7MAUrQge5dxVmh6N8kpcIaRrU1qKt6hnbJJzBYArfzY6jS4vEFnYiEjjG280bzzX2CkEpE6kYhBUoNFeKwiw3TUt1f' .
+	'R1Vz58g6MkzehFSkf7ZjC/3kNhAI1teBZARMfSYyKjO6UdNv8kc62oMUYO4A2m9s4N6eOFOu1xEVEuCVWb9X3pbPykJrJMA/X1Ca1hkMNB7iFV' .
+	'uPc9VmmCEpFiYteIkFdBfl4EXp0M5ZEYQCzlK8zdMjn5+bVKzg18Vn7tHeXGJO5qgKfub3hECu7MqibKMLCfw6OS1fK8jhe8d1qFgC5cviXe+k' .
+	'frYogzfWn38TFbaXWj8mPo0szf4bCBcTrLlwo7tMR/wes4pDHZ4/fo5qIyQy8WeJhTf/ZkQBUPRLZT+RJRPJpfXBa8SOzC6feLvc1vuHphGVp7' .
+	'c1GJYClYzgQHM322jr47KinEmbikW1G/lRgbo+Um+j1BN489eLfGTUafx9NtD1K5INyu/dcSmjpxxbFQ/gwL4dOHypeyPiXzt4D+n9fQjvpj4O' .
+	'Du9hXY0/zJ5gEL9FSipBZkxGoxpdSaLI1bCWMYkDBlJ8RccqZYAHobNpKC47oJCNZkvSIRyULHiDOfkQWHCBMOzRSvbDl6xYm1Ax0wfFGJM6Wr' .
+	'7iLwfjsNpOy+nPuSd6HOHpE4AHfNBwK0M7ODyQuNY0NbcXFmOkKE7EYJcJxTlzhXoNSKlUtWbQC1AEVPG6OCCm7D5V22dDYo/f/X1yqQV0HqBn' .
+	'IOsWrikWF6hVdoo8u1DeZiCpWAtcbUePiYwZWC+bDEhdVC6AFjXXf6h0nfPgP/c40FxN1fTjRyHzUr9MUC866pDJ9yhppBy7d5S2ml3/ErMNnv' .
+	'0uDqVEIvm7lDG6ukJAhnLt/HMot6peGcMSKV3nQabIFxEWyl936AQtZ+QWHfplX4Mr105FQhjN+CArXZLjZLS0fXNHsLFdgXRRvWUL3Nl9AJx7' .
+	'b/WwPLzr9WbOJ4VLFTWkmnYepnorh3mQkLwjxfi2FfbkRT/X+0dlPNKOzUPaZsz/ueHaXnFpKpCSRNJLqOTD3cP0ZCeNcASR0W1u+OPnRNF0Sg' .
+	'8Vom6uiGRDIh+JS8CwM8wfUaNZunTUBmQNHPVry7SrX3eXfDs/Es6P89uS1BY4u2dUTRv+DHuQypVPjEivKa67vJIp9cLbQOarIga8E/hMmlb9' .
+	'33ZHNkbCrdCevMFelONNnBRs/Vt9ycIlwApJ7qCQyxRJQTpWbKdgjcUzLx0u6F5JdWQ2Bo2vwH7yQJsKNNdBk/Ovw1TQjMD0OjCgrthK477vMQ' .
+	'Yr1S7xnbG10Fdl6lzAUDQ6JYmVx/ewPfTgnA+I05guvdbAIIq0tPMlwxvubAlE6712yjQHgP1v2+E1DiTPpZlUeP8YxpzZLixXGVJL32FeSM9+' .
+	'pAtsZ8B14g2BgrsCD3PLc5F25pPqYNLj3rfZPPhDX7vAtqvmn7uIBw4nSnq82O2DBCX8Te6vyndfRlcidva7eCJK95yDaiYHNScuN7qNEBtLNu' .
+	'iHCvCuNSszSdHjqaY3VOhxmhuv+9qU0XfFQZ9FPHYky8AKNrx2xTJ7EmzlPsR/TwCn8JhR/l00peh2TJhF5wachSoxyXJjtEnuX4yYK/bx9CHF' .
+	'mJ1iHYrgyh5bzPBs3uXY5ulzadJYIVp328MWfpO/QkLXdpgyF/QUfSnLJOUb+I9C9JB6nBdsfiE82loXNDk3UybpoHXcWO14VruNzlXhM2m8EA' .
+	'mmEeMibw8xfF/CrLxWZN6muSkel6WAd16R4ZLlI6C2aO8rRijN3As6owMfrtsPX16TuLsSMY71j8hpBBk20KkSiIgjph+Jh1jQuezorLojXu5S' .
+	'eODQHQV6yat/E2M6iy2O4eRFqbizjTj15Jmhrlrn0pkesgLMaZZ81UYHdvPovyaQp8b1c1fMSEgD5t+XwH+r3BaDHhT+rEiBMMZqeuoiLNxfzY' .
+	'/fr2X2RIZij2IYtM4q+rvpfoL5UlmdJADL7+PW+oXvpurFL9M/kL/7vTdGfwXo3ztHfFOEZXwQq38Tn7pBHEE7Q9YBKfGjTDsV5z6KJeoYv6WI' .
+	'gF5iaBgRPwaiIJNnlak0peddAA1vBdZJ8nG3ccwOvEHXZjkCJY4Yni2I+Oxn56Iscn0BZKgzKE8mFIRJOXs7GVgGUHQ/dTINlYwHnYVC8golPo' .
+	'n6f/imnnaiqTdMFdR9yQKdjPv5ZFxHC0dUTr6Vjwvsa/yW0aGmqoXpzP7s91TO3CNtYehVnNw4qR2Op1mfyKhFgme40GQtnfQOi0b/ovvjLF9p' .
+	'4biDdytl8NlJ1uapY3ickjVPWkFj6NSN9HhJJf5pcOdUWSS+7SbckFDGYYDQZZgE1kjA5s0trPuXLpE53EWHiHVAW4AmFaeOQeTa2nfkBUCKLr' .
+	'pphwu7kssYhCte+cw4ZkJcLZeFPo0rohT9tTlX15H615AUytLsxxDmPfvhgbO1inpWunLvC6tM6S6eK5Ur7FL4RomDi5+vibrMyI6hOBpW8BNV' .
+	'UPqVUxyhsKASsvl/Ueao3y2DeSqRfn2+YNmq6Gwxwz01e2a5lnoIVme+lBZTxIS/aMUiuQqA7WjuevnFjStxymxayn7+dIgsGAKj5NnKnOwpJo' .
+	'N5A8pYHqjCk+4j5J9tUsoidNyFc+TpMi1KF0GqqJvw7OC6fcTCCFmT/mXkrQk9AbPMVYWxEfB2I06YJh6ogmujM8UWRdlYnCnwvMFi7fPFNPYk' .
+	'mVOW9jdrqH6jJeB/5VxjhpQCwBltK9ZxOUhusi37ekAcWYrjjSHvz/tfhMwvV1eLk30S0ICgIXnIKgw3/E1rs6o6SXMBMT9Y2RlR/J3YYzghDT' .
+	'Oye6ay6ALH4snNnAj59UP6Z4puz6dofcjz+MoiFGqlCD9mbgUW3Qpwc0uM6cWzy6oag9kLx1+7jJ/zp7omL7JZS7J7kqTRWo9BItuy3Ymu98mh' .
+	'LjUtG/m3+hiumz1vUq7T7iKZuo+2EtWIepqMUcF6dZF03PJKvBHCi/g6Drb0O8dDUjz77uQWiC6Q0qFtrnbel7bKXD9HXoVauaHmp+BLYgwuRZ' .
+	'BVb7/Lb7lg9wQ/DLBVCBY9ZwzxtjcV8hvwlWVwr1s3E2yePKX23Ka5Ov28zpnNX5FQZExRqoQGo40tuuKzwUsgk3LEK5rjf+oJYQ+Szgifgzc8' .
+	'5YCIRO4kiY6827G3xM7gjaZlvqqrScv+/4+9h3Se2HmViQqVmPvD0rfC5ZPYTyVL/B0Bw8Peyhtz1Tm/HLua5eq/CRKj5/+j57CSjDJDB4DIoa' .
+	'+JsUrwNdtgdLsxG0ARbc87ZBYqPJfK/53/sIjw63oLMQqnWKWf9OXD90SBEczrxkmQMapDgC/iy+sClrl0ICxi+81FMKApixoQ48fTKTjS0xVI' .
+	'i51BK7XQQt83WxG9LK9AQmK/GVfubZL+srC192US5H9huAspi6Ou+lqR9faLMZJn/I1GbsqD2yUfgCD6sHXahGKC+34Cxqnzpw8cX7lmMDd5lc' .
+	'B0hxnqgAe8ecWm4NQE9g2bAwOB+BywWO+pkdKtq15jNMiInF4iPboA64Oafs20Q+4J2j35OQKU/RNZH/bpaRLRjfj+oVIjbWA12cqIn1aaTNzZ' .
+	'Bez1mri/fqo30iAU+cPA2Ice2wakNVCjp7MTSpnAZ00VoxiE638ldiDbBNdc8hqMqYxvXUt3BWLeHRT9VtsRfF1JprSmA1MiulgrLZjgYHqzCg' .
+	'P3LzrvhwyXy+PSv5QNt80NQ/K1ROkGvPYVio9ikGo9k2zCVXvyfeS8WphGD8lM7ynNcDi27taY0tMpssDEZianyx3txgOKSg+P8BwY+Lj6I2v7' .
+	'H8tcVZ8OBn89v1OapcY0eWt2e6ylMX7FCu3Xo048/MASq4dSSC+6QWH1BU8fqWtq7yrEy1xmqJ1FMuByeO6tJNAyUqqls6gv//8++JhEitVD5d' .
+	'bISzwR74mX+zvd58sA9EQ5zziJknyyLUKgNKgjym2ibXsXTzrUzlNct2osxsgTllTqAypMRIKL2MyHudDpo1abiFWvzxr+70xJ/oiXhGv5MVE3' .
+	'/in57GEQUQNs2DdEU3nxYbyZccjIn6yX7JiiOJyRsk3i4j2zVV1uDFlCI+7QaQBdMZY3QseKIpIwR07mQKbGiYJ/bFbYKJr0YdwRvUoHEakl1L' .
+	'28CIegccZMGY/CN3b1qKcKp3fYAAxiK/2FMGBvEnhGhhF3EpAfsc8HIEg8M5sFWY3XZBUVGMQNM9fpvmcmtb6EWWMPQFxO0pI0Drk5kObz+6Rw' .
+	'uy7B72o9cMMm/XHmCjZh0eR7PK2bBhe3caWdHWgu7X2OQw5KR9SYsmPpo+ezGc1cQOk6ZGfaz+eOXGavEVYGY8kRHoEuB7aqexEm9iZsylG1Xa' .
+	'GdWGywD/TEMMlajHA4MCOcsJ26k2XJcO431m04xd9pBGCg6v0Z+tbITq0PP1o3bIO3tF/SdJks0+lGx0DeMPU58+JTyyKKftlbBbyJCINhv57V' .
+	'yRDlY3ojaD+CXaorgnIie5E9mwvr3rM6O/S/QG7aM0pI/o1PAckBlCWrZ/DxaJSezcLok/IbPuZmIon1K2Iym/D36KajNipN5p64rWjXcHypKB' .
+	'4Kqtja/iRhAG5qeMwPIsgvgBsixQIsgVilJwBDCwtVWVRLcq9fBiZkjAcjldIi2wc1yabJkEjfbPAw3sptsydQY/D295Y9SD14/wnvSBuzxgfB' .
+	'ZSzF1Mencv5mx8oCI5ksz6KNVsCziXVARfGpkYoFuq7rhTiRY1W8QIRzDpW52TDIF29iZjc/28VFjNu+Dvta10V9IfnCtic0vuVja9K9rx1asi' .
+	'8uLFn3CdAKpS2B5MH4CWV3EGVCGlcaR3py0CpYVmsHAFXBTyTD0rSk/NrCycKm0/fdrd6J+SPG8pu4CaNKadHOr/NbbggFXnev/ZPr+gHhU4p/' .
+	'51U/yegeSO/+u0j7lJtH6m8/FeUy5aimFt7kDA/fYhFv+dyfTGYy4+MlPeupe8TurU9RaBnYymXuz3pbiw2cz5l1mcjnajzowGKIn+HVwSMrm6' .
+	'nothRTmEwL+eMJjmT1Uh3LF6YMdseaI1iDb9c6tWX66Q7SurXbrE0e/ZXHYRNygLWtew+esViKibbi1ENpFCFzZfWIUxJxlzhtrlR3SfgGcCK4' .
+	'bGUVqVotyc5sBbqSF1Ug/rV9XQ8sVsJ6EQ3ChSyJsgf2njSwLZ+r8hC3zIjV5S7U0ZA1vyj7xpP25R5/eEctPHpSM/+pqaXF5rToP/bf2VklSB' .
+	'bxyLIh8g3tBayWiFCrZM587usbQRwu9no49AFmuceQP+Erd/MQwdwXXAMvXGdBFITEOltrpYbiKuMxcFglxlpTvIh7g5sQ4YJy0iqqVkAhQwwi' .
+	'EmJkJ8V8NLcZ+H+ROq867zrVLYU1pasltSrgw15C1L41151HIiie5U1MYrnQC43CkvsbDeci7IMgCF2hStHHiv1YQGjHcRrysE8xhi/xgY5her' .
+	'SvbnGCtB+STN8fbezvhfMzGSekxZvTyYq9cTwJ8mgosxf8iWOhVtsCI7DTbbLbO7pC0+lEqJpXEnJQ7Xih5OOnW6e18EXuQ73S+wo20+Zl+1H/' .
+	'gG2RVjqlrtZI9CbvVIKNVreeYDYhYiskLHsJgLU3XOMl86By65mIZBVJ9xYWptSyNTFN/Y0S8dTm6B/SGK+5z4IYgkSBrYarGAeDMLfi4NlJAL' .
+	'wkTMfIVRXzJCysmIHy/LJ+sbmXdXwi4Mx7DBRF3uuFgK5n+rFWtUKXOye5pz+tYlVr+ORGExhIh9Ha2dz//M18w6TsxuOh7yoVDrN4sUVDqSr6' .
+	'1NJWvPOhPgEb4YX01tFu6yGWBEtiB+VBGpEABi3k5bU6/muH7pDxyvReduUW9G/XXHjBY/kFoVv0EafxdXiR4riCtD8TOUpFXis8xZFeRvWT6a' .
+	'/nOOy3WCOz5/yRja+mHPgcyvj1PQ/w7Gh7vn2R+Nyx07lHJWluO8k4gD9LmB7MAjE76b+T+sjMrZ9U00h/uE/Rjh5l0+7d8AO8Rekta0nhvigG' .
+	'8YqS9VMC2pN9b49Zhr/wU61c2Pj7X0TfU9/YHlu8Ys4LobnFubK0xhMPtMOkL3vRXJgDSSSuD7ptUj/lDn0WzLoiTuRzbOTymO7VFsHZ3K3k3N' .
+	'cNEGgFzhyyxPmmcqM4zV5dY3YSxOwV1hJ2GwU0Io6F8zCRaSlVpp4hU1hcE+jxhkxzRXqTUYp48b6na2tIjsm/WGGhw3f/UW4korym2/AYU8Tx' .
+	'XLy0pJ9uf8Lh8p0ey54yFSyvXAivV3uSfw5yjFF+y4GGgfl/p+qjWc6tHKoXkVSTfby8LOkR6WcDgOdckdqShOruuFY5K6yuJJnqRXUihxy5P/' .
+	'paDtJrBjno8Xatdjbg62rYJB6o/KCom8LBEOdPdurHTuTz+0ZRxnljO5+3yTw9ud2WZnmEKOFVLhdkg7Pdbi3HkYTDQJCDQB52Oy9l+pQjx7ew' .
+	'cztYgbd/nQRuKhX9J0PqfGlGtIlg2bA3miaUZ2VROJfD51lJXAvVoStXSjIcdhnQPDoVsoj84n8PUEhmmDYjeBcXjB7GGkJrLVtAfzKJabfEUB' .
+	'MlBHWx785NJ4lb/8XE1i7r31ZAXQkP04gxVO7CBTLF5j4LPakxviaQCcQHIhrOouyIEiFRD/FHfpJK3ulbUz6rTSXK6zJ1JEhQJTChRQjfP907' .
+	'1OkDzSHsYhUyXst245fkkHxlqfzYDghVImH3T/SQ0NyR5IKGevfQq5qFUwTMjUsd/zS7hY5Bs+5qBbs2jq6j8ZZA8LwINgK4921rpJA8jOQW3d' .
+	'pV2CyS/2NeJiIfaOF/P4uIxBcHr40whKmpOm8BI76oQc15MqalNaK6lc1yPuEO2A4aU8r5AsqH3AJDeO6G1GcaVEmYNiE09LuaT4peh/2XJjuW' .
+	'MCbacJTIpfRcKr1jXW/jI3CfMtSOI8Z6ltL8mgLxFxAYEuJK4zXyYg8JdvnR9L+5BN8gePaAz6d61+bi43Hcdux4yuQQdaYG7yd/OEy0eyTHvY' .
+	'UHVvYT771imdoDgmDWdOdVK0CDtmcWRJTQlrrxh9cNdBYPUJv49SBeNNSP1BTzbXL3B2cgk8s1cDMj2bTt8KFD091IJCePpPk4YFCz68/gY9Ti' .
+	'+TFnzS5KZOKsFvhnVdGQzZzoCmDlbjhqauqG/XQ7kpWwLsO57M7d03/aEY85p5UdcN5YymsDYnJrGCmmpI74fYWEbdU8kkRPu3piWBOVa02xSR' .
+	'u5CRDT0kZrkdfcGM1TqE0YbuLq68Zo82aL9TBfBM1r0Way+uBx74TfMpTvW2ZAe3NAN3LJBr9BueQlRBNGqYu07CBa4pVuhSjlkA9LVae5vozP' .
+	'CeRJ5/uVf/ddWxcxsjC5oNorSLg9fWGZOdx89yCXdNc50W2FpANWfjjmvz0z1bnZEga8cxXQaSPb13zoPXsA4bvCNsf5O9qwH7cEV0JlPLieEK' .
+	'a7hBqefYN8ckxZiFMV7G+yXwZYeKvkJ04SwzR5r1Bl9CN/4xGUWX4P+G2kzRzyPk620pngbvqDe92dDCpGD4/j1T24BXSd4l4/Jx4B+kjtzJlr' .
+	'gESrlx7l9jbddNnRqvKj0Ey5cYbX0c/r/u7/cJ4n8BCW8CcYOvHb/JfNKXpPKwFa4IyBbOvu/R0Q/8x098N+ZojlHiOf2vibqiD1oeGC83G83c' .
+	'2ajYNTphCcfuS0/mncN6QrEFV3yDgM1Q/vEnJLLd+i2Ipx3m7wfzanaTGFvy5FzgboFRTCW9o7ogHg9a2qS3b4dVObCX25d+K2v/ncwV8yIcil' .
+	'P77A0OQcg6Or0ok1Zx+JPrbJQ+7mMt/wr0Ne655InlSTi43kjENExAgEyqZPBvHB9dagQarZMt6RfgaOGw/yo9wSoWF8JD9npxMKAvuuqXZdvE' .
+	'H0MdD/Av9YpvaakiolLvQ0fyvVvvsbt2/m1tX7C4nh/4GvY6iz+Qf7v0anco+ZfI6qTWofJU4HMJZGmDVl2A+I8zbhw9nx36iZGiFyUuNlOC2h' .
+	'o8SStbgAt/Mha5RyVYPiOZSsQTIqw2lgpLJ5MKOxGD7Admn9kHwgrMXjr3lyiE59Mx4Hp9KS1WwuKbqF6q/vY800I1IdQHsqCxqLQPtWXXu+98' .
+	'3wPm7VtsWMRNbOOZajBBlThAqcS9JoKXbKPXFsNgfs8PnEhnKveLdaa0FLEj2bKp6sxi+8T1ltyjysNskEqo7z8lRzbyWCRcZPy0vMlGjgAgQi' .
+	'pojRB2ufSbgeSpFYlsYXTviG3BXK9iP6snT9ifyrHkeOIcY0f5dq4VUMa6Z86JH9S6AcMCa7TayfYg5poopxIWu3pU35beRs/3/pP7DzNvMdNN' .
+	'jPQp28tySy9GCCORXg==',
+	'bc3bf1d1f849811b385e5cf217de175fa8090079d716715a3dadc0aba9f64d76'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

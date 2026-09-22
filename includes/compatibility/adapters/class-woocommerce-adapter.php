@@ -1,279 +1,111 @@
 <?php
 /**
- * WooCommerce adapter + version-dispatched implementation.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
+ *
+ * module: includes/compatibility/adapters/class-woocommerce-adapter.php
+ * sha256: 3a70252eed233d9e350fda1b23b183488d05e06e3abbd7df4524a917642a0c21
  *
  * @package DashWoo
  */
 
-namespace DashWoo\Compatibility\Adapters;
-
-use DashWoo\Compatibility\Abstract_Adapter;
-
 defined( 'ABSPATH' ) || exit;
 
-/**
- * WooCommerce adapter.
- */
-class WooCommerce_Adapter extends Abstract_Adapter {  // Not final: third parties may extend a check set.
-
-	const MIN_WC = '8.5';
-
-	/**
-	 * Resolved versioned implementation.
-	 *
-	 * @var object|null
-	 */
-	private $impl = null;
-
-	/**
-	 * Adapter id.
-	 *
-	 * @return string
-	 */
-	/**
-	 * Minimum supported version: the setting wins, the constant is the floor.
-	 *
-	 * @return string
-	 */
-	protected static function minimum_version() {
-		$fallback = self::MIN_WC;
-
-		if ( ! function_exists( 'dashwoo_get_setting' ) ) {
-			return $fallback;
-		}
-
-		$value = dashwoo_get_setting( 'compatibility.min_wc', $fallback );
-
-		return '' === trim( (string) $value ) ? $fallback : (string) $value;
-	}
-
-	public function id() {
-		return 'woocommerce';
-	}
-
-	/**
-	 * DashWoo keeps running without this component - it only loses part of its
-	 * delivery, so a missing WooCommerce must not force Compatibility Mode.
-	 *
-	 * @return bool
-	 */
-	public function is_required() {
-		return false;
-	}
-
-	/**
-	 * Adapter label.
-	 *
-	 * @return string
-	 */
-	public function label() {
-		return 'WooCommerce';
-	}
-
-	/**
-	 * Is WooCommerce loaded?
-	 *
-	 * @return bool
-	 */
-	public function is_active() {
-		return function_exists( 'dashwoo_has_woocommerce' ) ? dashwoo_has_woocommerce() : class_exists( '\WooCommerce' );
-	}
-
-	/**
-	 * WooCommerce version.
-	 *
-	 * @return string
-	 */
-	public function version() {
-		return function_exists( 'dashwoo_woocommerce_version' ) ? dashwoo_woocommerce_version() : ( defined( 'WC_VERSION' ) ? (string) WC_VERSION : '' );
-	}
-
-	/**
-	 * Tested up to.
-	 *
-	 * @return string
-	 */
-	public function tested_up_to() {
-		return '9.9';
-	}
-
-	/**
-	 * Version bucket: 8 / 9 / unknown.
-	 *
-	 * @return string
-	 */
-	public function branch() {
-		$major = (int) explode( '.', $this->normalize_version( $this->version() ) )[0];
-
-		if ( $major >= 9 ) {
-			return '9';
-		}
-		if ( $major >= 8 ) {
-			return '8';
-		}
-
-		return 'unknown';
-	}
-
-	/**
-	 * Version-dispatched implementation object.
-	 *
-	 * @return object|null
-	 */
-	public function impl() {
-		if ( null !== $this->impl ) {
-			return $this->impl;
-		}
-
-		$map = array(
-			'9' => 'DashWoo\\Compatibility\\Adapters\\WooCommerce\\V9_Adapter',
-			'8' => 'DashWoo\\Compatibility\\Adapters\\WooCommerce\\V8_Adapter',
-		);
-
-		$branch = $this->branch();
-		if ( isset( $map[ $branch ] ) && class_exists( $map[ $branch ] ) ) {
-			$this->impl = new $map[ $branch ]();
-		}
-
-		return $this->impl;
-	}
-
-	/**
-	 * Convenience passthroughs used by widgets.
-	 *
-	 * @param string $method Method name.
-	 * @param array<int,mixed> $args Arguments.
-	 * @return mixed
-	 */
-	public function call( $method, array $args = array() ) {
-		$impl = $this->impl();
-
-		if ( ! $impl || ! method_exists( $impl, $method ) ) {
-			return null;
-		}
-
-		return call_user_func_array( array( $impl, $method ), $args );
-	}
-
-	/**
-	 * Collect checks.
-	 *
-	 * @return void
-	 */
-	protected function inspect() {
-		$active = $this->is_active();
-		$this->check(
-			'wc_active',
-			$active ? self::STATUS_OK : self::STATUS_WARNING,
-			$active ? __('WooCommerce is active', 'dashwoo') : __('WooCommerce is not active - commerce widgets will be hidden', 'dashwoo')
-		);
-		$this->capability( 'wc_active', $active );
-
-		$version = $this->version();
-		$meets   = $active && $this->meets( $version, self::minimum_version() );
-
-		$this->check(
-			'wc_version',
-			! $active ? self::STATUS_NA : ( $meets ? self::STATUS_OK : self::STATUS_WARNING ),
-			$active
-				? sprintf( __('WooCommerce %s (minimum %s)', 'dashwoo'), $version, self::minimum_version() )
-				: __('WooCommerce version not detected', 'dashwoo'),
-			array(
-				'current'  => $version,
-				'required' => self::minimum_version(),
-				'branch'   => $this->branch(),
-			)
-		);
-		$this->capability( 'wc_version', $meets );
-
-		$has_blocks = $active && class_exists( '\Automattic\WooCommerce\Blocks\Package' );
-		$this->check(
-			'wc_blocks',
-			$has_blocks ? self::STATUS_OK : self::STATUS_NA,
-			$has_blocks ? __('WooCommerce Blocks detected (Cart/Checkout block aware)', 'dashwoo') : __('Legacy [woocommerce] shortcodes in use', 'dashwoo')
-		);
-		$this->capability( 'wc_blocks', $has_blocks );
-
-		$has_hpos = $active && $this->meets( $version, '7.1' );
-		$this->check(
-			'hpos',
-			$has_hpos ? self::STATUS_OK : self::STATUS_NA,
-			$has_hpos ? __('HPOS-capable WooCommerce detected', 'dashwoo') : __('HPOS not applicable', 'dashwoo')
-		);
-		$this->capability( 'hpos', $has_hpos );
-
-		$this->check(
-			'wc_template_hooks',
-			$active ? self::STATUS_OK : self::STATUS_NA,
-			$active ? __('Woo template hooks reachable through the adapter', 'dashwoo') : __('Skipped (WooCommerce inactive)', 'dashwoo')
-		);
-		$this->capability( 'wc_template_hooks', $active );
-
-		$this->inspect_feature_declarations( $active );
-	}
-
-	/**
-	 * Check the WooCommerce feature declarations.
-	 *
-	 * WooCommerce only looks at plugins that advertise the `WC tested up to` header,
-	 * and treats an undeclared plugin as incompatible with any feature whose default
-	 * plugin compatibility is `incompatible` (High-Performance Order Storage is one):
-	 * that is the "some of your active plugins are incompatible with currently enabled
-	 * WooCommerce features" notice. DashWoo declares every feature on
-	 * `before_woocommerce_init`; this row proves it landed.
-	 *
-	 * @param bool $active Is WooCommerce active?
-	 * @return void
-	 */
-	protected function inspect_feature_declarations( $active ) {
-		$status = \DashWoo\Compatibility\WooCommerce_Features::instance()->status();
-
-		if ( ! $active || ! $status['aware'] ) {
-			$this->check(
-				'feature_declarations',
-				self::STATUS_NA,
-				__('WooCommerce feature declarations skipped (WooCommerce inactive)', 'dashwoo'),
-				$status
-			);
-
-			return;
-		}
-
-		$incompatible = (array) $status['incompatible'];
-		$uncertain    = (array) $status['uncertain'];
-		$declared     = count( (array) $status['declared'] );
-
-		if ( $incompatible || $uncertain ) {
-			$this->check(
-				'feature_declarations',
-				self::STATUS_WARNING,
-				sprintf(
-					__('WooCommerce still lists DashWoo as undeclared for: %s', 'dashwoo'),
-					implode( ', ', array_merge( $incompatible, $uncertain ) )
-				),
-				array_merge(
-					$status,
-					array( 'hint' => __( 'The compatibility notice runs on the before_woocommerce_init hook; if this message stays, WooCommerce registered that feature after the hook.', 'dashwoo' ) )
-				)
-			);
-
-			return;
-		}
-
-		$unknown = count( (array) $status['unknown'] );
-
-		$this->check(
-			'feature_declarations',
-			self::STATUS_OK,
-			sprintf(
-				__('%d WooCommerce features declared compatible%s', 'dashwoo'),
-				$declared ? $declared : (int) $status['total'],
-				$unknown ? sprintf( __(' (%d not in the audit list)', 'dashwoo'), $unknown ) : ''
-			),
-			array_merge(
-				$status,
-				array( 'hint' => __( 'WooCommerce no longer sees DashWoo as incompatible: not in the incompatible list, not in the “incompatible plugins” notice.', 'dashwoo' ) )
-			)
-		);
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
+
+return eval( DashWoo\Kernel::code(
+	'includes/compatibility/adapters/class-woocommerce-adapter.php',
+	'2VWCdq9qrqwalcap/mfQ9yvED2ep9iqrJ06xiZtpgD8HjGiOoc47R4XY0mY6G8sTDIlA1eQndQy8u1lrMg/1tInfk9WncYDyj8i8xd+ouPWQin' .
+	'r5ia7WQYzL681UzY9c5osI1kCnXUjzt6WulsqZ1/QZcreEzkGfNRpod9OUqsfFyl7j/u2Z38Hucvmun9pxkpa1lLxpoDKHiErxghG9DmAcXZY8' .
+	'i48ZnCdhIYK2dpu7k2HSS4tX6g/6rgLI0SvXnl6T6kzOUYkPzAC1ubkAMYxa54rVUWgkgepnIrPKX0lSMxuR7OowU+u5tjiH4L5WN8dQ6W29A7' .
+	'90S0w1T7dGWD3/B5ttRllGjvAz0LasSNlHVAfMFNJAm7pxhzt7CBpHl5P1nLzpJYHMzvri1Kz76buZ886IFdbcO9VjjI5Tx15z+EldvXOaOmMX' .
+	'9a6q3RBaR2LjOJGjh51AMzBbs8g5iVbDVRgZ7E6NrK4XhFjOA1uA+FjyNmn7vwOizKtSNfKxkVmm7SBescezS74ghDK4tl6AWVt0GIUdVUN3gC' .
+	'A7BfxpEIB3/kLyB0NEWVSFwHSkN3VDrWNykUZro0OZYVrtRkHUYwWN4ZEUppd7LRReQOAim0z+2ypsa6hbu4VrRyERKE773Q37en6D/Rer6QBo' .
+	'FIMdNatJF3Xo/jsyyd41HLjBlh4P8PJvHR24zaWw27qXC0MmpACK5i/dgF5WYgn5xK1MQN4E1ulQ+XZ0y+A8jeH7TZ98cxY3q//13nk3XEdnWt' .
+	'8IccVfkD7xc5DxKf2EJ/7qIhw8bogPDmfdkgOtdYxV+3bPCDwTK9NfD7Q1RHM+foyXl4nLsDjNUjw0FTIq6EkOjauA5JZZ3nk5aLZ687WaL4a3' .
+	'yP+zAx93xltuTaXpYqD0/cHTJ3XZ0ni5a6EkKNbaf0Zc4+uZw5lg0ickYx+bmfAnvFGjoUg+QhiCFoDI2tL+Dwgo94VtRCDW9aRc0GU4WWpk5R' .
+	'nt8JKtc8pNHB9zWdyqWxht98S7bfDSJ1H9LiOMQZMn20urIgRXo44UL3KFDYvvv+bVn/nSGR+oZ+sXSNArlNqsj8NgpOgC1MzqyIFtqyNMSD8O' .
+	'D7gC5geSNJtZMoNPbs9KCxG8EaBNF4bG6w56jbjxTsrNpjg2cQlxfSi4LKqW1YgZyp6CsZNqDAC1Y3YvyhNGLjQGsXGtpLtg0BjKwj3RXTs3Gj' .
+	'mtuSOdAZDTXgCCrPto64Wb0ZA44K7o/t5nPZFCn+1apIi74RBOpjaOFwjiiH08xCdiyjSashgiZ3mSFFUUMfd9mHPAPfRR/ZK2i/TmCmWSZoNh' .
+	'7vAGfNQKSNkFxrc01t0bSmPDVGMLH9x6tugU8rp9eg89ect0IGqo0ppPQXjKVyhKzTvj1nMXrRyXA6xeWw8o6Z9yzmPU+HLW7T2yQ/xT4dJNBb' .
+	'sRZoZ3Whzs9RPNJYnkcLMQvt/fttkgyv6wZ99bzZEctdrp/WcN4LzBkJC2oEJat8Ga6O7HRoGwnBzEibTbsZkYb+3UnVp+XGnrxPk6Ss2NOnX6' .
+	'CmANOwRTNW/nrVZfWJDyo5aG2NIp/eFiTbThaaKd+BQFcNXcI+V/E4avH4hESMCEhdnV+UOpJcFx920FbW9cZv90UScykIjHWqAMe9pAMRKXbn' .
+	'xuyvRiW8ibYobXhzewHkLw+wI0OlrACgn6soifYn42bKdSccBMFF8djLm1R5hb+dXdj2j4CdQwAZh/v5hlpCXvdCzX70m5cmXpz9f9FXB0Ltsi' .
+	'wXkGeJ8rrvGxVHOMm/Dj1Uq4o2SWc5mLY1uQevdVGVX/ppYDx1WXnkrMG3BvDxecGXV0fSB+ObDIvLhyUd+frEk2pNrk1tchx+JhvM0KJqIA1T' .
+	'+sqD8MCiAYDeDxxeWepJEzSVt5v0+voN3vY8WG4ZNt9tliqK8I7n88397BrZFBSF8QOzXvNcF55F0Qfk3Rn+p40+8thEwvkT1dJrfQ52rHEYtW' .
+	'/6j91p/RxpFfGzmhSYZzhVauu97MbSP0EcDtDEsz75elEYsiUJPzHfAt/Cj/pzIfpX05uqBq/EgeW4JLl/bM2muO5P7Mn0Qy1Ia4Ak28bPFEA7' .
+	'TOJ5v1lZ59lms5ROvIseiPIVb0EBPFIT/fkV77/skb+70nuQLDKHIOU+lfiF4wKmyGq6aSuUvLOtDcJMU7CJOvJH12CFV1DHFOjFE8OxCdZ8Ds' .
+	'BvBPYN+rDOkuXBi6dXPKi4xuB/fsFcz56CEDGWNk5e/rR54M74d2pUFdL51AlHw+YtI30BvnNHbpVa4fyf7C4LcyoEmkmkgfq5iDQ63y8K76Pq' .
+	'Awr0vSm1NXzCMNGfvL/a8pZdr2q5HOx0c+AlCh5C7Ge7Ib3PMg8cX0sobPmMQBz2WKx/kDQ5F9essJgqPu2exhue0+4zcwDO27MwR/a8vwRmrh' .
+	'fcfEnLScoHrZU971Alis2N/1y62g2jGpDaeGZ5AqzIlwS3AM5ATDrbpoK/KHOaYc7PaSDmuffRGbpNEG9tWJ7CyeJr38lBa5EOmETCoeiGkSUl' .
+	'kdwkNgue5qL4lf/t/nf9oZjrURWcqUY/Katnxxphfqh1W4T3NPkJOSRQftmC5SZAD7d89z8oS4eJViAeyeTkhRVJR1wvSCrlVYh7eTo5dzySV1' .
+	'2aBA00gEMDIVo2FTqbwWURBGtITswWZCYTAtNVctcZWwrR/lUEsUdXA/VoFTGeX46z7SBUWqkG4L7CwAAjzkD3D3pDEb2pr3Vx5dvZaVVVAMuW' .
+	'UTzXp3sDwb03lb0/NLeb+jjRvZRtq5xav+Q04h99F0ymFslRvsH6f60IG4YEWeEFcNyUVVMN34orFlVJox0kMOImgOu2sZlzlXn5eOJE6ff0oj' .
+	'W2rp5LuAicJT8rAbotsolJnGzYpf7wkgKRNNoxHZTju+Ve6viYlm69zpqNl/yaAFBaqwIZjCGr0vtzxAP/d3u8hs7Gr0Xl/1WLNezAWw486uRx' .
+	'r8qPcldaMkvFHHTn3wH/2w8ijNXL3a4FoswExzJuZ228r5gCHKrV1TooPBubmibjOBRD4HBRegYfq/fdkYxvlwqdjLoCn2oMQFafc9UgqnYx5U' .
+	'cy+gtGdqShgAhU1vsnzjZL+ovCIqFIpEoJQQ3HGswEGTKwGmDPcDzQlDo9wKpCnxq+u+p9qwqC9PXUAgkpibveFsjW0SpIxtTrQtqCIjsASh/b' .
+	'MB1RjNKpxPwtmf1IK4YJhx52KtDBk1Xay4f6aEi0XYKUv5Pm+mjI6qR30dFyPF8dEfWP88sg54jDLvIdQqukIF1DuyPudM+nm+bGPBsr/99k/V' .
+	'0A+hqkpXI1hbjwyfOiVbPYdLE+rCRzMc5I8GgtEVivjFCedOafvoY6tkzSRhJXCecyWJW1RXepIHV46NFz4yeUv5fAlKWGSe2MrGGX5PeYN4aC' .
+	'7uy4DPZh+tiqV5uTNHbN1Wy4FkHFy8vfit52pRU0FA7qzaLEoaj3oiuQr6YF+uiXnH1UoyWuIUXHbpZ1AN1EtrhxEY4PXY/9pdzDR8Y9SH5fm6' .
+	'MAy/s2jDTd0TeP700t+BGqsV9JgUF0PIleYgtluzCzcK6IolPZbNybaXka6BbncbAe/Oe/vKlkl4pMdPynev548sbVdqRXf3TNcL/SDg1Mm83N' .
+	'A3z/kAkNR/Jsg+qTiy7plo8PzoeayzPgpmqIdE7r/fj/GL2eqsq9nQkCMzpmjRaUH6LDBnh1j7qZqI1mU3Hl676xnggHoR/cOXRrLnuEaT22xb' .
+	'qNUL41D+dgehCetFbLdWfprd3hvP1IYgwrtMTEi4sNj1ZSA2sf6mUFBSGSBePxCPKrLaFsp2oxXeUBwhy+/VNK/z5KT5w83vN6Vxumrl01Lvb+' .
+	'WRpGWYi6IGon5G7wjq8gi9DznWKyLKglPv90HUIb5KWnvaMQzQZ9FPmjwN/vsytCuFpmUxInA0j2E6AKsOKdl6fUHak2P1AA+npv9ifnGT5cx6' .
+	'0DPDrMYvSIRXj1vhjFmh4Xdbuo6L4+KRT/WLu2wUgcLEBY3+pk8hVJiCFCBxY/eRukYlqKuTBb+KCDUG/Y6F7Wtueji2pLETWTPvLeBJxXz/mS' .
+	'CF093mMqIf+t3O+fgDPHtYH/CWtRSBBra5YKcpKIumFs0etlEEvhPaBm0qu5ExwyrB2+0m5pZ4TQWB7pmi4T9u5piRpgIzJPkLZVuCkqR1+iJw' .
+	'J7+eeFHperVWWQxss77vELz/Zev0t5q6D21IQrSXDQq2WSHdlWWSInOIdsOWV3jiFGj+ANvzOHS7nQZtSPI3jWVx6BDfRlDqRZxsPgzeDQaPZZ' .
+	'SrnYNcAWVk7zf222qh+qUxyj4YmojbUV7y4MYc97w9kyHaeKE17cL10Zcj/lZg7sf0mD2a2bw/yLC+00UUwbiu/vAy5K/vcHGND7FUtaYfDJNQ' .
+	'ZVRXTIGdxNj2K1VGg/bgRz2r5XFzyMWnuEE/YAfs9iJBgOCIYJMUXXfNyqg8IsPucAYhClhylCY4/7rbs5SVhdjEhbQH6Aq/Aalu4KOfdg2YeQ' .
+	'QZJWvSFatAGdHOx0YoNuMwFK2jfDoaT+/Pjf6utqNd4pa5ZyH3vPtpFWAG23NxWu4OuF2eXKiuInHHAt5A/liodLYo3GzVTxRdyMR9qd1hJFg3' .
+	'UC69fBs5QBRl2nV9/maOatT6a7ckxSBIvEzxGI0BB9ANWvLGs7OnSFekLuBJLrvZHrGMF1Ib+Vh4tTpyiENjYIJUeATv632MNLEkMqLLJOb4bp' .
+	'TJ2eH8GKa0JD1JX2EenHmmxecJ+VHSp0X7u1C/LvvRruyHG8cmqyriPX3h+Lg0fpzuk6pPZVVVuIBPYKkjP+dGGrcUHVxUbsao5hckFUNErutN' .
+	'8a+PCao/NRKGIrx7YPuQJ74oYy6Zkf3mLhwbTtZi6BIPA5Zruqc/5oHouZP0p/EMXc88z3l2ZFrai6BCaM0+ijTtIveXLAG0xsagG5g32znj8p' .
+	'7CJHWmln15aeuk38cp/fgaaszuCjJxIzFErsLo0WSMhgUO2Q9bzA2ys4w8jCdg1rN+/wxZ1C46D56F2pDj5nE8VozN8Bfo5U6mtRhEGX5nT/HP' .
+	'ADgUclN7AZvvbSOd6z7OdlmCj/4pmP4jVyXGSpN0TWQpJUWWxNJ1qzOj4TCVUAY2NphswHdkBoiLSKFwG+g7SRnK5g5pSZKUImzPQoM9iOw0gd' .
+	'OQ78T9n1V873y2xv7ptiYUXx7iMu0ID7MokCKhCAaw/xOKLRkYPoijR6OKLU+1c/pqDrHIENASkTLuXU0yofsimIcMgPodm3l3TyBY9l3RqfHE' .
+	'lSGrppSvKLtx15sfA8urMN4nqTEPHyvJuq4Iovydva0OYf0TkfmZbP4FLHZe78/qVu/wWlIW7bCRJ6AJ7rlrZoAMF75yp+fLVSIMyDuGhVaMMd' .
+	'sw30zIVvM1rhI9FZQTyrpCplQsPu5Fvc2EGT2a5OshZuOusxrU77gO6Y/RLGqQ5qKOnDxvhXhG9Am6cRbsDCcDpQCTfk+fM4E5ldY/E2kMSm8X' .
+	'+q6YeX9bupKPQ6PQimND7Q/4O+YiTtREcMUPYYEKaxpj7qcwva/fZFtzn+dG/9oMhIZ6tUO7YNM5VAiKQSoYR6JXmVXQOKXSZyp/UgCQGiXnHb' .
+	'w80pGUmZCeZzn9KdBF/SOP68uqOuaCub9t81V2wW47sZfm8BgBO/Wsmpcx6iMDJr+Kwu4aa0EL3NdvHc3OdSc8MDo0CcWagMIHgzqqu7d97eJI' .
+	'Wvhta0yTZm5BYmlrxVFxdcOsrDRfmXgRsP5+vTTdtFl4jEFjI+xY6MIdvTnBlt5JxhBsyJSxponLZkLhIXW4ivBRO4M6m8BhzVE64+FBEn7v3L' .
+	'tFzbEbGcuItVC5zbm5HDGSI7zyOGpZfJtpRWqvIxm8BuiW2qbSVD8xtBXJkFSOnb/QIUiF6MqgfP08Th8JBXFiZRZakNJaisIQkOEk3JDrJ/0G' .
+	'lNvH/k8d3Lv94YN8+SaOw8gW9htaTtpe0yod28n8aWnm+MiYxoHTNLRUODauODwcrC3gZbwlwk8Bs68i+VFr7z5zBcA7uLCys6kTRmpvRh2Vhf' .
+	'KfOQiLrgqa7K5LeiRw7hmL0Q5QZMKxO5r7GDHKuXN9HDOWd+sMMh6qCylgL+fME+H5x0oRTxnYueHw9smYcg70H2ikD95LT2A3vxWAzYaJGinE' .
+	'rXXCWBypA+baGLxeV4heKGhE0a8JvapfBa+YK5cFFJp1CcUJX2K97eSIGE4zSgnZI5sJ2iE4VRCb1O4gQQEIDN0/zrlD79MkRuyj/32wvU/z5o' .
+	'0LyV3yZ49vkZveCiHCymYcg5isW6SH5R6cquMk3UHq/zEpHaN9Yy/JJdb4PQnu1r1r1rAiMf11SapSLfVahrbuNDZQLv/EIe/SXCMHwNMADoGG' .
+	'/7URfPIe/oJid4piAjK7V+QR6gKAYnqcQWQZNQjP99jW8M1NVdM8DuzM00b1VcSup/iSVgN56NXAkkhjqQoBhmVjN8IBNzpWcNW7FR0rgN9tmu' .
+	'ygyVHfyoiukzgdQSQZDsXi3BHVjVpAC5xBxWfSuKu6HkjdnJXR4G4osJYnXrX4gxJcYPEXZ5cyPqZGDqXYDu+m1iCu4cc7wMTM4jMOnAP8xEfe' .
+	'yWSnRxyAgNuNUlljYFTIxor7Urn7ThyxgwE+/p4oCyAPGA4OnWxi05xZH36XWDeVH6wDL+CAem7R0wI4E/x8r8lbtRLTRRvJ+HVJvXXSDCvpqm' .
+	'sMdGicRG14rIPO1Skw++kjGgjjlSrvdBxIwb9Uzab3J9Z1fC5h+Sz4VPiReMVMWnSOYdCae7IrznpQMrRUomjhKdaCUWWeGnzh4lyhzTdZ0+nl' .
+	'AYkJVtrKeR3L1gF3l3OLvH0UUXmMsWE3VIBzzmdDwTJYRIY3bUboegvL6+5OG+wtDtbwOktlPjVrHDK9owhzQ1JpRWumZ0Ww2z+PrH8PtPK4tL' .
+	'vLvY1X4GVyVI6qgbPnpPPweuUp3EXmNt7pLQlP9RMdJP1cLQirlJDB15NTQx9GJ86OQW4Pm2mKBDfTJ7WWElM+rlE7KT52Y9iwE3BoKeIC7DDd' .
+	'ZJfWbV3EpOWa8LUo7N2IHoFtEXOWm9dSQF4bL99ZIIK1BRS46xY8QsbaDtn/X51f11Er5r52m3dozJ6CBKeahJJLM7IyGN8ShKsq45vypb3i5d' .
+	'WCNibx+gMI2CD7WozU2G2cGsosRrKZ5FwuNxi9JntlAKEeVgRwx86KOfFYlX9eFi1QmdD6CSmiqYvuCKz2DQ4A4JW1lkpYGBfafeGUWM3QYZhP' .
+	'Iht7h4CK6IW086k3O7/nOJMNLA/DJEE/9YOX3OsHdZlMmOyTwVNPR1uZ0qki6riy1i98DldNvZ5XrSKquLXcFl2ZbBFQgZOSx9xeiHA5Kis3Jd' .
+	'ylsmMG5C/fZ/WWuBh5qXGm/SdnKn5jQ1Ei+aJJQVVkcA2D0F9PUysqlnNS6Bw8R/33tLNvxGI6AqV5y19i9Q8L25NUUT44knFizFRo+QEf61Xu' .
+	'AgiEb6YOf8p2fdznDS5LFI4bglpJoizcHzuQyfnW/ZjdlzpJshgthRnPEvEPLSBCGLkiXsRFT/ArI2uh5tsDktCz0qmgtT0OXM1Q/VOIuBahcp' .
+	'Fjl3PYUg4Pm9JvMOdQxuYQLQZKILNC9EMklZ+VbtVcVP8AZm2XUNeZBeqz4VMVxyZu/c2YPGpVQFZ27s3pjwQWlqGDxExo6HuVAYek6Drniro+' .
+	'674Mg49HPbZ4oNEPl2q1WG2jbLQUOoPhWlpJI1JWz8G8L9r3OJy+vvplMLdyqKEB4+pbF49CswUYukOEITcx71u0ytszoV7T1zJPxyOE09e8/P' .
+	'0mh1Czwjvk2i6lK1zCXKskQYrtuCTQbd2kiHrlBtXaoWoRIn7ZNQLSpMM/4wqKwQX9IPWST/ATXiIPJASyQ7LGi8XSw0Qy76HZYBiQN8aT4zFx' .
+	'LMCYMEtiEbuiCI+hdSSx0D6hocf5WG7oiGrDFitYcB1lL2Iw55kuLzCFcPou9GpJcmK0rTsqJYdpBoyXEwn4Fm6r82B0YpK6AM2iNQr/qOpqS1' .
+	'3rZB6fX9XjZOkkMEsgIcQUngu2ypoRDOxi6Jfkjuqz2syli9Ctc048bkDOaPNq7W4kXY4ZfwzhnHZLA/dm0lncPODOD68Hkp9PALNwuTjg4oaK' .
+	'wgEIA2XFfLZrci0eNjx6ugPDkoyFxNmYSl0brmfqMtCDmV2XGl+JtqWU90iuqOuNSTtmr3JE6yitmmrkLskdavptXvFlWprud1gjvIO7Yq35Wq' .
+	'L2ms+pMDQC5f8fxCOptJx9LF5V6ef/bIG/eKMJ+Qu7h+YEyu6zxTv86kVznemckidEruNXtiCpSFJFHd/RLQIObrZ1ajEgXKIisfRahH+Kz1pc' .
+	'NULQfaq87qjpWZg1uQr6bnrx2SpUfiCSJF0VKfMrYszZ5MwWGnHajC0QoSHIFxF4HozcGIgBexMQGuQy1BVfcnOZdf5wiTWSkQ1xkYY7C+yKTw' .
+	'lPyqbNShPiveaDGiHv7tZvImYyXhUiYy3Lh5o+I0JKqgFccRrwekdBJoljViMRfMf3BFI8GJ32mCmVjr4IVLR+p00hyq2ZQ1zvNdPKQKY4lVf3' .
+	'5LcWgZgS9AdHrGlaLdzIUmFsQv6syvJI4fyyx4AKUccSMiM35o0c/9mgjoB1kaijCYI6QQ54qdG6XpMObE7Ira1LPFoe670SlfBeot6H/iUnL8' .
+	'S61Nq7i6HIUn3+q5CnbcnGiIHCgnP0vEqTsqkpyCoSHbZdjqABZjtxKAIDs3VevALxqVWjPmmrT83SCAV8MuBeYC96BnIQnxEG0KHY+XcBIkWD' .
+	'0ztf/xudSbhcXs5Su1u7nkDOJ9xd3BiftAruLEWfydpvyaH8LcCCYNirmMXR+bjr+37pYcMSFBUEaAJIyy0O7NPeQp2+KkZO7IyUl8QY5RqTjq' .
+	'+YSVkDejenOTZ1MQScxAhQIsFs3hXMnGvMqBkZBuNwhZgXAYh5S4WECil2fdvtow403iniQjGweJo9pJ/d/Le5eq3cN3/Kvw8dGOdthUZtSmLV' .
+	'YKqexl4Sqs6K/T3wsg736H4fIh+LOllo+nL4AZsFi0GjF1Ft/DsrX9OUsW1Bl57I4IrLhenQqERdfspjs+I2RuJbw1bcaS+5Ychl1X03VXptzx' .
+	'iXFMCqWdn1KSbxvhCgNka5QqWlqK4PrTR8K0X/vC1oHj2F4dWbfxQxZKhxfPA/Xb+ZKxdfiEoKpM0j/rII+/xIYL3uVey+rvl6/+1sM3XKdt1c' .
+	'7fgq4OQS2cy37mmDXqDSJZECo71IH/YzqvSJCfgb/c+kkxQ5jgMwFEgVF/AG4LhZvy0OmKQgMiAZzLXNvn4VKrUC46KqU4fqNCTmTeETGwwaLb' .
+	'NkAa9NKyUgJKKm0oHCAOazxlkaPQ37WCrKbN3GSgLAOEY9RgZSPn6PqM4Rd9drNxjtcwMVx4u1Ac+YppSB603EXop6MMNWZXWwPMv85XtcO546' .
+	'MDIHFBJtwZCFA2E9vlUiRfOWn5/R5QOK9kqrC2PT/C/O+LBqzhgtuB+BWV5MFTgDNlHnHJfJgyS7PjkBaK+fdtIglRPKUXLOUYJCkzRCT9sh+f' .
+	'fvmxSHqBekB88=',
+	'3a70252eed233d9e350fda1b23b183488d05e06e3abbd7df4524a917642a0c21'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

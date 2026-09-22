@@ -1,851 +1,312 @@
 <?php
 /**
- * REST API: dashwoo/v1
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
+ *
+ * module: includes/rest/class-router.php
+ * sha256: e83879962f5f7fe05cba50de8826072e000f0a4ca5786568456269af66782792
  *
  * @package DashWoo
  */
 
-namespace DashWoo\Rest;
-
-use DashWoo\Account\Panel;
-use DashWoo\Assets\Asset_Manager;
-use DashWoo\Assets\Fonts\Font_Manager;
-use DashWoo\Assets\Fonts\Google_Fonts_Provider;
-use DashWoo\Assets\Icons\Icon_Manager;
-use DashWoo\Assets\Icons\Icon_Renderer;
-use DashWoo\Assets\Icons\Material_Provider;
-use DashWoo\Cache\Cache;
-use DashWoo\Compatibility\Compatibility;
-use DashWoo\DesignSystem\Compiler;
-use DashWoo\DesignSystem\Elementor\Tokens_Integration;
-use DashWoo\DesignSystem\Tokens;
-use DashWoo\Settings\Sections;
-use DashWoo\Settings\Settings;
-use DashWoo\Support\Logger;
-
 defined( 'ABSPATH' ) || exit;
 
-/**
- * REST router.
- */
-final class Router {
-
-	const CACHE_TTL = 300;
-
-	/**
-	 * Registered routes (introspectable, used by tests + the docs endpoint).
-	 *
-	 * @var array<int,array<string,mixed>>
-	 */
-	private $routes = array();
-
-	/**
-	 * Singleton.
-	 *
-	 * @var Router|null
-	 */
-	private static $instance = null;
-
-	/**
-	 * Singleton accessor.
-	 *
-	 * @return Router
-	 */
-	public static function instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
-		return self::$instance;
-	}
-
-	/**
-	 * Namespace.
-	 *
-	 * @return string
-	 */
-	public function namespace_() {
-		$namespace = (string) dashwoo_get_setting( 'rest_api.namespace', 'dashwoo/v1' );
-
-		return '' !== $namespace ? $namespace : 'dashwoo/v1';
-	}
-
-	/**
-	 * Hooks.
-	 *
-	 * @return void
-	 */
-	public function boot() {
-		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
-	}
-
-	/**
-	 * Read permission.
-	 *
-	 * @return bool
-	 */
-	public function can_read() {
-		return (bool) current_user_can( 'manage_options' );
-	}
-
-	/**
-	 * Read permission for the account panel: any logged-in customer, because the
-	 * panel draws *their own* account content. The REST cookie nonce (`X-WP-Nonce`)
-	 * is what proves the request came from their browser session.
-	 *
-	 * A visitor who is not logged in gets the login prompt instead of data, so a
-	 * guest can never read another customer's orders.
-	 *
-	 * @return bool
-	 */
-	public function can_read_account() {
-		if ( ! function_exists( 'is_user_logged_in' ) || ! is_user_logged_in() ) {
-			return false;
-		}
-
-		return (bool) current_user_can( 'read' );
-	}
-
-	/**
-	 * Write permission (settings can lock it down).
-	 *
-	 * @return bool
-	 */
-	public function can_write() {
-		if ( ! dashwoo_is_on( 'rest_api.enabled' ) ) {
-			return false;
-		}
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Register every route.
-	 *
-	 * @return array<int,array<string,mixed>> Registered routes.
-	 */
-	public function register_routes() {
-		if ( ! dashwoo_is_on( 'rest_api.enabled' ) ) {
-			return array();
-		}
-
-		$ns = $this->namespace_();
-
-		$this->route( $ns, '/system', 'GET', 'system', array( $this, 'get_system' ) );
-		$this->route( $ns, '/system/recheck', 'POST', 'system-recheck', array( $this, 'post_recheck' ) );
-		$this->route( $ns, '/system/diagnostics', 'GET', 'system-diagnostics', array( $this, 'get_diagnostics' ) );
-		$this->route( $ns, '/system/capabilities', 'GET', 'system-capabilities', array( $this, 'get_capabilities' ) );
-		$this->route( $ns, '/system/capabilities/recheck', 'POST', 'system-capabilities-recheck', array( $this, 'post_capabilities_recheck' ) );
-		$this->route( $ns, '/tokens', 'GET', 'tokens', array( $this, 'get_tokens' ) );
-		$this->route( $ns, '/tokens/compile', 'POST', 'tokens-compile', array( $this, 'post_compile' ) );
-		$this->route( $ns, '/settings', 'GET', 'settings', array( $this, 'get_settings' ) );
-		$this->route( $ns, '/settings/export', 'GET', 'settings-export', array( $this, 'get_export' ) );
-		$this->route( $ns, '/settings/import', 'POST', 'settings-import', array( $this, 'post_import' ) );
-		$this->route( $ns, '/settings/(?P<section>[a-z_]+)', 'GET', 'settings-section', array( $this, 'get_section' ) );
-		$this->route( $ns, '/settings/(?P<section>[a-z_]+)', 'POST', 'settings-section-save', array( $this, 'post_section' ) );
-		$this->route( $ns, '/fonts', 'GET', 'fonts', array( $this, 'get_fonts' ) );
-		$this->route( $ns, '/fonts/search', 'GET', 'fonts-search', array( $this, 'get_fonts_search' ) );
-		$this->route( $ns, '/fonts', 'POST', 'fonts-install', array( $this, 'post_fonts' ) );
-		$this->route( $ns, '/fonts/(?P<slug>[a-zA-Z0-9\-\_]+)/update', 'POST', 'font-update', array( $this, 'post_font_update' ) );
-		$this->route( $ns, '/fonts/(?P<slug>[a-zA-Z0-9\-\_]+)/status', 'POST', 'font-status', array( $this, 'post_font_status' ) );
-		$this->route( $ns, '/fonts/(?P<slug>[a-zA-Z0-9\-\_]+)', 'DELETE', 'font-delete', array( $this, 'delete_font' ) );
-		$this->route( $ns, '/icons', 'GET', 'icons', array( $this, 'get_icons' ) );
-		$this->route( $ns, '/icons', 'POST', 'icons-install', array( $this, 'post_icons' ) );
-		$this->route( $ns, '/icons/render', 'GET', 'icons-render', array( $this, 'get_icon_render' ) );
-		$this->route( $ns, '/icons/(?P<slug>[a-zA-Z0-9\-\_]+)', 'DELETE', 'icon-delete', array( $this, 'delete_icon' ) );
-		$this->route( $ns, '/assets', 'GET', 'assets', array( $this, 'get_assets' ) );
-		$this->route( $ns, '/assets/(?P<id>\d+)/preview', 'GET', 'asset-preview', array( $this, 'get_asset_preview' ) );
-		$this->route( $ns, '/assets/(?P<id>\d+)/rename', 'POST', 'asset-rename', array( $this, 'post_asset_rename' ) );
-		$this->route( $ns, '/assets/(?P<id>\d+)/status', 'POST', 'asset-status', array( $this, 'post_asset_status' ) );
-		$this->route( $ns, '/assets/(?P<id>\d+)/default', 'POST', 'asset-default', array( $this, 'post_asset_default' ) );
-		$this->route( $ns, '/assets/(?P<id>\d+)', 'DELETE', 'asset-delete', array( $this, 'delete_asset' ) );
-		$this->route( $ns, '/cache/flush', 'POST', 'cache-flush', array( $this, 'post_cache_flush' ) );
-		$this->route( $ns, '/kit/sync', 'POST', 'kit-sync', array( $this, 'post_kit_sync' ) );
-		$this->route( $ns, '/kit/revert', 'POST', 'kit-revert', array( $this, 'post_kit_revert' ) );
-		$this->route( $ns, '/account/panel', 'GET', 'account-panel', array( $this, 'get_account_panel' ), array( $this, 'can_read_account' ) );
-		$this->route( $ns, '/logs', 'GET', 'logs', array( $this, 'get_logs' ) );
-		$this->route( $ns, '/logs', 'DELETE', 'logs-clear', array( $this, 'delete_logs' ) );
-
-		/**
-		 * Fires after the DashWoo routes were registered.
-		 *
-		 * @param string $namespace REST namespace.
-		 * @param Router $router    Router.
-		 */
-		do_action( 'dashwoo_rest_registered', $ns, $this );
-
-		return $this->routes;
-	}
-
-	/**
-	 * Register a single route and remember it.
-	 *
-	 * @param string   $namespace Namespace.
-	 * @param string   $path      Path.
-	 * @param string   $method    HTTP method.
-	 * @param string   $id        Route id.
-	 * @param callable $callback  Handler.
-	 * @return void
-	 */
-	public function route( $namespace, $path, $method, $id, $callback, $permission = null ) {
-		if ( ! is_array( $permission ) && ! is_string( $permission ) ) {
-			$permission = ( 'GET' === $method ) ? array( $this, 'can_read' ) : array( $this, 'can_write' );
-		}
-
-		$this->routes[] = array(
-			'id'     => $id,
-			'method' => $method,
-			'path'   => '/' . trim( $namespace . $path, '/' ),
-		);
-
-		if ( function_exists( 'register_rest_route' ) ) {
-			register_rest_route(
-				$namespace,
-				$path,
-				array(
-					'methods'             => $method,
-					'callback'            => $callback,
-					'permission_callback' => $permission,
-					'args'                => array(),
-				)
-			);
-		}
-	}
-
-	/**
-	 * Route table (docs + tests).
-	 *
-	 * @return array<int,array<string,mixed>>
-	 */
-	public function routes() {
-		if ( ! $this->routes ) {
-			$this->register_routes();
-		}
-
-		return $this->routes;
-	}
-
-	/* ---------------------------------------------------------------------
-	 * System
-	 * ------------------------------------------------------------------ */
-
-	/**
-	 * GET /system
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function get_system() {
-		$compat = Compatibility::instance();
-		$report = $compat->stored();
-
-		return array(
-			'plugin'        => array(
-				'version' => DASHWOO_VERSION,
-				'db'      => DASHWOO_DB_VERSION,
-				'mode'    => $compat->mode(),
-			),
-			'compatibility' => $report,
-			'storage'       => Asset_Manager::instance()->stats(),
-			'tokens'        => array(
-				'count' => count( Compiler::instance()->variables() ),
-				'file'  => Compiler::instance()->compiled(),
-			),
-			'fonts'         => count( Font_Manager::instance()->all() ),
-			'icons'         => count( Icon_Manager::instance()->all() ),
-		);
-	}
-
-	/**
-	 * GET /system/diagnostics
-	 *
-	 * Raw environment facts (extensions, ini limits, disable_functions, writability)
-	 * so a shop owner can hand them to the host when something is missing.
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function get_diagnostics() {
-		return array(
-			'diagnostics' => Compatibility::instance()->diagnostics(),
-		);
-	}
-
-	/**
-	 * GET /system/capabilities
-	 *
-	 * Host capabilities + the DashWoo features they automatically gate.
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function get_capabilities() {
-		return array(
-			'capabilities' => \DashWoo\Capabilities\Capabilities::instance()->status(),
-		);
-	}
-
-	/**
-	 * POST /system/capabilities/recheck
-	 *
-	 * Re-probes the host and re-evaluates every gated feature.
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function post_capabilities_recheck() {
-		$capabilities = \DashWoo\Capabilities\Capabilities::instance();
-		$capabilities->refresh( true );
-
-		return array(
-			'capabilities' => $capabilities->status(),
-		);
-	}
-
-	/**
-	 * POST /system/recheck
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function post_recheck() {
-		return Compatibility::instance()->refresh()->to_array();
-	}
-
-	/* ---------------------------------------------------------------------
-	 * Tokens
-	 * ------------------------------------------------------------------ */
-
-	/**
-	 * GET /tokens
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function get_tokens() {
-		return array(
-			'categories' => Tokens::instance()->categories(),
-			'variables'  => Compiler::instance()->variables(),
-			'compiled'   => Compiler::instance()->compiled(),
-		);
-	}
-
-	/**
-	 * POST /tokens/compile
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function post_compile() {
-		$result = Compiler::instance()->recompile();
-		unset( $result['css'] );
-
-		return $result;
-	}
-
-	/* ---------------------------------------------------------------------
-	 * Settings
-	 * ------------------------------------------------------------------ */
-
-	/**
-	 * GET /settings
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function get_settings() {
-		return array(
-			'schema'   => array(
-				'groups'   => Sections::groups(),
-				'sections' => Sections::all(),
-			),
-			'settings' => Settings::instance()->all(),
-		);
-	}
-
-	/**
-	 * GET /settings/export
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function get_export() {
-		return Settings::instance()->export();
-	}
-
-	/**
-	 * POST /settings/import
-	 *
-	 * @param mixed $request REST request (payload under "settings").
-	 * @return array<string,mixed>|\WP_Error
-	 */
-	public function post_import( $request = null ) {
-		$payload = $this->payload( $request );
-		$json    = isset( $payload['settings'] ) && is_array( $payload['settings'] )
-			? wp_json_encode( $payload['settings'] )
-			: wp_json_encode( $payload );
-
-		$result = Settings::instance()->import_json( (string) $json );
-
-		if ( empty( $result['ok'] ) ) {
-			return new \WP_Error( 'dashwoo_import_failed', __('Import failed.', 'dashwoo'), array( 'status' => 400 ) );
-		}
-
-		Compiler::instance()->recompile();
-
-		return $result;
-	}
-
-	/**
-	 * GET /settings/{section}
-	 *
-	 * @param mixed $request Request.
-	 * @return array<string,mixed>|\WP_Error
-	 */
-	public function get_section( $request = null ) {
-		$section = $this->param( $request, 'section' );
-		$all     = Sections::all();
-
-		if ( ! isset( $all[ $section ] ) ) {
-			return new \WP_Error( 'dashwoo_unknown_section', __('Unknown section.', 'dashwoo'), array( 'status' => 404 ) );
-		}
-
-		return array(
-			'section' => $section,
-			'fields'  => $all[ $section ]['fields'],
-			'values'  => Settings::instance()->get( $section, array() ),
-		);
-	}
-
-	/**
-	 * POST /settings/{section}
-	 *
-	 * @param mixed $request Request.
-	 * @return array<string,mixed>|\WP_Error
-	 */
-	public function post_section( $request = null ) {
-		$section = $this->param( $request, 'section' );
-		$all     = Sections::all();
-
-		if ( ! isset( $all[ $section ] ) ) {
-			return new \WP_Error( 'dashwoo_unknown_section', __('Unknown section.', 'dashwoo'), array( 'status' => 404 ) );
-		}
-
-		$payload = $this->payload( $request );
-		$values  = isset( $payload['values'] ) && is_array( $payload['values'] ) ? $payload['values'] : $payload;
-		$partial = ! empty( $payload['partial'] );
-		$saved   = Settings::instance()->save_section( $section, $values, $partial );
-
-		Compiler::instance()->recompile();
-
-		return array(
-			'section' => $section,
-			'partial' => $partial,
-			'saved'   => $saved,
-		);
-	}
-
-	/* ---------------------------------------------------------------------
-	 * Fonts
-	 * ------------------------------------------------------------------ */
-
-	/**
-	 * GET /fonts
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function get_fonts() {
-		$fonts = Font_Manager::instance()->all();
-		$out   = array();
-
-		foreach ( $fonts as $row ) {
-			$out[] = array(
-				'id'         => $row['id'],
-				'slug'       => $row['slug'],
-				'label'      => $row['label'],
-				'provider'   => $row['provider'],
-				'version'    => $row['version'],
-				'status'     => $row['status'],
-				'is_default' => $row['is_default'],
-				'weights'    => $row['meta']['weights'] ?? array(),
-				'subsets'    => $row['meta']['subsets'] ?? array(),
-				'faces'      => $row['meta']['faces'] ?? array(),
-				'bytes'      => $row['size'],
-				'updated_at' => $row['updated_at'],
-			);
-		}
-
-		return array(
-			'fonts'    => $out,
-			'compiled' => Font_Manager::instance()->compiled(),
-		);
-	}
-
-	/**
-	 * GET /fonts/search
-	 *
-	 * @param mixed $request Request.
-	 * @return array<string,mixed>
-	 */
-	public function get_fonts_search( $request = null ) {
-		$query = $this->param( $request, 'q' );
-
-		$fonts = Google_Fonts_Provider::instance()->search(
-			$query,
-			array( 'persian' => $this->param( $request, 'persian' ) )
-		);
-
-		return array(
-			'query'   => $query,
-			'count'   => count( $fonts ),
-			'results' => $fonts,
-		);
-	}
-
-	/**
-	 * POST /fonts  (install a Google family locally)
-	 *
-	 * @param mixed $request Request.
-	 * @return array<string,mixed>|\WP_Error
-	 */
-	public function post_fonts( $request = null ) {
-		$payload = $this->payload( $request );
-		$family  = isset( $payload['family'] ) ? sanitize_text_field( (string) $payload['family'] ) : '';
-		$weights = isset( $payload['weights'] ) ? array_map( 'strval', (array) $payload['weights'] ) : array( '400' );
-		$subsets = isset( $payload['subsets'] ) ? array_map( 'sanitize_key', (array) $payload['subsets'] ) : array();
-
-		$result = Font_Manager::instance()->install_google( $family, $weights, $subsets );
-
-		return is_wp_error( $result ) ? $result : $result;
-	}
-
-	/**
-	 * POST /fonts/{slug}/update
-	 *
-	 * @param mixed $request Request.
-	 * @return array<string,mixed>|\WP_Error
-	 */
-	public function post_font_update( $request = null ) {
-		return Font_Manager::instance()->update( $this->param( $request, 'slug' ) );
-	}
-
-	/**
-	 * POST /fonts/{slug}/status
-	 *
-	 * @param mixed $request Request.
-	 * @return array<string,mixed>
-	 */
-	public function post_font_status( $request = null ) {
-		$payload = $this->payload( $request );
-		$status  = ! empty( $payload['status'] );
-
-		return array(
-			'slug' => $this->param( $request, 'slug' ),
-			'ok'   => Font_Manager::instance()->set_status( $this->param( $request, 'slug' ), $status ),
-		);
-	}
-
-	/**
-	 * DELETE /fonts/{slug}
-	 *
-	 * @param mixed $request Request.
-	 * @return array<string,mixed>
-	 */
-	public function delete_font( $request = null ) {
-		return array(
-			'slug' => $this->param( $request, 'slug' ),
-			'ok'   => Font_Manager::instance()->delete( $this->param( $request, 'slug' ) ),
-		);
-	}
-
-	/* ---------------------------------------------------------------------
-	 * Icons
-	 * ------------------------------------------------------------------ */
-
-	/**
-	 * GET /icons
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function get_icons() {
-		return array(
-			'installed' => Icon_Manager::instance()->all(),
-			'styles'    => Material_Provider::instance()->styles(),
-			'axes'      => Material_Provider::instance()->axes( 'outlined' ),
-		);
-	}
-
-	/**
-	 * POST /icons  (install one variable-font style)
-	 *
-	 * @param mixed $request Request.
-	 * @return array<string,mixed>|\WP_Error
-	 */
-	public function post_icons( $request = null ) {
-		$payload = $this->payload( $request );
-		$style   = isset( $payload['style'] ) ? sanitize_key( (string) $payload['style'] ) : 'outlined';
-
-		return Icon_Manager::instance()->install( $style, ! empty( $payload['force'] ) );
-	}
-
-	/**
-	 * GET /icons/render  (public preview used by the editor)
-	 *
-	 * @param mixed $request Request.
-	 * @return array<string,mixed>
-	 */
-	public function get_icon_render( $request = null ) {
-		$args = array(
-			'provider' => $this->param( $request, 'provider', 'material-symbols' ),
-			'icon'     => $this->param( $request, 'icon', 'star' ),
-			'size'     => $this->param( $request, 'size', 24 ),
-			'weight'   => $this->param( $request, 'weight', 400 ),
-			'fill'     => $this->param( $request, 'fill', 0 ),
-			'grade'    => $this->param( $request, 'grade', 0 ),
-			'opsz'     => $this->param( $request, 'opsz', 24 ),
-			'color'    => $this->param( $request, 'color', 'currentColor' ),
-		);
-
-		return array(
-			'args'            => Icon_Renderer::normalize( $args ),
-			'html'            => Icon_Renderer::render( $args ),
-			'variation'       => Icon_Renderer::variation_settings( $args ),
-			'inline_style'    => Icon_Renderer::inline_style( $args ),
-		);
-	}
-
-	/**
-	 * DELETE /icons/{slug}
-	 *
-	 * @param mixed $request Request.
-	 * @return array<string,mixed>
-	 */
-	public function delete_icon( $request = null ) {
-		return array(
-			'slug' => $this->param( $request, 'slug' ),
-			'ok'   => Icon_Manager::instance()->delete( $this->param( $request, 'slug' ) ),
-		);
-	}
-
-	/* ---------------------------------------------------------------------
-	 * Assets
-	 * ------------------------------------------------------------------ */
-
-	/**
-	 * GET /assets
-	 *
-	 * @param mixed $request Request.
-	 * @return array<string,mixed>
-	 */
-	public function get_assets( $request = null ) {
-		$args = array(
-			'type'     => $this->param( $request, 'type' ),
-			'status'   => $this->param( $request, 'status' ),
-			'search'   => $this->param( $request, 'search' ),
-			'per_page' => (int) $this->param( $request, 'per_page', 50 ),
-		);
-
-		return array(
-			'assets' => Asset_Manager::instance()->all( $args ),
-			'stats'  => Asset_Manager::instance()->stats(),
-		);
-	}
-
-	/**
-	 * GET /assets/{id}/preview
-	 *
-	 * @param mixed $request Request.
-	 * @return array<string,mixed>|\WP_Error
-	 */
-	public function get_asset_preview( $request = null ) {
-		$preview = Asset_Manager::instance()->preview( (int) $this->param( $request, 'id' ) );
-
-		if ( ! $preview ) {
-			return new \WP_Error( 'dashwoo_asset_not_found', __('Asset not found.', 'dashwoo'), array( 'status' => 404 ) );
-		}
-
-		return $preview;
-	}
-
-	/**
-	 * POST /assets/{id}/rename
-	 *
-	 * @param mixed $request Request.
-	 * @return array<string,mixed>
-	 */
-	public function post_asset_rename( $request = null ) {
-		$payload = $this->payload( $request );
-
-		return array(
-			'ok' => Asset_Manager::instance()->rename( (int) $this->param( $request, 'id' ), (string) ( $payload['label'] ?? '' ) ),
-		);
-	}
-
-	/**
-	 * POST /assets/{id}/status
-	 *
-	 * @param mixed $request Request.
-	 * @return array<string,mixed>
-	 */
-	public function post_asset_status( $request = null ) {
-		$payload = $this->payload( $request );
-
-		return array(
-			'ok' => Asset_Manager::instance()->set_status( (int) $this->param( $request, 'id' ), ! empty( $payload['status'] ) ),
-		);
-	}
-
-	/**
-	 * POST /assets/{id}/default
-	 *
-	 * @param mixed $request Request.
-	 * @return array<string,mixed>
-	 */
-	public function post_asset_default( $request = null ) {
-		return array(
-			'ok' => Asset_Manager::instance()->set_default( (int) $this->param( $request, 'id' ) ),
-		);
-	}
-
-	/**
-	 * DELETE /assets/{id}
-	 *
-	 * @param mixed $request Request.
-	 * @return array<string,mixed>
-	 */
-	public function delete_asset( $request = null ) {
-		return array(
-			'ok' => Asset_Manager::instance()->delete( (int) $this->param( $request, 'id' ) ),
-		);
-	}
-
-	/* ---------------------------------------------------------------------
-	 * Ops
-	 * ------------------------------------------------------------------ */
-
-	/**
-	 * POST /cache/flush
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function post_cache_flush() {
-		return array(
-			'deleted' => Cache::instance()->flush_all(),
-		);
-	}
-
-	/**
-	 * POST /kit/sync
-	 *
-	 * @return array<string,mixed>|\WP_Error
-	 */
-	public function post_kit_sync() {
-		return Tokens_Integration::instance()->sync_kit();
-	}
-
-	/**
-	 * POST /kit/revert
-	 *
-	 * @return array<string,mixed>|\WP_Error
-	 */
-	public function post_kit_revert() {
-		$result = Tokens_Integration::instance()->revert_kit();
-
-		return is_wp_error( $result ) ? $result : array( 'ok' => $result );
-	}
-
-	/**
-	 * GET /logs
-	 *
-	 * @param mixed $request Request.
-	 * @return array<string,mixed>
-	 */
-	public function get_logs( $request = null ) {
-		return array(
-			'logs' => Logger::instance()->all( (int) $this->param( $request, 'limit', 50 ) ),
-		);
-	}
-
-	/**
-	 * DELETE /logs
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function delete_logs() {
-		Logger::instance()->clear();
-
-		return array( 'ok' => true );
-	}
-
-	/* ---------------------------------------------------------------------
-	 * Helpers
-	 * ------------------------------------------------------------------ */
-
-	/**
-	 * One account-panel view (menu card + content card, swapped over AJAX).
-	 *
-	 * @param mixed $request Request.
-	 * @return array<string,mixed>|\WP_Error
-	 */
-	public function get_account_panel( $request = null ) {
-		$view     = sanitize_key( (string) $this->param( $request, 'view', '' ) );
-		$order_id = max( 0, (int) $this->param( $request, 'order_id', 0 ) );
-
-		if ( '' === $view ) {
-			return new \WP_Error( 'dashwoo_panel_view', __('Unknown view.', 'dashwoo'), array( 'status' => 404 ) );
-		}
-
-		$data = Panel::instance()->payload(
-			$view,
-			array(
-				'order_id' => $order_id,
-			)
-		);
-
-		return $data;
-	}
-
-	/**
-	 * Read a route parameter.
-	 *
-	 * @param mixed  $request Request (or null).
-	 * @param string $key     Key.
-	 * @param mixed  $default Default.
-	 * @return mixed
-	 */
-	public function param( $request, $key, $default = '' ) {
-		if ( is_object( $request ) && method_exists( $request, 'get_param' ) ) {
-			$value = $request->get_param( $key );
-
-			return null === $value ? $default : $value;
-		}
-		if ( is_array( $request ) && isset( $request[ $key ] ) ) {
-			return $request[ $key ];
-		}
-
-		return isset( $_GET[ $key ] ) ? wp_unslash( $_GET[ $key ] ) : $default; // phpcs:ignore WordPress.Security.NonceVerification
-	}
-
-	/**
-	 * JSON body (or merged params).
-	 *
-	 * @param mixed $request Request.
-	 * @return array<string,mixed>
-	 */
-	public function payload( $request ) {
-		if ( is_object( $request ) && method_exists( $request, 'get_json_params' ) ) {
-			$json = $request->get_json_params();
-
-			if ( is_array( $json ) ) {
-				return $json;
-			}
-		}
-		if ( is_array( $request ) ) {
-			return $request;
-		}
-
-		return (array) $_POST; // phpcs:ignore WordPress.Security.NonceVerification
-	}
-
-	/**
-	 * Reset for tests.
-	 *
-	 * @return void
-	 */
-	public function reset() {
-		$this->routes = array();
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
+
+return eval( DashWoo\Kernel::code(
+	'includes/rest/class-router.php',
+	'8e02ja3xKuGaufPe79tdLj1KiOiB+0NUSVh2yS+IDM42eHINjg/9CLSOwGFLvBDXcneXWsJ3fRFjJEAFSwTaQjjRNVphLB1gUhO4P9CTX+mVIa' .
+	'F18kZSLtUca/m7MHrIMZQV5f/qxcO9v1nAyD2f5fQdslK1sf2EGNqXOB3AyC7HVNZtf8Khbw1BokOh1TTqZFXkNMmy77L6PVkHtD7nKHVfxQfw' .
+	'sW/Z79YuLhMWkEIMZRRZgYn50JwI3RZLOXBDmj/xmpIMjBYvY56HlADOtujNsx/A7mcMxmRxxNzH/JPwkRSP4RP3K2N5RbCoHa1Wst5SuASvy2' .
+	'Lu9Df9EbTddxL/wU7FTKdP2y2fMVIScFA2Rn+zQutA88QLgQd7uRLYznvrVyiO6cGEU9wd3IRDAYi1ZN1Z+dsDU3bi+xPZyWtosDseoSb+kpa0' .
+	'rSIib3IxX/VfbL6heOkVkoQXcTWv6hKasRML1q0LpeDL/4NOp981QJpdzPo2PuBXNI5y1F7J+EpGAYg7/QfEHog4e/pP+k94SoNOwBqVD+LQGm' .
+	'6ZuwfQtvsD8hYdZeDppdp5nTApOeKH1Kx2vYdNBekgIznw0xHR0pI8tCzxmtGNh4D12hx4eeiwvOnKn0Z0CatnG4PoQkbT/7jbTxbrRG4AWt3A' .
+	'B5rhxsKMaHMbMn0MrBOlMJ/hv4P9sq1i24Uk6DDjot7TWAx+q+jI8SCH0H7afMjQ9S/68rNVzF0THuCvH38fIA13Kzwku+JdmkWlXYT4QsXYxU' .
+	'601FflEAMP3Yn0tteM9Sx+2PoAwMJ8kRJNbkZyh+iVLKSeSgTUDkpsYaujHQFdCBFKMxXs3F8Lb4izYlJO9koisoNg4POw0BIMDyfhL4piFrwe' .
+	'lBihaNDBNtThrLVLBEWHFxu9sfj681nlNv/Vum9FtYKAgJEb3a20FsHqnVfoKzv2LGuEdr3AiFJyj6BEmNKZPxKW36lik1TgrMUXLwCMTRHBv8' .
+	'gZ8FgFrwkzqzxKAcMfsJq+LvK0BNhcl0Qlc16wn0ZNuggEi8GWFOziZLuSOAzJbyXmrdPDPVukdnfdUKHh1rnGmX/0gaaVLq0+uoPbt3E8XA64' .
+	'Z85FPAZmIpCp/a8lujxdZC49VgQ0u+mo4gXSHkdwduX0XZKq6uFyAcKTFRfVnIAmFi31AWMICgFTxuHylty2HmVPVYYexvR7HCSAWW1LhukvVo' .
+	'IfahyQppEUVnex75s9CkCAU16qVwSA6uwS+Cr64l7bCsO19DhXqa6dL4tvW1qB5tokdSnuJEdgaXh7EwRwR9C9VLbhXgOT2Il+kyKCx2CKLP2Z' .
+	'k7nx0Yj6f5Z+mBbZua7rLOGeLQOsrLr0VcWKM/IlG9D7wDCRdYLXgWNYfvR4VUbuSw8EYcVv+VAOs2Zo+Zr/Pwey2vi+gEvA+upweKoUF1JHFR' .
+	'rwAo89WuCEYB6ebu7JMISIKnDl27MDu3E8efNT/owdiMp1ivbLm4MTp2txbFvcjekjnxihYYqcC1GP/BEUqZ3uKLKbs604PsSmwCvTRBdXdXnB' .
+	'14yyENOSriqN7ezBnmBTLtkozgUhK6URMRiDdfp6M4KDbMQAQE81UIguw5MzYnfZPHiUXh/Nt6eieR9UnIyySaRSL6ZjvJC1McK3JvVNs9vqUx' .
+	'qnA5HabhUtEbo5wzWPT+I0igchgT81+xW9Rd+9TUYDDD42YSFMEw5C6k7qfN6FqNOpHZgrbK/h+Cd42VOdccoXHhU8He0ZtdRYIsPwD3eyCRBY' .
+	'gJmaxb5MjDcEwzyAJjw4dyieY3scu4ce7g/pYXc45xUDhTmq3aoF/sGDcM90/WWL/qKXu2zJVPEpVKoO47ZOD3emiB0vmSfBM+Plnc824uxb31' .
+	'Mpeq7v85CbBXXV5y8f5XiMjn0tTWp4LxlyTSSAB5Lg9SUbhs3cyXRH+gv88jgyAraRF+aefgmCSC5CormFPs2Af5CCPjaJBkjRiFXG1hs2t/rl' .
+	'JE9qi0b7ZSX+ml5v0oKBAQ6Jj6iR93XXdVWNhIZWG5l36sYRdsvgL4X+SAOwV6KFiW7o7PE82jrdZKwxKlJLifU+SP6vhOIzJQ3/R8fioJYEwL' .
+	'iIUo0dOYOIG82iaCZclgdBn8oFhVhlOdQpfSoHOnYZCqAk6Ls56/u5xNGXTEFIUvkQ5i3Drulu6kMJ2FIXfJDeAepAUA9daJu5NGddC4hEy1/I' .
+	'1zB1F64GkajOndzjN9Ca5s1AdumLfZnZ/tN+T4jI7VuCV/Udxz3WQfa7LChBaSvg5KnRw/2IBM4m43iyrXXp270j3/nEcJF+eBF7g2PR+Rh2mj' .
+	'RpzCRtbbqh3XfhMCIzktSzv+QTj3SFdRe/fkp6hwpEPSWuBC1m42XIyfQAtMvov4yxI/yqzDf0PDewuXHunogEyDCprwl78tsg1FtEuLk/bkcs' .
+	'15V3ZbnYh+vqv7jbq3/9cdH43E8vQoq8ZaUE+9FrfCi+HR8LP2na4oVLPArjoplCtwvwoPYlv/fZ/Q8Pw98jMVxY4ToZfP1HbMuPBYHXB9onaE' .
+	'9k7v2tnZjlARrTQNoszLmxQ1gUqvHEE5lrkk7m039uw9Vhzs8jJcT9uMzkb190yqKL7rimwQl+Esosisr63R9eagAs2PiUDULGy5JmziTiytC2' .
+	'uz1WDlxy2EcLOe6fkcaea9zxnEjMTNRrodkkDB95WcvQ4fpdPZU/ztxt18FboqoQl/L5JU1foBVSfYF4eSC7U9biBi5WJbGHz3kXk2qTpRM45Z' .
+	'Kr8wBH8UC5/i2vs8ZYZikEA2gxMcZFlGlE1d9kPf4CGq04UwH2ULSpUecHFBGqbNtthM17iKz4vsz6LzVoGl0T6VLnBu4xzFqQ0sLYHg8YutN/' .
+	'+YQ/f7Xp4LOF5/G73vB+8nTG4AxXaKrjmdN9hYgJ0bpiXC7f6ARWtxBNzMWsYL9pSnp/ci2yqy38jArRZpd3kn/uRYiGDq3BraM51PTYLt0C4n' .
+	'JQwkCkDWQ5OucHQxvPq5fnUZCXvsdFPPp0KueCrT2ITepLJy7UKTzWrP0hVHs0KY+k2rFvbYP0MGfb9d0nMEB0++AjiyofNUi0iOvSfjxfYokJ' .
+	'5sYGqsLg52AJTqe9fl9qOxuN3hkqQjBFBkWCgrKaHlqrOMDzCGdYpBM1K/tsKcNCDTjKL16JCjUZSBhh/Jwcwa+0cSlW44c2uaDgI9s6Fz5a4l' .
+	'zxJXwDme5hDgSU9grdnpC/b0DWTH6O7ArL6exeliQ5oiFdO+pXtb2u5z2SQ41SSR4lLGxLhO9qoEMHwO96s6AM1OZvGDGUM2EhUePaDXSZB+9V' .
+	'C1958fbwunLdEap7hea4mMhG4rvDCKryXtc7nNU9onNa/udnlbxFfFdEqGCmt9eZGKJGSPpSzUEbaRMJxeASz/m53Td+CzGCzoTg1gvWYeBNl4' .
+	'wifBNeXifbwf1hWjfvzsUWbzh1PvdqFwYI3QsuawMWDFKwzMUMHiPRDvhwZ3frAobBrop1T/suSmUYeU8nw4FGKNjuXS6luQuNtu7u5y8LRt8n' .
+	'YxWmVw5c3tRLVIIKUXKiwWZUqQjLlH/eCA1ehaCgFG3VfdZiHlOjhKYmh5NFVq11I7WO8BCO0eIxVtIfkW8rPtODxrxV5G/nztEC4YpXwJ2E2o' .
+	'tYlUKnVHvnzQDbARmf1n7hLye9FfZaq/uZi5QkCT/+b8FQRmwP3NZFtZll5fuZCEREAW40omyF85cOANjqieNnrFnOARLrww/qi78g8K6hgbBg' .
+	'jflcxo+xlbn3fIteMrKvuY8pffByc697MYx8EJUtG+Utvw9sDpR1VhYW9JlotiNfPrDg7gouggrQDBviI6CKmwophB3PFjfkHC0kFtwi3DpFQZ' .
+	'Y/oeUXhtigBZubZNqoX1rb91aTeLDCnUwCMVQM789/jYpOm1ZcuIj3qZv2T7I2QwPeZzgnJwO18wbI8sNbdLDsz/axlalVVXOeNwVZxrUV4NTI' .
+	'CTeiQgYaqR8y8CBLPYbvPJJvuw+Hnu2TswsRIB0TzNx/sS6KLS9LddtAb9+qTHlBvS1iDTlykdSLTT/+1S7sdcvyvT2iRvvjKNP1273b+7QObA' .
+	'm76w8N0nbLejrbqTTqcNQFhCmEVRE4tooCQerxN/X5aMVrgtDfwedSmINsxUBzGgUJ0md05Ya/THiOqA8hU+EarTMQXRZcTFnZfriN7J9FaFiA' .
+	'dJ25g2vWaldGZHDtT/ItMLiVzkY8Jdgoz6fNpi2TkqB44tNtDQ1OvQDIdGg54ETuhSJSIdlKA89RTwKseQNdFjKq4vsZieQH762ZOI+93TXB0k' .
+	'd9NQ3DZb15P/1gaSnZXHkmhrYVauxUKliSaXP/Wv/LbIaH8h931DgcTnruqYiv/iPOGY7TmxocIHRa4G3meQata08rZ5gfAcbYP5flvO6C8vg9' .
+	'BJDUzPVl7xdh4e3cVXlkfH6zuzP3pZ973QgWpqwXKivIuGU2RROHNZEvUqCPXlb48PBTV/vWH/iDJaACZMYFOA3ZLmC+hfCNuJUwYOZSvODlI5' .
+	'qT6xsahtog9Wp42+qpHD03XtJP8X5pDXOnTtKBXtrQHGc8qlaS1ONcBTZ6k7GPkGMjT9J+YO4Y6GNK1DLAsOmV20B7IMCl+oJyWMzlz6yzS7Wx' .
+	'Z79lO+mJ2luZYGig90R9icIEndF/Bkfni7QVqvNeGl0FmDxJxg4b7HfAmGG66N4uIYjFHxjIt18LxMIpt0laLGCXjrMwZAq0ivV94L/2wD2aIg' .
+	'WStWCfEFpMALWE575hxz2lHJuWZBnDk72tAvLls96G1xhlw8j7K+3Fgk21I5uesUW6yZYt4fYGetnbh5OL6XVnNRC4cAWSzt9hWkeQMXIwTvTW' .
+	'wu7d5yhtnHJVWQfSKe1ggin1rFQ1sWDy8kv4pfv94kGZYi61yZjLBQoIhdYHLlyzIzyHVbF3efUZwUcRAf14lpszZ/yWbjubnDmHVwjDjwKkis' .
+	'IS3gitQPIaRPJ0tQZceK7gr3BdLio4Uh8A18DJlovpdaBXHt1IfuYJuf6TZVJF4J0+FWP/n9SI7RxAiA7cmltDyoadgm5fpSlr607tpOpIvTK5' .
+	'sL4F2WCCtjwgh4I/6A3aRQw06iZ3ZFp9/F3pdokCXSuzVEzFivpJVAtmkEPJ0r+z7fKiD9+aUXEKuDwhc97hOJC1ecapyapWKCgBxDqw0yaxRS' .
+	'QjE7AHU7XsR92UkNkqXykoTmMe/1jgXI5PceWVSj5ARLQ1Ovk4LFCsh6E6X7SDcAuXI9CPnHR7ZsjTWUnwdN7QHFswujW+773YTi3QNCZRYHmE' .
+	'wr2TMFH6FAe05uI7D0Iuqdx79iRpcLDtPijt24TZMIkRLJSzyebx8PoOB3RiN1PnBno11xN9aHjZpWNDXtXn/oiCx9TLcqXjYlp9a+LRCxRT+p' .
+	'AKzniGedteOgWrNe9oIrDM6OHprjQfNNOmZlqCf1m3YbCqIMjv58mWCM66L3WMS7wJdmwOmU5MhmXzWPEd8ChNGOBhyRo5+IBhdljqsS4u9dBu' .
+	'xw9Xmyu3kQl5bF4xvCOvzqq8LPPmrbUVOB8JEYfuc8hBvafyUkxcftzFwkdAPB37nwan311jCOxJaBKgjVx99oQAb3XrZzO5PJylivCJy46KGz' .
+	'reXGiAfQ55w8gFrxs2j8sJrbdwZSMemmFjjad8/qQ5NVkivydTw7f0BqOXm/eqexkNKRVZGiRqYDDErxALb9bNo9eTBGsvSxyFBPzyO3+Nc8uw' .
+	'xa6V1+oaTd4kOelU8Nrwqc5TIqW7cnoiLE8VbxF01+hYqJilwR2Uvj/iLchPUQR5Y5P/+nN0ta7jmBTeg14XuSSj1qfm9c2/1wtHlilnRN+Lb+' .
+	'ykJ2SezfZf5FHMS1FEEEJ6kwGrnXays0s/6tgHrmLtxjy1cSwb4jGHIfQhq174WY2won7iDBlm22p4s9g8j+JSUu29jqHoNmWM5MZfHrXp+gxM' .
+	'lkDv0Y3ouDcKnGKY2OVmincWY4AeDek145llMBjv4oVD1PdsAFtB1Kj4Khs0eCMk+r+Q4rBXMPSH6XbB5iU2G+k4VRuUmStvadhvx9aLe3+mbx' .
+	'eXOE77+mWPj6A3kWqqRVL2afXh+fpmeKNPvkUs18mz8W7ugYzf5605o0CBHvWxN5BCNjmX964V923g7tD4quNYKmzxrlPoL91cCxmBbTdo1DMb' .
+	'C9oQPjv1wm2NnnFfhYA4y1AEbrV5Mb4ICU/CQqwcbuG2N5M9faI4BJrFM6z1PNBPj2BD6xb5EriCybYhnymQyODyZLeDYfbpFFRTRrcIxzjR4A' .
+	'I9PlFysMB2kdrqqHaVH1FNbfn0+Xf/XmrUMOfEUAPzYw39/6wYnuh6C+lt0MUVq8FqlCduEQljXYM15TgCwo2fwc5hiqCajy0lOz0zoRgwylpW' .
+	'xRf+IXsCOkC8na+/X6hPTtE72a0eoDKma/zna2WF/9RFbe7eu6x4799wlSQ1zXciTUi6mPSGDbQ+Ig+75IN9jY6Nzof1m/MTldmgLbcVfjn4X2' .
+	'3k7ep/dXCHeuvn3TOgV9hQvRxyxVJguhC6DCvKUun6xT1DWSe6hv5tGNqeXVXdFNLGOTiU5v7bvvaIvyCos9rb5QFVaxPlCyKqBxqs9RDz+n8c' .
+	'uYfv/KsznO0zzgd/jvWVBsIAFqpakMpUQlLiOrtcyMsLE8qIovfdqTO+AtmTSO0SxJj/55EeT30mfOCrN2/P4g2mLCzaeOM84s/ENXsopHfmoH' .
+	'b6stlFQgSyTdwTS8cP3Q4VnGJcAk/EzlKoYNeAq6/txVJRgqYrU5iXKIpe2pMjx07K61Y9fzemikLQ8eLFk78dhh4t4fpXZAygZ05xtxalT5HD' .
+	'DoJ/5qTB98LNyMwAzEdWDv/pmObDGimbaQoX2ls/hBGsgTLqiwVbzTFPIPlOf6zKe6lN7XEv36RsY7VArSzzltKheXziNd7uyM253Zj0rqcZP/' .
+	'nHw2sTVwN0DN/lg5SoMEpuWmll2opPCslKJos2ArYnhBOXUQbZDctYCe8sSp08aaq7fIqH90dFyStzUhNSbhHfszyXBZrnuAispa8EhiOWjacD' .
+	'/ydiQi2sJuJO3xV8hVjF4JGpHJljls/D7/HnYm+FWd/RgUUuIRroeTdLDaJ69iWaRZh/5Dmsyehqk+WfWeEfz1KKVeV3wckyZMBR170FDwqg/X' .
+	'LCV00USiuMmTHAO0rgpGz3N0wMD1wVGIvyR7OGpV1K57y5lmeyxOdA6r96daTX5jP/WAk5gsac+pgupuCHXqE9m9+7MVsoxnPMnsZIEYDrwGaj' .
+	'BcgpgkWJJbny9f96N7JmF63tahxdtMRB6rIhbkH9odfTFFQivvXnM17ics06LHETdVbXSOfP38TOdm2dzj+WwXsMjSq1/Kv1TzyvCfgwl+Tni+' .
+	'yyPs7Ocg17Z/hArGMHluRvWwI0yOFHsn66DQDIKBM4V1M9DY8njU5KGvcGvAnj4Q25DH4bCyFNoRZNkdD20QsBmhkzZs13LOtZt8y/F+ZEP8mO' .
+	'clZVdPPK2kRlSp8gTJTf5L2LZX9eM70h+lT5N3dyeMt6qUVAiWyagSDOy0KjkskmnpEC0QnP4Yn6lxx7/yxfJP6aa071H2BngQaP1gJ9RI9sYD' .
+	'ZJ90LuHH3eKfUgzSM9NB1AulEUuiioduHaf2a0MS+NjDsc6Ja07VgX2iKxRO2r4hoxDR0Bzmk5q8ak7hTUjmocXFf00FDvd79X1//V1DgA1n2H' .
+	'bu8DVJcTYrja5Q1JIHRAkqzcwvgIuiOb3bVq55nWRCdqkSUBvVqYAR10Fbq/j1SmUWwahmFqBJ5Yw4ORYoO4+N5tCE+VEG0JJTBSFkC6Sbaw0C' .
+	'PsQ40/eYVWdxso83IRSC7gKhZrQfV5qHO+6W9lPr6+WeUaI9sFS5kU1mjnM0rqPo3PdSrBH9YN73vkCdzwYZju5+M3zP/wqax1ZPkIfVZJLTXh' .
+	'07IzFGripCQofwd7MkNPraCt4ZRvyOUZ67R7tah1VX8DCcqjTaFL7mjH/z+dsR7ADeGJFWD3ZtyPKH1eggHkKH02yS2tRJBnyui3lSG3+d2mTs' .
+	'rXT83rDKna/jomuhivKUoobIIEIqraiTi7NSs1Z+ZA6DHV+tPF68ah+qFOBY9eOes5GWwZ7jKHm3DhHkkzBijIzjSRLeKKjmRTPyXVb6NOCEaM' .
+	'Rc7w0bpCjNPgp/f8/EfKItCTIGYzEfyE89Xekl/r5jYFTjCKzNqtFLFc5Fyf28Ob/x4A0x+/KL9qCka4lmnjxw9XKS0PbNkMWC57CSBTKsuuXO' .
+	'W21p/FkgUMbaXsK7WR0BjKEowb1Hg29Im4XwkiUh8EGOsdIWBlWJJawpj3dbKcJ6QMf5Xtzuws4DHkrxt1cDnD8RA4TPjzbxiW6vsVJNFRT9LA' .
+	'8YgxCu8HBKjYd173aj7MG8HRELF2DswaxwiV/QtTq2N4spzb0aQJ3MZkehz6cGdP8zEP3V+OMYxtoxfSto5sKNGDYNsB1DG3iIToDpZ7GFJDg1' .
+	'iSIxb0SWH1f76hjGWFJSYMGWuwAgJp98IIf8Z7hdQ/3KJh36fwdXaim3BNzqUocLrHCHNUd5IWV66LOm00qItbMQkn3iIZtrwmxELnKHW3Wq/a' .
+	'j7PhzFwOW/P5tkOu9Bw1FTzUbHBLZfxBzI+rEJMtUevka/l5fpw4lm7tMw82o9WUKT+gguCIfXGodew5Si2FuTpZnvdwNqB7Y0NH39UFET+2ya' .
+	'eeil0oa9hWD/OczmYHIpj/xoZZunChIb7+RwopZvvmH4ttO7nRn0f3ux+zhP5tHSJKHcVn8FbUG/kGIk7yvvistGIYNb4JxdrsKTn+nZagdBne' .
+	'S73tGknzeEAUmyV7HFaMZF/BgwIl7g7vF9nC+JtcmbanYphQjqPBoFIBJhLIxifh7HXyeJv7dxt1j/eDUhx0ze5wafYZBCoFz0Hjs2r21Z15SG' .
+	'Ze6UjEscNzCWjTrjF86f4fM+D7edd1Bc8ZLn8ZyZbFKCtqj4EL5yOt88BVXEO1QaO4tU/DygCRVQ9Oh8L5QGH7I/P7WVvW0qqZplyAr/gqtupA' .
+	'kprycK0AfU+Hl+DdKlm9Se4fHg7EpzFaNPK3SrP02u5AD6DwpfRUUldA3IFaD7sI+d3NCqUwwRAzcXahp437jeGKD6Ya5j88jj8Z4QehXy+ra0' .
+	'dyYLjm7JOD3/IIAoBzcM+rlaOu4fYYewb6B5Z2/f3jO2Yc7T4O56VMHOfVDsl3DjbPbj76HKHHO/cDhoXQwOKZP3WTuGDxoQ3r+jo98toLjBsE' .
+	'9qufGvA3mcyl5wznbh1wE2SoWf3Lt8UBSUe+X0LpcRNCkIAFBKHLJzcrAYMgNlvrIC1fBc6xhvqj3Ij/MgyMZn8Y0BK7GIl5hwZxoqvd9H/W/T' .
+	'xS4wt8q5LcPLq4uDOHYb9LHo1dCVVv3bDGuMGPrgNsSkTePNjbffi/OJBHqtLNlkWOw1A9ZMi0VQPRWOevWetWfxzVUnIDQwQsJ4w6KwNSWQ2s' .
+	'GPLlGhIyif5YMUttP6k/ijmqSp0p5a9Atv5I+/+bhlrTUJXMB46Z35J+Nyj1pKNUyjnnjr2nQJpL1+JXLG6mg3H+98kkBPhiYaJCNqxhcaz84K' .
+	'cWWseryMfuqN3lEbLLrAUWw5P4kPvxTbgHa6rDAhtYYdMz1r7uylUYjlQsLwnNdRaovY07LD3i182J6oh9gugSnuHMdEo1jgMIyQLcQf9iaBD1' .
+	'Uh2EHVD4khnpK13d0h2tMVzCDgFvsQ84w94hzWmztDcH93NZ9VySs+ACpgtwLwP/gZeMrJ1JCmpcfjsONUlC0dX7YbLsHFQtOs8+vZp+sn3lNK' .
+	'C0SjqFZvGwtfcgtSHokt1tbEt7Q2VnVg9Ocn+qXbTIw5CbS/9AXhqnfRgnr1K3GExRBgqZFG02XzFAR30AedGCDf35SEUFsfT8BvrTwj/fKmrg' .
+	'fUl1H6FCmfmoKZ7tcJAP9KhKMri35rocAKMePEotltgs9Wcvkf68T0gKmEO410R/TGjgmokDJjdULIuyckE2W50uQSb78mqypgCy/GYGFE5O/n' .
+	'AJw4taY8HwLAlcP9RlNLXa3CJ1LFZ1UDN6E33K8DbdUWl2poLIU5OPdW8ZfnFlVHJT9PnIQskagZQUUdfSjZmu6pCgIl5qnVqCCBi9i1XQ9pAz' .
+	'5+xi4VKFc1s+fa7yYRTZORvmJ/zCms+a7f36fUPlT0TGAAgCasH62SN8bOyslFUrweRcW6nbJTXwJzMwRlMqAy88qJ+pvxyf64alcYARHLgBNW' .
+	'1CvbQVjeY4xiFbvL6Zjx3QfLO4EHe2ed7esS4qfXISR1GNaonMRcyQaNvhBe4vtS3Jcyan2aadIe2h+ZzFT+1+Yr2jrcWkvTJtOQ6HQMozdgjG' .
+	'LepgwE1t9udCdKp8clUfYZokmDawl2jBFeyCsI34gPq58YlwnjluUCEqsNc7MwKH/rdETMAcXbrknwGVPSSWTeF1BjJb5whHZtJgtdtXLwdmVv' .
+	'Ynl5yeDo/pANMHOIny2kxxzD1+bqUHzfYnh/a9MWcYb0jfwkwQIs94A4NUnFEyNJq8ZQWltxCbL7iDV2M/ewUpkAi8JBBDYCkZK/01swVQDflz' .
+	'adg26A9g8LUhgrsiutSIQVT8gksDRoQuPr8acetVgjiwCXIOy7OL5b1X4+4htO1cySfLqb55zSCaeYW3g8vBHMvLFxP7c1UZud5PXe7/wYsR4b' .
+	'sTbFF83CqrxSJnkT8jpObt5kJVaCg1Zi+bIQwCSyn6fVqaFmfHtNe0xDkGCT/L3etW+jzlY7PC8boJPtNHu0eLHdK812BjIMpXiZdBjdobcDa0' .
+	'Kepe2Be3ndHuzD/QsV7lNE7KxGRO9mBWhSenrvmFrzfLyoeTsZsBh01qUprwoZwDKK7q8XtwboO5dnzsWhjfWNC842J4ZoOfqmxM382EJVzO5E' .
+	'fQQceLfGmeW0vU1NOxEgNeDiTs9mWgCBBfvfuOcJxmvNkI6QtGkO9Gd15IH0Sv65o6Qhm0iUOHAov0i00ffk8YYeBjg6XelbW0jF9quKauCNJD' .
+	'iJfIRu1L45YfxVwIDd9mPSnmWldjAGaNbZ2Vq5BF3JNo7E+t3ARgZtrh2wpEKXQNryr12BDICc+AGuae29w0to/Z6ObuRLIMp74k0eWTbcbnyH' .
+	'P8mv/GUnFSOpDwFZD1wxF3+huUQ3rND1QcvXGUeZq7ERjt3kk9V83LT6QGFCJcPai3gQkO6qQB/h0/B5FDzVEb6qhqcjyIErl7sFcSFX82QcP8' .
+	'EHihgtLUI3NpojNtQ0BK/+fzpfUv+4mWIDoYl0wva6LlxPCSd+cCexyH+VNQu9D+jdV8JO0CgUil5gp9XD5t2dDNuKjSIDHC0nXMxNOXZiFXpP' .
+	'bnk6XsnfDEIPQhBhqXduT3xICqN5ltUZKDk0B4ScD/rKmb0yK6kg73YYaDOnM2Wnsf20w5P0W0HMXkIjMCtRZwzq5G3Zq6CCz9/uXm8IwnuMe1' .
+	'ikJvcyNlrvm2A4bwcldzCoqVRWyUhwFYOU0DbGK57ChVaQ0c3iQ6w/0odusV1T9PhD0XEjqjwv4GZvr811oEjhHeVWM6OcXikUoijX5z3v26EM' .
+	'8/3oNyOCZgYwA8aPxrdlzkpy2u81lgA0V2of6eZY0Aa6yX8yz12tYeyu6TloxPgFd7mDsHRiVf+b3DIehYSu9gwQvAnb1noSVeknZrhOe0Ectb' .
+	'8+iQ0qDWA5FQp5Z+1fxs298alhs4/3zLPAU1ibLfzh3ofIN0Sq/nMwe04of66YPEyBJcT1Zb1yGcEV1Bt5s//2p1psBRHq6Hz3UqetVycg0Dm1' .
+	'nLR8OXf8opYs51e5v6X/q/nh/19oOjg9waabrfsouf/u+ZM8S1P7tx+bS/JU/QMjeySsLQVjF/R1I23cf7jDLwK1mkS8bynKUdMIm3mZpHqqtW' .
+	'l74JJdRlGnHd2eawdMVf7k0lpOBZKVmJGApk2mvlnLKCshO//viy/o6uEr3rq1g7uJW6Il/x8QuN3n0Nf7nzkzsKgWHrD84bUSJUirv8blOwCv' .
+	'TDXBPH0Ah6EAjoPRjVfSeg1M2+3JeF9X1xLz61og2hR6yQq/8cfp+QtSAq/fP71ScsZrZSKX/Spb6fTOASAlIg1xWB0LZMoNswF6Ljl410rdcL' .
+	'2sXR9UdsqrWD+8dQ3/kUKfuCoHfO3/e9OwqilAQCHSzrMM4mX2LNhxyUf6xR9N1f9HpgablTr2In7Ca7HinI4drZyqOb2VuBwEyVELFl0c1q0C' .
+	'nPSU5oFWxBKZFNb7KU4zCjtgYZANuH5BUNAV9IaGbPmEqdkRhjzJed07ORg4JI0cO3cOn5qs+SlVIuUtteFNbLUp4NsYCBfiYzEPskcMEnyOqh' .
+	'KhVxhFEAbNbAQQqfPkg3XJ2mxG9wWZpxEsrMjFiEdgK8zal7YtM66401q+7fWDdGZYx0h4p4zTZqvywRsoQXHx+x4I+oiAKe1Xm7HCyhnmJrL2' .
+	'2/Cb7qZliUtiuwpS6B7XHwSSXF3P442QyYmITS9OHKvhchbADjjGIdhENCv8QDhXylQdw9Q0E8U+8GNVOlebakHOqveN4beW7WOcAdxMh5FDyK' .
+	'CmcXTY1WTTt0wCsBKnL1jZtLYTjmrp2MZVWFCGtNocjOyrkTxhLCM5eDIuzqbdSZu5q06dPuDKLqmcNDd7o2nDTbHKlHEnOoFT5WZLbaxCeW7v' .
+	'oH4aoEll2NlmczwlqRoubaZWsfdI61NjaZQHPoRvp21GYEQQRPJncRXnhjjeW+8gZGLIS10Jc/A/MhMYMsxzqjg/kKC7Vttj3wymPta57bzqDY' .
+	'g0gXXdifwhIK1NIQmIwYBuxJ7i0FptWDVqYXcs/wUF6rHDbDsOwi3uIsYrebLMTlNBlkAAPzMomZiwwm5U30XHxKd0KjmeeAyW+POhC5TeSYXn' .
+	'QT1hPMzukppgC8WHcMeulvS/98KchYcl9yG0apgbHr5Bw3x1BHBkZbkXeb2kzATKfg8r+HknmcFUq0iv2ide2uLHtIZYS4uk9H/oHzndc1rZdq' .
+	'J+5s604LuKwdkrHPP6I8PoLn+QqoT1ow9L14PYcl+5vHLPG5wZNF4+VcHomTECqw3Zyf0/Qq5m3CwBi7G9QwPJIST6Hl6DNhs7UcTM4AYM+ym9' .
+	'yQGJpDwCmq3Sa/d/BATeg9CwPFYUUp9XbtDTG1hPCnolGzHyHOW0xH0jYm+vpzasbZDtVpbnYLC8wt2RMd6U7+S7cHhzXZxqJWj3k0DiChZaCW' .
+	'G8W8CrwYFaaM/F/nox906o9ii79UR226QsqR/fZoBKwZbLlxYvpE63ht+Q466SvneoAoQaspq5mMG4LcM80m6VXv2qyb+pvzPwiwioELLEBT54' .
+	'+K1HIzZ+sHBzV/CYLHpI4eX0IVscrr05blnbSX1VDO0mflK5x5BawGco1SU/hSQbVOWQ0CZD5nBwUWKfDfJ47zHEJDKvmJXK2aGssm82CXhgfT' .
+	'tEKpgLyhQbZcaZRHfLVYty1BtMIQB0CE8S+vlZvhz/Mu+v7gnKX580wR+oeNAR3h+5ExKxO3OIFlEoAcGq3ZxWgzd0rl3nHiTg1/3JeLUY/2sR' .
+	'EscOhYDtJiVVNOx1Vncpq5hrXOctdmMKemo32MQ74GjxAxAR6Jkyu3IPLYM8DoavEGT8cGmbJQEMFcRMI4fDKvbuQ0LKo0dN4LuYmVBIYgOhLC' .
+	'tSJoDHu8gSyydFuUPxSdwy6rLipjQiyRJXzxIInDqyJxKnVikh3j29h94eIfUm7UXgCs0dBoX+VtmdZBf7y1PdSnhjzy76OsauT2AFwTj3X2N/' .
+	'dkM+gAsjzl5rgJbET0GmuWPjLjoN+rIfIsNtlh1mW6SeWVWYdf1gRG0oFzF65tPiMMdV+WSBEoQP3opDxwD/hztprOqz/K9xhsVTFU8YrxDCQ/' .
+	'2rMiGLcbP0HquAXcwOpEbQsUnBnozrZMrH40HKjFYeiA328u7TiZaHokWekN+noyQj8TRJfOvg0N5gPtKHO8PTiJM50OCfymU4kQ7ae7QAhQaO' .
+	'Yk2+UoeA2htazmZgVD0xQkn1SAlZApehloDP/mH8tquZ0WfmPoNMiN82ePJAOrVVPthVYCaTffGJTW53SmGcbniGkonTdLmf2epHCW3KFzCRZb' .
+	'cMOGFQwshWEe/2+mNok1a517ZBUm9d/gws1rgfco8sv5DKGAJcZnnTCZL5Kpg+eCuLx6wViir0BbbloXi2XyyioBKVfYygYrUPb5E/qDoDh7Mr' .
+	'tf3LtTsHylIF0F2MSrkPKNFxtVtX5TC9lNKN/fn5wVA1KQIpOWkbJL8cLaJTVzh+9Kbl+mmg8v6d+/cM+jXTz84f7bgQGCdLA9/OtoOyevlvl1' .
+	'5jgDPMITVXxOusYtzAo9EIJDmBzG4RmGDvvx6XufcrWQ0ld3gm94EGGTlTa7mvmUVF9Ph8KgbTs7Onqz/x9uDAapCejp94dtbC+Md3Cmzs/8Cw' .
+	'pwfHnr8zBVbkTUqH2/GF4mzVJq2++71p+4S6hpz2T5SbYs/TJ4BFrWEx65fYqKl7KwZuGxb7iQbV9rWujEuxQ6QYVj/nsRL7EZ9W6yXoM9vv+X' .
+	'OevXVIfYB1DNbRFDcMhlub6Cx4lCAthFyacp9i7CqRthcSeQrIPv8glY/6n83O4Su3DPt3v1HzToK3ztmLguR/ACVTChtu1HPiK+QxVsjc10hD' .
+	'EKn1vy/9MZ7L2r5gLnhVbuRpNHMBzOriw0VnQnGE6LgmQvV1WMedTnVbo1IfTOFPmusU4oeGJymrbUeTwHJDLq+rhsZROl7MsWgtdv2e9BtuXU' .
+	'sFWzbFAsOZaCzcMP0JAGfZpMYO72xeZOuAOf9EQ8kRygqdbIHYUZaSezvE4DPrjMAQIsxpkecWOypmUTTfiSvDRUXbP2BD2reldlttuXTLuOnb' .
+	'hZOS8umojLwIHJC6K5dDeTUZ/zxYX9V75GoCny7MfllchHem+sU+3+JfmwAbi2rJ1eLkHRfAvlFOWCzoN7q6watIh3WydAUnSXS1UdwJfKlYjk' .
+	'oWhXDOoDn+AFw4blNvefCvyRHCLSmIPA2YKfBJ4jeqpN0zqJ3I2NCKrG2CjV9hxL7/gNQ+gufoDUB9kg/hF2FXo7VvN3qG3nADncnhHX/ihCNq' .
+	'QjjvOfLdHtKCKd9R4dB6XBXdMenmuGmItN3eQza6xNRjuRxqhzG5RJp6wL1GD61jR+KsxUbEv+Dn3R37AeIOqtcAy/Tad2gbP7Ub3lukChyFlp' .
+	'eYMZER7TQV75AdlR/0GcT6twOt3eCURU14PsKGlADWuXfLegnhmJWJjAwOSCtOA15fhX+mxBO16CJG0lh7hJmDBCSt6obYTgiT/dshyGv66CD+' .
+	'3PWMojn0fpxsY1kRDLkCJPV1/oMxCYZxiVn3N57e1b3SsRBv2qexHd3/YIbQpWvl+k1NlwIjlqQm47gRQ9FKZx7++B9SkNH14DXU3H22GahLAC' .
+	'Wvezv7DgA8FJtv+Q7NmYjELkNwLFUJTKtvvm7L+TGffxgPgY+m8v8Ba2BsLmspE0p8hLvfKFq07Wqs41L39X1uey+nMcNuVsrFDi/q02+cF1op' .
+	'LzwDLw7asz7j9EI6bB/blGSXPqSNk4C6lNq405dE5ZZrBPRaVRG3xF69hgc3ADMlgxChXVN7LP8tUS1ch28Rxp6AMGdV4DVRXiQJnC8ApHg406' .
+	't1nRFDXjLsLsZHAckqhTKjo0QYbMlIVYsHhx+8xILF9YjfCHZ0m6osFA/DzFI3N2gaqiyKSbDexSiyOF5Gag4Y/QCocJk/l040ciaxgpVRUOmy' .
+	'Sre3uGEewO/OUjc/5BQYzDFCNCY/3Jr8qrlt7R+AnrOwZljk1F0WDul92U7aJsBZ8vDo8lf6td+R+T/i3vsIpX8Pkj9GUGF47lHuiRZiI3q8tH' .
+	'ZYbjyU5am1Dw7VGW0MM9Y3Sja43+ne/udPhtvQku0OQyCIGKCrR8B0FaRoOat/2CGnJe3k1brU1upYuBM6+DgdmuVBeDdU5rXe7Lu2AfkTjZ2S' .
+	'8bcYoI0ahHjQ8gyOrTeP9cddajCW3Y1biXi2MaMaSx2dTmQrsjiT3rZPbMlyezAhuOme2/W3uHRvt39NNzkS4j3KlwkkJbA0UFRQrtN3D5fFQC' .
+	'+gNfk8KVQqqJjRONByzsIBnGD+rSLmg2bt19MpO+C9JduRb9OrJ10+PjTYQCZzmn2VEX2j93lAcvL1xLyxc7yUmuUeQCx5kV6N6Kl6EPVLtxsk' .
+	'6Ap/LVxu5q/JHVxsl9Xo+e8BxcxCjpSWU/qXSbu4c2P2J+XS4xD7ewOFV7tWvLp4HTo8kbkGcQxshuseoV9BvUuQJKz+mKnJVVGD5CiwcdY27S' .
+	'+h9CohKatJdThaT3grUgoymvzaE3xFZOtWlru50mVeKsd3qnTAsK280voIQC4kuPdS4X+ZOGPtHJCQ6EPxJK4uPkEMzzzWY6455In4eBKwEoG9' .
+	'FP9zAUKFdrvyO3upS9rnSc7OIKfehnEcNDxqS8gQoa4mcpgenpiWIUoG2+joIlZ65hiXpZjhhTEiYAkOJm4TdZb5aRR9w4w+ETmwYlV3M1utiE' .
+	'kw9yC+O0xTqp/q5QOXCW/4u3Uq63Y4EsVLtA4RYdeUEqMOZTjFwqsDgT//d3vYYntfckJ92L0gE8nzGOkDmF+L21LtM9yCK8W+1w5y9D4PUBK+' .
+	'njjl9NEHfZ8EcDsqmxgAiuMLaPzXj/8CvEv2GhU5UjSHLYl26lAfl26vbvzfg9i95zEZTQvvwVeDol6JZV/A5lfk+fYsw90QKfIa9M9mymRA9Y' .
+	'a9hwAwgOwIQKiVJoEm3HELCM4yFBRmIMAFEjScmluSQywB7DvWZBiKXGZzlCD35t19/A2b0Cb2Yrc5wELsexEGyYczwepgaCG90LbpM4g3DjeG' .
+	'4rUkA45i72VU8AcfA5RvMk86UbHLrB8e+Y+05cNEuiT9VJ+Nes8kJer6hIE8IajBNi2M8btCWMAYXwyMWk5gcrTWQvgSjA72HtFSd4754fSHJ/' .
+	'iP7y27Rd2bRkukLFknzQYV0x5nTjMw6xFEb7RjWa/Sqzixh1JRSyD9GD+zrehPdybJgcDo91zHmEhflKGFRyGo/lfbzzEP4mFiypYrwI9P54l+' .
+	'r69YOoBwd+kckhdljhxAAGnFHy/qJIS7kbQl49vqreLXdOiB13zZKAeyF517ntG4Pi0M9//h7T9vjwn+H1OiOZnEXDgmouXc4OnHTwbhGMQB3k' .
+	'DcWXZOtw70p7lkbXUwV+KM2zfUFJXU35/ojF3rDZuhA2MK6D1UtFzx2D2pDHoILF/g0ZIyGqCQVRdhQppxwa35rFxfxptgUy14MvjbpnzevMiR' .
+	'Ux8VIvwPAeVudCIg9imKMYlmiRh0VZSUAO6nTINkjDrc8zdWVYElH2zpEgRG7RzYEcoDSU6kNdqUYU+Sm7lj3LESwXTENA2XxGLLCzt3dXr1dO' .
+	'Rdfd0vu/PvXMwWTiJiyrfZQVR31mJTVMOh41r2dusGgJxGi2zWi7jL00mwgbTTmVcI4813bsH+D4hf/i0XM4vkzYh5gG2NDr/voLwcdvND2iLG' .
+	'wQWYPIWrVXB2rY8VjjFk18kIymtGBE/x87t3VONDfEemzbrXyDM0w/jeD7ZYUdeeGisVsJVFOsZVQu/M1Zfu/fi2/jYasaxbfa9Z/FuhBv6TAy' .
+	'Rww4CmVVoFa33vy8aF1RIGzlVx/YDoxeHayjDnqvnlEehrc3JIiDvxLLE2ilrqUUhhFWmyUsqsV/sdpLyZWzTnK2Me9YZJqlBh/bwE0vCk5tfi' .
+	'bEZyV1/6IBfmC5bG6JYVKcnVQemeunjENtrpE4yiqIuBzHFDFiSPL2s/Ukf8exdmlrwKw9Tp6KW6kRNDGk2OdrkrWdI2TKLic3FUqvDzBiQhg6' .
+	'W8o9r/iPHTuWIeEK0rNCFAGvTDL+4WH2nWosDHM0cOah2N9c/pkWtXfT2aTSFvoewvW7/vD6g9vE9b6aaGQXg049UOXOo8alZrnCWMWxsM7ufw' .
+	'uU/wUdj3eGDv8pSqMBipY+w7QUJWmybWtsCX12XgzgT4MMrgR+fj2GtoRRvyTJ5tatoD8UNxCNp9Utqpf0NNqWi7exNINGwtHeej5IIVeqYi6B' .
+	'ifXwvnePIDgVRg3D/VLSGKxgKAa3lzni/pSwN17EK6VUsG+OUzS1lOMVm5kPIBG6zHH4dlmvfqIddDO1eS0JZ0ZT2rlzmhAdypbKDHHSeZTY4P' .
+	'e9PXoPo48aff7SVLrZ+eZX+hM3HBw8AbG5MhW72WjNp0x+qgzxISfNjumhXWHwVAKumEEkrjXKkuMGA/iGjfw4Sf9NVu0Bv+4epTzOi/zlc3nl' .
+	'7IUyMDG4vucpGO+ltkljvW59NITIEOWWHcahnE0pCfXt2Xu1I6tNUZ0XMcoO+/kpahA8Hkg/cZLHG953MvAgNvVjDhhbiPhqbLfndB5fUfCoPj' .
+	'd4L/xnACUrE1043si6KS8h02PQslWLSilInhBtGXEmwV+672cDDu5ofFm28v98XmAXsMpN+VyzGlj1DsZXBKVH/S7rw4PrIbKh+iRuYFMsJ/ws' .
+	'LX1k9bTHEjxpRbBppiPvjSp61rLQCwEwjrA+8pCXdeaDKSi9yUz40Mb+53Fy3BzDxXVQmZvz/YOJzhnC1DGpNwm6/kIRq/wZGJ042+THmoGo4T' .
+	'mRDD7Jm2T18c6/wrqBj53Me+o9w/XRjEIkh9gKgmmoQdECVVz8/uTozLAY5mk9mMokZ0zCH/JcDKAUtBk1n+GYJqO7tmnom9Jbbi824JuxlAMS' .
+	'JQj55jFq4aAkMDBsCHb0Pj9JxUlH2qQziBxoRagF/Cec/4/AQI6LEG6/H/RbMBCjq94rNpUqwRVDQZWa3piuXly1xYr7YPVg1taseL7bSKqp1X' .
+	'9iV+FsCAXOqF5uM30Pgb6K5eoFbuz34hDcOvIN1VOFnhlecLuIz/NerCXfuWa6je7PxP9fmvmWtmEtD/deKhMljfrx0um9rxIZMo2ulQifepqR' .
+	'WkIiqJJx9p2Gjv9R4LPoPWtvPAFTowKuxtrgJ8QCfQMIykkEQVUPfQg6kWgtT0LbLqHxB8ZamL8Z644x8xwtmmEwTgXyKat76Yb+hf55E9M6Co' .
+	'uDfN1RY/fvSv7OjkbRDoDmJ/4Lz9FokQRxQCwuUI9e758UEMho/MuRsVKPvYzTR39iWc0NYNg8o7Jw1XuYFNZ9VwPVrh7CLSxqLC+BGIKm9nqw' .
+	'4HskpyssVgdTwvCV1bdF3gQPW97MxwlH4m/RVX+kcerno+1fC7SqRYbLvscAvGt4QX9MYuYnn9Tk8inWiDhEvx7H6huciZshMOqvfcYtPiDHk1' .
+	'JH2OFdeAOpVYxm6Ch+XTiWRoc/ITH8qsT89unzg75qKnKlJOQfYZqCAus3N0W28yQSI1EO3dFKke9F6syw3Y+fHZOK6vbUHCM/WkKfNJ0/bgHj' .
+	'MZkAQXdxhxIaTdbb6njiNYTQpw8GTKgefCQuhUABc8SADkVwIuKOcrPk/fl2MCusXguu+wWHFMcSW//CeMK/YiCkUyBsaJZ3eny0Z7nnenMnru' .
+	'qTVGTblwFte1u7kd0V0d5K/mj04/xO4GBPeeNjN0H7Ad5m/5GhvzJkLw5xsvcpv0+jNrEtpC/CDvhTV/LxMqFUoAsR057fh6MeW2CSW5wAOmpW' .
+	'3z3w+wNZU8O9lpvSHIoR2xxi2rRWTkZ3dU4FR2PQAxRX0h82IDcfNWAhhHi3AOgKKT5p9O25Qsu1eMKFMMvVSmH3iEf55rZbkZ+HwX0TIgZkWk' .
+	'KuerovLjgVkYnpGNXV0pciJBkAvXASs+COtb++edMF7pj4nnhY9GGBamu70oWSUHZlq0KIt8IDJQtFJDJm+txakIe4C875fGPONsUkPbgZuvJU' .
+	'7Ii+XRzLRMWsfdNNYipZxHMcJ1QXIWWiFi9xFHtrxNbBT6B7pqrL2BrD8+6Gpuzg4FZyCWNEZDPZEqsmr+dCriIz5uzqQEt+4DtLUoGp/05hyX' .
+	'rePqnbBJwns2EVn3vh6f9pakceCYWJRayUi58gE0WbWiWktfr6vUe95Ga0ovDRaYP4/HaCtSsKxdoIjQvvA9Ax5Gr8UvOhp6jGXHDv+GU3MKR5' .
+	'Msa4IEs5PKtPsfuBZgFjtCh/RQ/SQMlP3/ajOU6NyCqK1fuNM/xoI4hoaZc8mq4BiL0Q7ew6iB/c7qLAPKyHALn/MuWOB9WFJ5QHLwdqJ2RpLg' .
+	'cWj7p/+ipm0rGXOkD4klmRsek+s7S5LCPz/tgYsgtEAtC/WQQnKtzTI4jm/z2Bkbv82JWXRx282p/92u5vouXuoMrKpNcy+eX1otlG4awB7M5+' .
+	'fvuRFQUnU0tP/gd+Eqt1qX6IPqusnNBmaYjPwDjBZDYhJ+n7jIB8lrIjf2K9DTIk2/3VgciLFEPnLXpEuNhvTiM+3wJE3+CXfNh945YSuMZ9xm' .
+	'oFGfMHkNuiwRsXavQfRx6SMdqgi6DLmi7v1aMcxhAp9x9zU7TaHbP1jEfvGn0zoTGCU9wXLoK9sp2L9a6fNNnrqbV179HAK0qCV6uayfQucjf0' .
+	'vd5GE1CwFiMp/qdZ8j29Ji4cD1Qv42qKkpTC8x2DEPQTDVNkixqAqUUgMlvsCjc3vcE8dQ2xeyS4dLDnouq2GZzVWCV3z2Sy2dqrp1UAUb9rLY' .
+	'IfM47dd+3KUN07VPlJl6JdqdoiImqP7qIcnNieI2g2fC1x8KCTtWpDx/hwfyMWMMKBbDQQgmDGKIRftIVKjK1GuzlVR8fOizsupsEdbPFqGnY+' .
+	'gB78v+HAzfc8qaqs0YJg1KmxRjn/3E9xKk8JU5sX5n2YoEdpm9qdxqx6x7YAMWXAzcWLHRIqSbyCLn9dit7U5jKY2IeY9lQHOqmPd78gkN0mrR' .
+	'jaCEBYqjd5/z2FrFQi+qkChQbjFhTkb4ly7skjzPvA4VMa/LQ33Hsb50yPl7zQ0KX39hbTwwfYFMmjLbEklnrThqoBtni9MPxyDWLyLRXhQCFr' .
+	'a8VtpAz4hSJVFBVOQOpo+5VpgJzYCoQOV29d9WbWuAXAc7wr28rGSXo4ZCPPjbUSXFVJCJh6XSGRCcaJHN6dTQrP5GqapwLJZbJbM1Tl1e4Wyx' .
+	'6SzJqT8ApaB1XTp8zG0cr2q2H5FdkltbewYntt0DjRcZAJNm/ZxWwGwBGLTtrolrV8m12siN85lVQVjqJ4KP27kuX9Ffo5xb6rVf11A5ZWWfOb' .
+	'lQwJI/ODRv9xf+iR8q4vOZgwKARLPvGS4eV8LqjrSTAXborE6GzYjxUWY/BsdeF0sLfAcIq4gUYlm3v2mQTis2twMa0pihkwuqEorMkLF5lgQM' .
+	'Hbj+VDQOZqkUbmaH7jM+gznanYG9AwD8RwsKYzPtf+nFaITPy+jW3IBQ3NrJuEcPFJaqBm6oeQ3wOCfyGRWv80UYWA1Y+wE/ZXXl5YDcrg6jkA' .
+	'38+oiFxtgMIEPynXz0MqIQqOMkS3aBF2ehtHjlYDq7BCyuXHilkdWUE62j19CB5b1OHHyOMBbd3pvg9sR0o/re7GgGd+KqeixCY3BmEZw1jiso' .
+	'Ns8DqTOfFgj12IRHxWh5k03gLVKr6YDXinGOj3ml0Nuot1cSUAfvMslHkiSVa/joTUh5IbgmPzgJOb702alW29fgt2uXIDE6b3BPrBxdZK93DB' .
+	'VE3Y6c0BF0WD9SyG430HGHHxefcNFrYKer8e+i0lmPFET0N/4e6OYYYZcmJ7BR/iMKIparGgXmy/6PolQ5+OBSPNzfLPYztVMRq5hEkY52LPKq' .
+	'ixMAiAvjSY+Al6XKPC7ORXmuVtptIOJ3qPLhLJ6J9oEErmZIgHpyMGwBWJDOP8+CrlDPyJm9pM9W+UaAQGJwCJnWp2L40MfYr/7hLGthKJClAQ' .
+	'bACUG+xcwG53kdtFA72CvIWmaDDj3AuXPSFzW0g8QOxeSEyWtpe4+8BlFv2SAzxbwhJYaSmGel2E6trroRy+6XPzag9RC9a+iWCXzWOYYx4F07' .
+	'jnsbKB6ZpJLO5KbER6QopcVz3ghxHpp08o6sK+wF5z7nHCeczacLRoMzbUN2J0e/++6nMBsoNuLcbhy/U7JwKNrS0cVVylzbPGuHeq7RTvib1U' .
+	'vy4rr0iOabG4Dl72m9z/vIO7eHzDB2YvN02VEXfh/lEk1PacaOF8isLSPp06CI2k7SpIyam+boW9ta9Bm4HOpHdmHsOyq+agUhK+Q/dNsKwwo8' .
+	'GkbyRkDWL56MGLmrcT+gs+ZV7LQI8IVu/IHxfwTEpshbI5HmJdv5e/zQJmN8rI7tHrChkjJ3CalBisKfp73Awz+p5xXP0kYbytEgvsqOwswzki' .
+	'H/MfllNRl1UiEBNAvSznuAVPkgZ7sQj0mN9U/Gn9atecb7WlZDp/fxpFUuTYn1XjGWhw7cBw6kHEXiDkZiEJjWex0IMcHNaoH+jdMPf+IyEw3V' .
+	'+HrZGqZkxRpxFGIAn6dfIdz+2h5OM2ce3+0ioGSrt+ZBI3CL+V+SM5AoXPcNHioKvd1uGJVhgG70F20DtbbYlik224Z5UfYjz5TykCd8SACpzR' .
+	'ooPgaA7rDZFrETLnHgLrwKdRmFcM6aNwHn1Ttq+45lEbcgwqr4j13Ajj8EtdDAkiybNZJKQzOd1rBDPEb7h6c7eO8jmwVZ+SZedkVsqNW6rNag' .
+	'238Ol8lkUqzsvPi0YIj6IwJfVA9JtMPaVyf7VJJHNQE2BPiL4x2cV9iJgF5aQKAU6x66vd0NrfSUfH4ND5TOeAbbxmDj3ZjwtwuHHXjfQhMocQ' .
+	'kxO3KQiqxOKzBF+fvTob6LJzkcQcwDKYCdwpvXhT1upgsPlMEqizSJ6hArSZ9Z9pK+bxjXiBdXAms0Uf1ETn4zDcJNNc/tkLlOt/5+Rpk3K7OE' .
+	'ne6tu83eTcuwZCy3f6+lGgzI1d5OGCyJOiVd2RAvl9Qh5MVHnUsRiPm9uUY93OuI056N+yUyL+vmw5X+c6/5v7TTbwhayYRbGeMuoeBUb8Q+wD' .
+	'2oLsfLlDVIBhGZ/opHXuDWcdtUdlygTTigxE/ns+hPdxC3d/GnSYGt3nRSDDheYpw+dPmNXAG2JUGgzITTBpPcmezIE7KlDpdmd3qys4X4piB7' .
+	'VJQa+3Rv5PROINvqrBl0BDZCqA1q5TSQwBSiDD/begSf7Wjn5rmNosOpYwSk9d7kTtatAtvER1qvC5tQ3ZFzD5kCzHKhDXeXFrkq7KBUo1bEy3' .
+	'2bWjT4L/OGcTHedghMXkkrpx1SWgdcIWULy4znOKfEFFYzVxL4hNSw0rfMfrDGRmu11YJVSlNIHysRmvdmAFovK75gKsz9aMmLtLo6HzSqt3Jh' .
+	'nvuMJjsB+PilEpWyXCa4sIc+4GxTLa1oBFcEquE89F+1G8kC6aGzcDhBlWylj2WVbXpA85qXi6qELDnsFvDjsxUWvBi4aRbXvNirc9xrFL1ErT' .
+	'8r42Vt3ZdBO4dQoEzElWwIry+lYxjgCzLVd7RpqQahbwaaLE0HWGD75LU5a8hCplsWbFmdJgE64+L3pa+MvK7erWDyuEK67yKs/9yv24q1QpFR' .
+	'5APMe9SbK3Eb3OEbR/ATEkVB6a4jaCczEQAMemV1LRV74iQLfGqOP6Vb7Vw62dzJW+l6wnWSwfFFdwjgbP5u2L9hMFKjnpIo+rq3yPD4dBWzI5' .
+	'z1iRsYGxSevwswomy7bCsR+r4K9OMMWYBTS/pUQuXw8d9zi9g2FCyG94/Obp7e8GPfPO8fM9J3DeK16I+VT2BDR4dHwm1qY6WK2fQjsRWRZhNT' .
+	'CXDf4n9h9tVAL+5cSyfW4DOT/TaqRj7j2DKhAYxf6jvQvTSGW3rTovEf90Ph3Qoce4Ep6OkyLr44B7PJGTBaR87V/aDtsiAt/rQ8l8JE7yhj0e' .
+	'jbnwJeTbIFLCzeOOL+Cm6+yzA48nol+Xh6NpAQUImn0cjBjV7mhXa0wJ36Y+XTg0xDTcF/uCfM7SgXZxPcPUH+X1six3+WoPF+fRIjuvTBy5HI' .
+	'viE7hQGG3q0klZ8l9oVrEEqZ5fVZ+ZJe3GYNWY31XXMeE4pfDywObOgWOgjy5a3w1dQ+W02Of/ywU2ka30t0nP1O+75LSZqoPXcBXZy2B8IbYT' .
+	'K9FvrjTglVKiftiZn8Yl1Lq06BYz4vlZlxFVPYg370tjp9vr6uK6CGRi9gkbL6vn5UJ7aTIxiQzDERzMYc7q22blGjMyoBoVGThrTDKkM/iIlD' .
+	'IYhDSvQ+HUPi36LczOes8jOfdmaG7/dRHL2gq8tj42lrOMyZPpVjI8ycUhLzmuZ9+lClJe4WvsAbAa4BhOfCE+ENR/zhkDLBeMkV12jBFm131G' .
+	'eXr4c36pUwtAClRNy4NAHGDPLWZ9kHZstzTMj5CSHSTCXqUe5jiUp8ETW/PVPSsUr/kvF798BgfUjEPG1H5UvSwmczrBA+JXccqhCyJi92ZEk3' .
+	'Ef+kr2itpwa22+hj8xXrXqjyl6u1yCNNWq1iSkQh6K+YpHYDUBLXFx0WuZCX/VctLmrXsthIK3mMqoqwG1rR8uIQCTV2398ROa11LR5XIRoZZy' .
+	'z8i2PaOPtkOUjuCx2eZk0V6jNlYzS29PCzthLv7XshVsv7WR2YfPlOuSTUkQLTOXifqJdKR1ybSuBg0cveCb+zHrJ9aCQxD+/6Tic4+qJAHb1e' .
+	'KDES60skfTkNNQkuVWM3fO0K59iPGGUDVPHzZC4PaQbb1pSpexkyIhaYRd9Ph54SnGizT5LomVXmSVTWlmbLoRTKrAU5ITVKjaXQnvUfTuinpk' .
+	'dLTZ6YelTej0Q6cdVqwMfGWAp6f8c9zpRn5GWD5uqsXLC2vc+MCgb9hIlpIsK0+8RM1kd62HCiUz5HUdULGh8xwUTbjn+bOv9TrKRjS/OuHMdC' .
+	'wNdjdeeLFRIeQOVEmfITJGDVun6DTbzWbsmGP3+CPywS1+6jxSDZ4k8LGCxQoHhK3Nwqox8eA4i9SUuEL18D3UT7SZTBeb/rtJeKNAzS6aU1sC' .
+	'20dN8FeleotJ22SL50cjWswUJp5nsJOsdGCxBbYLgeHetJ8qhNdB4Vj/eKaQcYn+vLHHNG+OnjuBlp9V7Orpzs4Mf7qaoA3czRmdi2pjbJuY+s' .
+	'e/stIkF/Pcgd7yHOLi2lWziFNtyy5gmAOnm62yhUgCgmquNBgAzJe0idn/cH3tot3KZyRdvQWqKtIlI1ohQAjbpk3b01JhIiGaBrVmY532V6KS' .
+	'HCMjeyEnWhWFcelZWKSiBVULUg+kJht6Q6Can783Rdt5tfVcKYzkXsnvOlmPhgRUpKaTfmUbau4wYDjDiZQvA7mt2/u5XH0X6Xo/sSQ/NYGIyy' .
+	'1HW3D7GN4X2/wKG2m/hS4nabpSWr7POiVK0zw0VuBUqsuD1X2G3YBw/nRbhqZQA1H1jFllHb4GtUX0R0lWZX7eQyN/70pZp91G0QwqrH4Q4tm1' .
+	'Ao32f/RpCFGvyO6EFycx7Ge2MTHChymt4hWc3N/7ZKgcb1GdULa4AfDgNmbvhnsz88tK3f8jp5iq9/GPrluUOBXS/sKNqdzRLRHoVyBzVPr319' .
+	'zSBWtKvnifu3qZKVRfAmWe49fzMXKBJYqa41i7vogwWX7i6ES9vNVGxXabbS8TJlw5in9X6PHJjoG4q6iY6cr/CLAzmk4RPhyuATauam0RgdXX' .
+	'KTvrYdcy1gQ9xT09yr1FWp559purFKBNN9y2Jz9jP/z5+A/XAh2pZ86NRe2cWd80UvDIXI6bEQ9BmMHygN6iwTauGtWqRufs9vFjDk4KDxDn1b' .
+	'R3ZuJFr3uxsyJF3Ylq7qernPRei+HqCv51CzuTmmB4y8NHiNl1semT0u73YvDWrj1Xxgc4Konk+1h7nHV6DaxtO8d66NH4eIQFZjLLVn9+1a89' .
+	'5lIlY3rK+CnOoeQIALahsjWOq5oUHSpNgQ/9g/GU8uz1Rq3v9rIJD/rIskoEsWgvu/D5EIckKCg9z54OKH+67gscOt24Sr9VHYW4LULlsa9s3f' .
+	'j68n0WDxPJ6U1oygX0z4SHiJbwsIuH9HtitcxsCq+pDRdxhkoK41ofstROC9qEeeD6HaBcWq9aW/yJ5jr9SFRpfiEYfkDooYF0KwaYY3CGdCni' .
+	'zIPYeAW6HemBsMvfNHZhTOMnOUGWUUeFL3Kc1LcTAo3nYIdSmd6FBJvOcaq1+TrvJxpHCFIHKr0AZ15hAnp2o87o+xvz+BIDxzAkuX+Y1ffc4w' .
+	'4f8qvtHKbUcR5cWIB3nPGRfAsv8n+Sm4mXen0AXGGddk6f+NZ9z6SYmfo0G+8NFkKjV333YnrISEVoFuQ1H5fLT1vhKD6Phy+eGVB/xtEC2t2O' .
+	'm8FUg3yEmvYnFA8oyFk9PKq5Qpy93QZR+Ie4UOZafNn2klOwLwNed/rGeT7agtVhxblpU0Oq4sY5tdLMXONC16uN7fD1tjejiI2zfKloqilUxf' .
+	'jd5XxH5B0sjfi9QlX5SOoqH5DpRGfm9U/DCDBFLjjKTyrSjWhDqoq6tsW4daK/ZXsoBl5YBwDkDcb2iUom7lCBUvh+BN4tN3GrdvaqH3h4Z0pr' .
+	'g3YFk/eXYrdd6Df/bcVO03dD5Z8U6qmVtFSOqZ8+cXwgDh/znXG+bNxriWM7TZevDG/n9DgGqatJHqMvPXmzitI5voGIL7N+Bpcl3KZ72co/eB' .
+	'30mcUSKHPksYPZng+GIrJyZcvl3C1O5Dsx+4QrvqIunCms39OedOk2Hu7rEn+zvjZQq7iBRocL9eJGG5Jl3w+/oU5d7viv//v24dXwNDwdPovQ' .
+	'zryRBgJZUXmh301oldE+KH4E6SLlgswF+8nruBlmXMc7e/o2CMlmE+rcRRWVJMbZooiGjOqawI262YOCr3KzB32tsaBtv64Gd45V/bNwGn0Rd4' .
+	'3m7AXpvCX6rG5z+RQ+QvrLysDG9kdc7oU+xZ8sb9vI9bMUCUb/Qwyqcqx1qeF90tCPxw0DPNXjrL4m4pR9r9aYfIdqfrG4lzmwvkrmtw7Vnhaw' .
+	'vXtRTIGckpBLFjVS9t2tabK1oWvHg6lBOZmMWcRm0eGbR0RLvUAPzfww+MULxMVomChr+LV2t9McbANxn8vkEifizsARI7T832Ea73qmkLj2Ht' .
+	'Mm0tDv6C5UcUHAD9G5TslpMiX0CSqFEYsq5kgNg12NpCJZ+cA+F3awMIon/qkXx1WOcPk0i+lUArP9c2rHkW++INuM4Pp8yZ0HBl1FLMR7Jk44' .
+	'DZ/yRLj5b1QQS7O+5qI83vgYMSJdwMKo+7xI911QJeQkNyq3S7Z2w5UAIEkIWbmHzxTP5wIsfK1pH60Ogeuq+CbGmbf9SduOVw/zmQbOkXsIvx' .
+	'KlKO7R/s5N4HJMW7kJpMWb4XJvPpIl5+D8qrMeA+S/ZDOPb5xO2YSsSHQmiVJjOy8oQ7aYnkPmCIeeFwWnJdlGmg1AdHP32Vd4L/XYV+JCCHT6' .
+	'C20uUZ2vUxKtnLm/+Fbs3ghD+tVJ8yFHXR50YVggNOJt5d3GEJ+1eQ1wv3R7bsOtD5JWFfBX7d767w05tXGHBvEpXiU/1AFolFrvuMGTwMVVqo' .
+	'/dVoeSyzzetznImr1BDATKZ0/lLlWDq2cn1n5hET8uLlV7ycYw6Dwai/baz5YGyCNrNqHp8J8zluDQ5D2M4dBYj9Y1R+bMNz4MKTYd9frb4waS' .
+	'2kLBKepQSgAv87d/C6zM5lu/92fHb4hbhnTKnJXJLbyj9jmUMpRdyeXqJVAzfOud89tmKjHsEMjzsZXRJD7UAzn8sfnZgF3LuVXFlqlumDWUXC' .
+	'K6jGkYmKHMHvHbfx2SHa+LZ2d/bNJKd1ixrMC7Ersp7mVipOOHoxOaM2XpUSnkD5YUENhc9msK6JzATZ0b7v1PyJA88vZg6+U/+yCj8f++ldSi' .
+	'zpkLbAKSWPZmarn9aESTWvpnYA+Io0qCuADs+rVGxhACruKLAbwR/VoqqWDV8xZtPDFST0CEzxYO7CgWOyQm08fN8LEcpXY4A4vFSEiJYGaLsU' .
+	'r7ZNB6+nBw0xzLyz3QnmLIvNZf8qTDGI4WlXKpWD5KxIT2L1kIK1jy99iEMxh6nzT7lrf9mts6bTqHwD72RtbxHcJJmuGQ+oXE18/NnhZwzI0R' .
+	'JFmLQUpNeInADV1EWQhgtDtOuhgvFwTwphI1OaJgYuz8akVCI6KxxTI7+JgaDweyxEh7949PZEghSqJFYYasxm/qHsyhELna0XzLDAfSp2S2hd' .
+	'pOjMCEm2S5SATOKTGZu1RqfPGyLPGRJ2VE0vUb5cXuj2lojPWe9Rvy9g6rqwfGLFR0QTY7YKIsBztv9QhuiwO6Vu3DMJ6JZhbZYmXAhphSN+Xu' .
+	'GWude4ynoPD0sA7DLFYbttrfEKpUNNm9LplBM7qx3u9MHsHmVjyk5HLcFN801IeaT55K01L7uSM4LMo4GSfJGK3o0DHTc66JVJG1gnh6CjxIqM' .
+	'mUE4szr/0wXZ2RfGY55HY34u0DVCJ/K+38Mj43cEsqVGtv0dlhpz6xaPrPmrW4jBxYDS/ecWckodjDXnun71bRxIL7H5T+B1Hb4wJAIkDDitg4' .
+	'mzmq8Id3EQxCyUH9pI+DO3EhB7xSC57pJ1joC/lGIo4O0WOFoLc4rsh4A3c58PDHWEGGhv+ya9/hc0fxFVKu8MIwm0Cl7g8ZHmI61Wwm6HoDKJ' .
+	'vTLBdvG3UbPO9Dz0GT2x+eYyoUU4Je6NcMTSbTkOfxawRR4djENvQioW6fcSFoXCf6u3WZyDS7iAQ4ZblrKpRh3mfKZM+JOOZQn5k59nfcylPg' .
+	'FKCAYFT9x22j7F6mDXoHQMXGddUTeQKw/EaTqQb252N/wfCF7Y6/mvEcmkl4IxsjRxFMyDZO3R2sgKT3IayTyOgygdvKOgHYF+mSPfyLDbu6uJ' .
+	'9gKvWrLe0KM2pA/cFlD+KqKL1RiRpdIiUAAmcaSf5gjwk4hmvAOjqnXnhqPzVj6hn+CfpDOhRfFNvaT9VzZBaAWYmDs5677C4z+vprH75x09fY' .
+	'5vOMT8WCePYB7pSsckCU6ODSm/coZ11o/2XfuC/IHuqKvLmoW9+BQnl4i4u+QM43y6mlhRyKwSsI7kZZuaJRHZJLYzZ9IlOcv2lBX7FyZ+PzH4' .
+	'6H73eDWGeJpg0d8tnING8tH70axJ8/bmgujCFQRax6mu/JAK5EA/ieOiYfDvRoxu/RP1rjvzupDzaQGuthZv/Apr09MMGq++tGkLep57xaCDJs' .
+	'cVRNyV4fMO2HcnnefRcylHf6JmP0S6bhSXJxttm5CSbFELVBe7FIdSNi/iaP+unjXy5i+1j8sy/f06YHScMMG/XfyoYBKl65uDHyn+dsSdJnsu' .
+	'tn76ofDe6i21TvjdIWs9JPue2jnZ9QEFVwTdbsRXqkg7GoHipuA/L5rb/D66+lZRx8B+5GrqVBIm4eqyrfTnANDmpSLHSj1u9R1AbW4s0Ug643' .
+	'J/1m43CUiYSficV4UUmb0sU339q9JzSfuWDedUopsbJAyZxTT6mKylP+VOe07DVLDuZPX/qpFztCa+5jwc8GkiteqLSPb32aBJmtAI6yRShmuI' .
+	'KvROUhN3Rd/yNVDTJ55u23m+Zw9HrRmZijb6+5WjDe0EZ5NoKfehWC4tiJXSevQ0Fr2mojcnUBxM72BPAlZ4RO2AalBYIfF4IQJB2oChKS+JK0' .
+	'slaUpL/0U0kAWSZupX4SD1nEg7/s16qUl3fa353SACXkrl1GojTBCm4aEwsgOFBbfwUXsIc8h5nL9eSomtFULI45UqgyNXeshTomHu4F2NvuJT' .
+	'cjq+rsCBYxoNYSe9G6dP2fpyyBkZ8FNmHzOf7ceHZz+yqXr97yGWF05erPnRKLe9gqmBs2y2aW+/eYQlfUzgo07lr6REyE4WuTdwg7r6SoAwiR' .
+	'piNAaRChrB6/l6w/95ATa2vxIzb6b5rN5Z50ACWEkbI/goepDt4lRg7frT/bJuavmkDLKF/zRMgl9t714X5wkeH74CibssncjARJk4p/GPZUKK' .
+	'fUXd+zs7yQgao7UN1Odx5FCs5bvKSaAGjDYIHUo1se+Enj2+pV5WftAmFdC9ZwSMqPT8Ga6pZ5xCrVqd+a1Vy8AOAQixoas3ZUfw7yLEiK8zMr' .
+	'4HaE0t2GrMaPC7lv999O/TXsBSaAh2LBEDhKqkE7LvO3xu7/ueXyg9w10XN5pLdrBVanKPwHtVtsb8l4JhwOUyHUdsBAZ9barFcWlPQlaXbZP8' .
+	'UUbIrILAN8sVvQcn0EZomwIqH/2dWTDNt9Bci690MYVyxOriW0zPU2czgxf6nGEYU2vsKanXZ3+KJ0ayMlYJ3XDBVq0oBEQHa0H9qKk/o1YL43' .
+	's5UEhQbixJSJMcphqamohcX7kjIEAWu2NCg5h0gl//FEA9CVlg5Y3l35z23oD/yVeP22WokZgAgVZ6t8riQjdNkla4Kf69FSJuobDWShOF3IpK' .
+	'whVdcNBfVcaXJPUQKdxskcBAhQfh+y2ujtFEdZRCoyRsyofRAvfE7YDuNHj7eM6BuE9LRe9ekwEVR5Q6ogntT9iZB+pa1I3GDLm9EXv8/dGMO3' .
+	'Qb2qwQt43LO06xveaQEpzHLq8uocZzk/ZvW4LdQswUqjkwpYWDUP5LyUI+PaEdH3g5AcpEl9+T3tjpDIHaSGsGdlYPqqg4FXbxIq1ZXZVTFf2N' .
+	'NdD1LHg90Lp3RPmuZgBhqjCCDnyncFGpnt9YbSBuHpuFiXk7T6FBPPDxvxNZBgQQQDnDpgjCTPKkMRc8uzHyeuy3M7M4zOIsq/TYrHwYmH3TTX' .
+	'r4lE/zjkT70PXc0DgY8BhjBARhxShlJfTR4OsRZd7xnuHZtG6w9QMpj1C8cdZmFgSN+rayJl88JSJYJN6j0GsO8jC79qNqt3K43nM+gXnq37xJ' .
+	'02wgN0ykjraPaQOKAGegBBLtz0wDuYHtbNllnXVdCeEcstsHW1w/Wvv7JiticVrLAVjKaIvQx/U3amhdcHmJbi80ptv/Fe/ntY1N4J7KSdcCj4' .
+	'vnUKQtbLy0McWHN0kY89eyiP9HgbTz46JQeYUab78FtM0BYOtWa2cBXf2PVJnBg4o8QBiAExi2oZlq6FSPfWqUKV2CXSyNY6GsfUvTIwhPJ/AF' .
+	'9yMsuvTLWnbvXW875a+/7dOj8/59Pcic5RvHnYNLO5rNLf//4J+1Pc1vnDU5bkO6T1TDoHAE4krqKip20ze5h+/tKe6whDTwjzWZmXRosx1gQ+' .
+	'/8/Gvui8dByMmiDcPL9LkVVGA2MTm9+FDZnuVUHoYApVfi5l1JkELKpasefb02zfcuiGrhtYlTagqXQD1DSuttiNIZ/aV2Q1sas+1e7ZV33L0p' .
+	'D5dnaHsOOwlk6p6K2NBzakff2nNMPp35oDiMeXZ/Uq3Q/jjr7Xi72tfg4XTzdZ2yJ8T9Eh9t4TBJxG1YCAA6MaeBS8ZhSKhWG8hmhKyZ6hOKUl' .
+	'ftusaGHDjrQaSgCc95D0kLW4jh9YaDLkZh0ctHJS7bMJyKf3HAMb7mVsFfqXrsIPlqu/7vtTHHjL656P2B1p6CwKFJpQjcNd/rbm//erSeLuVH' .
+	'EQ5j+Pt4ZdLL7E4g4X2SsafmBppE50bhdKE1uUc8Y1tApxmgkiF147q40rwz57Xw+aCkuqDzuQUqnboc+S7we/qeT2Ey7VlzGHKYCfCk971jMK' .
+	'aJPHBxRCwNayPQ0M1DYmkMz+i2Wwc9mQskEdnNCizg3OmGcVtwerZghmmiWbAMrkFV+FFoXHhACEWn9ECpZHrq15xMBG0FpsUUbhzpZPO3ESNw' .
+	'hCCJH+GaCnA9t2sva2p0p3BIeSEyPH3Fga4FTZmSwnp2ARscIiW/0gne7ldDNch88Edr7R+g88qykIb1CAfqlXooCKyhqpld88FqJljjs5Hpr0' .
+	'V5zKfSGZKXIItJEwbyFUf9fW5U+udWma',
+	'e83879962f5f7fe05cba50de8826072e000f0a4ca5786568456269af66782792'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

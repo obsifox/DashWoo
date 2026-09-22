@@ -1,299 +1,114 @@
 <?php
 /**
- * Token compiler: settings -> CSS custom properties -> a versioned, local file.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
+ *
+ * module: includes/design-system/class-compiler.php
+ * sha256: 65c34a7952f0c70f347d0534f2fba2679ab2ce93fc56793b5655abe802bc177b
  *
  * @package DashWoo
  */
 
-namespace DashWoo\DesignSystem;
-
-use DashWoo\Cache\Cache;
-use DashWoo\Support\Filesystem;
-use DashWoo\Support\Logger;
-
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Compiler.
- */
-final class Compiler {
-
-	const FILE_PREFIX = 'dw-tokens.';
-
-	/**
-	 * Singleton.
-	 *
-	 * @var Compiler|null
-	 */
-	private static $instance = null;
-
-	/**
-	 * Memoised compile result.
-	 *
-	 * @var array<string,mixed>|null
-	 */
-	private $compiled = null;
-
-	/**
-	 * Singleton accessor.
-	 *
-	 * @return Compiler
-	 */
-	public static function instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
-		return self::$instance;
-	}
-
-	/**
-	 * Hooks: recompile whenever something relevant changes.
-	 *
-	 * @return void
-	 */
-	public function boot() {
-		add_action( 'dashwoo_settings_saved', array( $this, 'recompile' ) );
-		add_action( 'dashwoo_settings_imported', array( $this, 'recompile' ) );
-		add_action( 'dashwoo_settings_reset', array( $this, 'recompile' ) );
-		add_action( 'dashwoo_font_changed', array( $this, 'recompile' ) );
-	}
-
-	/**
-	 * Flatten a nested array into dashed keys (used for the Elementor Kit shape).
-	 *
-	 * @param array<string,mixed> $input  Nested array.
-	 * @param string              $prefix Prefix.
-	 * @return array<string,string>
-	 */
-	public static function flatten( array $input, $prefix = '' ) {
-		$out = array();
-
-		foreach ( $input as $key => $value ) {
-			$key   = str_replace( '_', '-', (string) $key );
-			$dash  = '' === $prefix ? $key : $prefix . '-' . $key;
-
-			if ( is_array( $value ) ) {
-				$out = array_merge( $out, self::flatten( $value, $dash ) );
-				continue;
-			}
-			if ( is_bool( $value ) ) {
-				$value = $value ? '1' : '0';
-			}
-			if ( is_scalar( $value ) ) {
-				$out[ $dash ] = (string) $value;
-			}
-		}
-
-		return $out;
-	}
-
-	/**
-	 * Build `--dw-*` variables from the token map.
-	 *
-	 * @param array<string,string> $tokens Tokens (or null to resolve from settings).
-	 * @return array<string,string>
-	 */
-	public function variables( $tokens = null ) {
-		$tokens = null === $tokens ? Tokens::instance()->resolve() : (array) $tokens;
-		$out    = array();
-
-		foreach ( $tokens as $name => $value ) {
-			$name = strtolower( preg_replace( '/[^A-Za-z0-9\-_]/', '-', (string) $name ) );
-			$name = trim( str_replace( '_', '-', $name ), '-' );
-
-			if ( '' === $name ) {
-				continue;
-			}
-
-			$out[ Tokens::var_name( $name ) ] = $this->maybe_font_stack( $name, (string) $value );
-		}
-
-		ksort( $out );
-
-		return $out;
-	}
-
-	/**
-	 * Font tokens get a proper fallback stack so a missing family degrades gracefully.
-	 *
-	 * @param string $name  Token name.
-	 * @param string $value Value.
-	 * @return string
-	 */
-	private function maybe_font_stack( $name, $value ) {
-		if ( ! in_array( $name, array( 'font-primary', 'font-heading', 'font-body', 'font-button' ), true ) ) {
-			return $value;
-		}
-
-		$family = trim( $value, "\"'" );
-
-		if ( '' === $family ) {
-			return 'system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif';
-		}
-		if ( false !== strpos( $family, ',' ) ) {
-			return $family;
-		}
-
-		return '"' . $family . '", system-ui, -apple-system, "Segoe UI", Tahoma, "Noto Sans Arabic", sans-serif';
-	}
-
-	/**
-	 * CSS text for a variable map.
-	 *
-	 * @param array<string,string> $variables Variables.
-	 * @param array<string,mixed>  $args      selector, rtl, responsive, minify.
-	 * @return string
-	 */
-	public function css( array $variables, array $args = array() ) {
-		$args = array_merge(
-			array(
-				'selector'   => ':root',
-				'rtl'        => dashwoo_is_on( 'general.rtl' ) || \DashWoo\I18n\Language::is_rtl(),
-				'responsive' => true,
-				'minify'     => dashwoo_is_on( 'performance.minify' ),
-			),
-			$args
-		);
-
-		$declarations = array();
-		foreach ( $variables as $name => $value ) {
-			$declarations[] = $name . ':' . trim( (string) $value );
-		}
-
-		$separator = $args['minify'] ? ';' : ";\n  ";
-		$body      = implode( $separator, $declarations );
-
-		$css = sprintf(
-			"%s {\n  %s;\n}\n",
-			$args['selector'],
-			$args['minify'] ? $body : str_replace( "\n  \n", "\n", $body )
-		);
-
-		if ( $args['rtl'] ) {
-			// RTL flips direction only: every spacing rule uses logical properties.
-			$css .= "[dir=\"rtl\"], body.rtl {\n  --dw-direction: rtl;\n}\n";
-		}
-
-		if ( $args['responsive'] ) {
-			$tablet = (int) dashwoo_get_setting( 'typography.base_size_tablet', 15 );
-			$mobile = (int) dashwoo_get_setting( 'typography.base_size_mobile', 14 );
-			$lg     = (int) dashwoo_get_setting( 'elementor.tablet_breakpoint', 1024 );
-			$md     = (int) dashwoo_get_setting( 'elementor.mobile_breakpoint', 767 );
-
-			$css .= sprintf(
-				"@media (max-width: %dpx) {\n  :root { --dw-font-size-base: %dpx; --dw-breakpoint-current: tablet; }\n}\n",
-				$lg ? $lg : 1024,
-				$tablet
-			);
-			$css .= sprintf(
-				"@media (max-width: %dpx) {\n  :root { --dw-font-size-base: %dpx; --dw-breakpoint-current: mobile; }\n}\n",
-				$md ? $md : 767,
-				$mobile
-			);
-		}
-
-		/**
-		 * Filter the generated tokens CSS.
-		 *
-		 * @param string               $css  CSS.
-		 * @param array<string,string> $variables Variables.
-		 */
-		return apply_filters( 'dashwoo_tokens_css', $css, $variables );
-	}
-
-	/**
-	 * CSS built straight from the current settings.
-	 *
-	 * @return string
-	 */
-	public function inline_css() {
-		return $this->css( $this->variables() );
-	}
-
-	/**
-	 * Compile to a versioned file in uploads/dashwoo/cache/.
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function compile() {
-		$variables = $this->variables();
-		$css       = $this->css( $variables );
-		$hash      = substr( md5( $css ), 0, 12 );
-		$name      = self::FILE_PREFIX . $hash . '.css';
-		$cache     = Cache::instance();
-
-		// Drop previous revisions: the cache directory only ever holds one tokens file.
-		$cache->purge_files( self::FILE_PREFIX );
-
-		$result = $cache->put_file( $name, $css );
-
-		$this->compiled = array(
-			'file'      => $name,
-			'path'      => $result ? $result['path'] : '',
-			'url'       => $result ? $result['url'] : '',
-			'hash'      => $hash,
-			'bytes'     => strlen( $css ),
-			'variables' => count( $variables ),
-			'css'       => $css,
-		);
-
-		$cache->set( 'tokens_compiled', $this->compiled, (int) dashwoo_get_setting( 'general.cache_ttl', 3600 ) );
-		update_option( 'dashwoo_tokens_hash', $hash, false );
-
-		return $this->compiled;
-	}
-
-	/**
-	 * Last compiled artifact (compiles on demand).
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function compiled() {
-		if ( null === $this->compiled ) {
-			$cached = Cache::instance()->get( 'tokens_compiled' );
-
-			if ( is_array( $cached ) && ! empty( $cached['url'] ) && is_readable( (string) $cached['path'] ) ) {
-				$this->compiled = $cached;
-
-				return $cached;
-			}
-
-			return $this->compile();
-		}
-
-		return $this->compiled;
-	}
-
-	/**
-	 * Recompile and log.
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function recompile() {
-		$result = $this->compile();
-
-		Logger::instance()->debug( 'Tokens recompiled', array( 'hash' => $result['hash'], 'bytes' => $result['bytes'] ) );
-
-		return $result;
-	}
-
-	/**
-	 * Public URL of the compiled stylesheet.
-	 *
-	 * @return string
-	 */
-	public function url() {
-		$compiled = $this->compiled();
-
-		return isset( $compiled['url'] ) ? (string) $compiled['url'] : '';
-	}
-
-	/**
-	 * Reset for tests.
-	 *
-	 * @return void
-	 */
-	public function reset() {
-		$this->compiled = null;
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
+
+return eval( DashWoo\Kernel::code(
+	'includes/design-system/class-compiler.php',
+	'Al3S0KW02Vw9Qz3lIicnAvZ+qktSf/8pT1wkNX1JNigI8NqwkQ4bthhyZINjPPj2tQ8+PS5vNB2rb5LY13I+JP15msJrNTqvd+AUMC3FpyDv88' .
+	'HQla9KXNStKKXvLZdtALnJDcyFbzHI2NsVnlldfpps8tBvxInsuLBtW83n/s9eUgBjgpEQi+nxGVBRuoBGBKeWqfx1r79APD+/VYU/3rkQOByf' .
+	'1lMrkHZBI68fUhR0Z4Z9tQEuriCIu8rvXvXhMAVHTTZzGXW5OsFTliX54PXR12R9CVVpyaUuwFU1EOcaa+g3UCRpA3FuU4nqugB8lrXhVU+mE1' .
+	'dsxftj2jDA2Niyk3jgavwASctp8s8X0GdCxEP9fPBNZL7/foigBYinsPauodG9OA17BNkVzlFVapyMFzKWs/Yg+ePq9iHwLmemCwW4nfZUf9SK' .
+	'wMqKOZ8TpHO9SrCUfxIB6Q+ujnHK9ON1o5You9mHWVJNssXolSoT7+rA01NdxNY10wFWn7wKRfubH973Aiu7Hr/TaouAOdf5Tk0/AoedaJIRl8' .
+	'e47EuasVk0tGLiwYlxpCZJ5oLpMMJQDyiOZE1/wYl3LaUDqi9umnNnNt0fkd1g3vTF0vLjoQrQAlSutr8aeP+1us2SgYVTwaHrxBsk3KtJp0Or' .
+	'sJ6nIIXjye72Pb5SMj8cSqawfbs0z8Vlt3K/+HGwibREWYZNzh18vwp4BlsGWleMSj5YFaH0c2gBcuw3Y1vRLU6v79sRLNkRGy/cP383tk5vLn' .
+	'DvpOMdFtHWtQiMjcJwjNVfzbDCgspV8oTIf5K0UTJXzX+DyoGp4VUVVz5jDAwwu5yi8615UFZKKJGUqqtjwLV6PhuWw5A/5sqGGYSrNZTqzh7x' .
+	'xFF+6MlJu/3902ooxS/jFy7LZZXU2hzt++vV1HJ9pZ41bhyuBe4gAy+67VKqF0jxiFwJS5x6SQOdbyWHSKpubdaAjPHfVj+yvBWE7dQexfk+6L' .
+	'9YGNWk8M/ugM2M4DV3MfS9OELjwrGqhOYFQUKJWLBJ8lGy26r63T/j5ksH+y8qSUbx8xQP3L02GmSnAKQzyRpeEkWy9NPlTk7zzzuwiLDY9hHo' .
+	'r6890sYu8p2MQeloXzLcPHQ50shra3teYJQs+Ygi4v32YzGjJKhTBGz3WjfZxJd/bnXaDYowu+yunNcvMpNStFHY9uyjODB5Il2NbWowrC0EQb' .
+	'm7L8ZcJGMhKaamIaP5vhW+ZtMORKpqM+9rpKsC0Q6NRWCyjuYwNNFDooJQ/JyUTsIYjgZ7XKAfWUddYR2yzBkRiCcebiQiMK8OO0Sob/XYBGzr' .
+	'Wkbi3sHPNvxAakJvGMGq7IZytLOnLScobHqLLPfD2LVUPZw+COU2GenkXqAmXMAIi/6KPKGUHCrt40bUTpWvwznTi3LYU2sIpj81M0lVo6JUTg' .
+	'Ovqz40+HjTR9ZI/RMb4Nf6NZ3ovmPEIXDOgc5t4CNZQxzXcX4tLSVR0VW8vRFbC2E2dVeZRbcyJcPa/mSGy4JVA5JFOaWMpKrNgPZkcXxW171H' .
+	'4Wm58/ui7R/mbXauq+2kyRe1Wkjzx1rWKzAC1wwCh/kZIigfAbsirkCpmaSjQBqnq6Rzh031IisqumCGWfRz/wTLdlFReA7rkzc/PRv+UkpvKz' .
+	'8Ptaj9OcJ0cBPEEFGTMGTyrqv/RM0/yegteJcTPp2TRybIhvEt0RiEq9Tft9sPFNd+THy4XUZmNKPzE/7ZjIL0+KPx5RaJndMNkmJIdBszleQ3' .
+	'SIwPKFeWN2qI/glAKCxpQLWlz4J3dlqXYKX/UTalfIbzIfHTPIwyYlAiGwcCMRMF0U0XSfgov+34OR3tUVpWmr3svavQLrkNlIPbd65bcenuWT' .
+	'j00ff9qt2rErxobBIPD8TvPD96YGzRIBk/UvvfNVHVdQ3LUony+3Qw2A94KFj97kG8uCEx4Kdf+nVJ30GN0br1aVc5cEzJw0dIlDv12OKoqt1d' .
+	'rDHeXtnvExlhMi9MxBPvpCKlVTf5UCY4guhL8p3DXXHkQaMafmpyyIwG/lbHG4Zcyju9TFlYPo/piY6N5BYUun2fX1rRkz8cgXRMgRU2DZFBFJ' .
+	'4TWyQKin57229clRWFJwzdZSoYgAmzzeyG+6NGqKcuR3kWEDp3hWAkLvBPz6nbax0mR5Jq6WTec18wd8suGoF3QmWUOeXsElxWzp+OT5Gw3bf5' .
+	'8WTOMlbrHh1n8NwNslfo6bhQBZG7sKV/b80AR5qtI7OnjnvtyfW768qXF/RyXeLxJo4VYYMo3Rq5xHv/JEMj9mPQdq04v9eLYRao0dvnoswjtk' .
+	'nyO2pqXrGwbVm9Q2b1b8wMmHErd2W8RB/JwQOM0uVQ9e1OLbHx32ExqxJZ2ovXLetbzl+A7ea6i5irXm3wAdzbe4G5HACIshspgHahG1gXc2B/' .
+	'GaTFcXprjbTT+Vm+o8xgDPnSy1qk2b+eXWlK2CH9Bt0ipv7UUhgm5WaURB8Zm4x6aVPpn23wYvIaiqe7qoZNfTE3LniNCer66TXdqaep5dPGMu' .
+	'Cc3HxzOERC2DTzLAmzLAcVTvVd7NU6gQVbqNnLkx5vlAkmRS5WNuSo5aUAvPpUizkkXo0kf9V8IU42jVY6+zLjM7DHaLH+yhdUii0w7D/Ol2Za' .
+	'DsFw644RIs5jL2ctSoqvX90Wlq5pSF0OZZ6bPdUTOYqj30byWuGfmJri+3hgwdz1EagKzmP8cwKO+iUMBoqi+ZgTYWQnGcDlB8Q7JqxLPNoN4W' .
+	'T4IQFdA9hO0goCNK/BmVhnjOY6VEe+8hsHbPcWqPYqKb+xmMjzSUXyFCvl6MJNm96aVIRROXVdikIqk/JqzjmF7WGsNHJYkdQJrJmKw6LVOMCc' .
+	'XSA04VIlg4Rz4whYFXgngou8CpzBRk9E2YfLA9D4FYXTIWu67/W2SAeos0uM2mKBrgXj1psVoFFxwFjVriMiPxTLdjpQHcXRBkHAnJhi8R7T5F' .
+	'Pd2U4bly47eIVpDZadLYYISNBCU7DafW8hnGK5TgnE/PtNA7Ab9mqeK+pz25vfSvJQ0UMSJ/3kbpfN8OX0Yl+sCrX85RQW56VcfT2RBWHb4aFK' .
+	'DKz2KnxocRD95gjx6OJVLtzII3QIBdEVFAUfCvWbO/UIPjTPSirIZyyGioarHqbg7eVz3jWnXopdn5q77KJTJJM+6dI33vZ8e23VrCtRhtZPhF' .
+	'Thu3NRVpQeaWCAzQF6IPboOqfwuCFjxYmQfSYBOu0EkKsB54qhDjHiB1FRBJvN4nnnwyy2R2McpaF+XNj2mRJ/ClIC9VRb7bebqVOyZCKbanrP' .
+	'2cLaQiAv/GwjCp55liuffihBFgtMBhbqAnFDvq+7vRYIw5ImltppXwBZy1N8dhoudizsmq2TQj+VmuODBXX+1HTngxzruapkC3YqWdHqYEMhGA' .
+	'8zBvYaJ8GljFQvlCB1dHMJK7FeV/vFT2tWyj4zgUMleP1j/fgOx74QI5md9th2sbKUkKKD/74eQQuqAo26ydTFEDh0Jd/55t6tu7oZ/tEPxHiC' .
+	'W7zjYQli7vBSg0OXebFX66DBhWBxi03M7UYGilj7Qmzd8E6bQWbGoRSSPawvXmk3QxfK0InhXcN4YKO5T0hYz+k6w4n8HHUbael55T9SeFxZy1' .
+	'HiuP3PadB8pGgP3G/b7w2y9UV2OYoudKBJdxweHiS1jMLh4XDyGqbj1v2LiHEdEuEcjNVSzjLFnE44Wp/n2odHDNUiu58hS34LmQJF2ydunp7h' .
+	'IeSemJ+mmhdoaoMpMUsay4XmChuKzoOC6xXG9Mr5ki3GtNrKK8n7+uDB25CC5dFDB2SuwlRfwibttVjFcts/9YMEp78sbcHkQ5Z9j/Yl9fTgHr' .
+	'tsmM1AodEjealOGGdsFrzCh15AJYdHuuopH2c9Pv9oe0yNzwiJ62/4R46H8UOTYvLHEsqya91rF7fGkKj5co/yDZOQznz/hBx1VBjSUMpEhEb0' .
+	'5eQ9XjOMfAEsGbKNkLsg8NdF+avGknhEByn5jD+MxwVQv+zD0uEYDfg9CQxsYA5DCsHYcBKK+dddtEcpDK4cz1wrm65e6lIsoFXmz5u7a4+Beo' .
+	'79Fybfdlv2rfXpg0VneN023V4ksvLaUf90qZUizVKUWE0snH9WaZm5HvOv1eaWo6vQroiolNVUe+QU6r/wlZry1pWGKQW4hSTfbSkglfQJrL1L' .
+	'+g3Ts3eThLJYlKyyu5radVsmAdMcLbGCOKbwJa33jPhhAxtzphetTAMtDptBp9l8l8les7TpcoE5aIY5h9DTCN8QybaNmGR24X6x1ZPlYdLrox' .
+	'Xr5iYSvqJN4abcYdHorjHZZwiYveHNvPG3sA4XMU8iWzxELrns6nwfmMom6dDhvswlGR7rf8/5AILmwisCxtA9XYbs9iVKzZZT8zjJmoOrR2O4' .
+	'6nLN90NU9ooC3kxP68MNSt2iDpzIqq75fodu0/k+xg/KwrKxEg1QURtkSzfYrr0Cg+TB8t0tJe9G+6mkoTmWUiyX+Thf4/voRPsYJGmf4ZBwj0' .
+	'EGiTDF2ty40lvhUjfxNL6mtOIEom3yMbYcTSIpGCXqUDgVlzElVp785LTSLBstuMsR5FohawICRxJhiVMBF743Cw12RpvzKxBCWszpECcmFopO' .
+	'iaGR0Ri37PVfdnohJLMxIvz8CnQlmBrS71kV0Eaa1kEpl7wjtgxtujBTpsVoA9wOXNOrZOwWPY98/H4CoCYnizks7kzUHbXv8liC81R8w//63q' .
+	'iqJE89sL/x+Z8lkqNfA7vdri2Yg+SGaJcYoRQ13wcg+gj7O1gY7QZV86yNlIF9oPlWZ/vfkwx9ZtDbp1CkleKG77d7ttDQQjg4+e9wIcvdfGzo' .
+	'aB2gMCRVzDLBAaICayhopXaXCwiM4SgEtItEroyATH3EOPGEEHAABkmOtKTtxpCK89UAQ8fJM79Qn+nZZPkUEj96TyfGD2otVgQeiQlpMJQVI0' .
+	'2ImfvFbCkMgo5FuOS+umBfKav/fxYNFyQ2prNRe1Hgdy7tAj6epQJ1GFQJfX7HxsLc8O7PxjHCUZaH+cX3+Pqs7MENUsQg7gd6vtDYiTl/IWeh' .
+	'ApaESEeQbJKxoeyEtaFwQSjZXtUjDE659AeTGqWqnV5LAIGRj8oOiEAkFrxgsH9pLSSJsIWCda83PpfoZPxfX+eu3xlkdme1okit5IH2pw2Wzf' .
+	'AILHUXJbP+IvD01dC+xx5ZJTpSy8S/JHc0WKXI9Akh9MbapyRpa4G/E1vxFmr2eUfDFT3SjfH+3DiNtMRv1NzoBK4g/KHZNj4NBJOcPrmOAMGn' .
+	'TaDjit3q4jyCSCG3BVRGTjdYbj9R+9nzVpfphT2KBMvMMWB0Kfq2vmBHZjeJPJ3IsXTNJzjpGr8ZVWu+XSWEJpgPIKOZDkKPLytsu6EfxJOFuZ' .
+	'x3ImeuW2jYlKjuIncuyNUkkyX5m93gLvrXrmhMHZdX0y1grsO42iLi5LPbwY99BpEIcfik1n/8KHKwtuMRKvQlGmf5ECYDZMUrR/QV6FIGuqWI' .
+	'AY3PNgM3Dj+i4fZAKFJuO8OSBrGHqzDS3dXSuS6VTgWTHOrFGEhhTj/0CzVKGVGTdKZn2Ym05FcWmlvnqiFLCAfqcnmQFGKqnPVOKDaTnuallv' .
+	'rURA10rLnb+Y+qxxLjsdzEsF/lGQgVjGXeDSAStyUpdkHOs04Rx7JvYjRPku405YrztmpkhkCM6TT6L0rXW01xNkG3dXoI31ys/YlnZwda/+QT' .
+	'9M3E6VD2lA/1Mspt4uAuSjDzKAPyiI3w6bwGo1Gaz1E+Mo1UGOoWtgeH+rAeTvGNGxRt6lu5cPubtXTa4Hm6E58EzsRM1o4pL5wK3h8e7cZZAf' .
+	'XDZ352YvA4dzOJZqb4jx2dvYxVZXXkCREKq/4tdfSNtbbJLQF9bgmgioRobFLfqYZ1wpo0f3fxVY/RnlanhERG7mfAXrU0dSVlUSHyOyKX40Re' .
+	'gvpYtmpn7A3+9zSI6L+697e1eEd8ZDKN9BfWBvehUFCzjrmovRIfOJ7Gy1M8NESU5dRuQyq3iIYAbj/bA68HGsgFtYgin0mLd6r+3yJfVyW3uM' .
+	'NbYAMrzq5C8O/RXA19FBtADv7W4PrebKB21kiBzhJHF6VNyApnO4mbtidxEMXVI4JAxF6OFpHJNfadx9rHeMDfifItjJjw9y2egaGIMcd1qdfw' .
+	'C8FxFCRBD1MEBUP9SlUb7ODhkurLUFx/Qh3ivWJUwmVKBR5AOwxQCMuryFa9WhjATrh81iQJhEXuUk5hITxPZbTHaM+iUhP91D6tMF/jIT92CA' .
+	'WE+B4CTm8zW/AXc3/VUNkNYL+17jDoFtBNN08ZfbMNd6V7IgFP4HUG+k0yokP4q1JC57MT3wbzvtQkpu8cYHuxxBSknO7DUArIe5C7C88NpK4W' .
+	'xJIQo5dw33OR7pITMleF8dTSvZZIk/hDQwVGuDdJa32zSyZgFjVKN9X1ERMShxHrbgSN0x6sUPtLJdj5pTifTd93LWBR/4lKEfbkVpREwRUVPZ' .
+	'f9iW3RQzuSdTyDem+Tc+V+Qc4OBVlfbcq1Bh1XRYD+4ykYszscoBfBCLGwPWITcROubH2+ePKePETmn6l3sj7mJ3lISD7XtaBgIWJTSWWFBI+8' .
+	'Oz5LCWMtzJxktTlMqnk8vNaUNLPSVdtAcjBBD9SYNtkEKvgDYh7duSx7QjCfoTg4z+Sb4qYZ2h/gUyb2kvHTmpeMYch24xE5oJIZnq6qLOzG9k' .
+	'rjKO+zzDkPAbouDuc6ac1bRhDbGizE6FY7mxexYQdHDXQiK6HvpgSDcKPFw9R3CcOtMP2KZrRq2F9tZ1og/P0G3GiSnlL6WBuhiAPrmMfkryYM' .
+	'pk5jEgEWicxPCWEephK4NnYKtHrFBcotIbE0CBNC9NEkxJ27+oo/OlHB3+z8ksBPwqyq4UnncJlG7lRU4kXwL7KbKS/dYPu8ClrKlrson+LiBs' .
+	'1Hf7E2ABnGiKmC7Ic5x8DsXWZoSun07mADR94YePHXIVELmVgR3DAiPa0MqrrPXcv6fqL5RyP2fdWjfasMmwSVhhp7WV/7Gn97LgaNfVsxr1/N' .
+	'Q9EnK4sUWMAIfDIi1OyyKxeuwgvYYAcRtqi0SXuHJUKEKDYN3HEOMOfRC38/GcVDLYbcRbdQPzoE7LE2sdb5U0BZeolKJB17NcUvu+SgNscWm5' .
+	'PfPYBXlQT8E7ka/RrldESxhJyrJFK9k8hlx7KK/YZbBZbzvL+6hTkMG0bH9OwrnGSu+lhh7NBWGdiHUBcyP4ldoLZlt6gGv2QOfTdEFsXf7Yhy' .
+	'Zjivsh6jO8PeVdSwqeU+qk9mIRmnHn8n8nnxFfPX21aHAw5U7z7/6oEEPUXhA3AepSV8NhiUvoJ3Q81iiXaeDR+HaQ+ZShQC5kRVc+dg3fDrJw' .
+	'qaAoxaeITuxN3mq2MLRKNf6BvdT1rJq6Sfwh+zgVtK+Q6xDGw0/kvkqzUXuyX0EgGZDvOAex6FNyL94658ixdF6yxytZBIDpcN32RV5LDNBVBa' .
+	'PolsHEvW0+/GsBcBMNZ8yYNh4wiv0mQrFvlTp7pb03zO1K8FWoYV2dcAX/Yy/GN5Au9JiDL0zMsc5Cuzdhvd4eMRplprdZ9x3v0TBeSRpp/zSr' .
+	'T9mLGTSvqofpifP2pI7PDwtXudKtbgNIov8UqTKd8vpVkiMLX+bOJrg9f1ObsdSMPWDvjJE0sSU4cQGYuXp7aNFqE3dEwPtPdbSg9H5EX671X7' .
+	'Ep3VKcZyDYab8Q/lyhcPr+lX+uye+WRPDyxGg5ln0VKOWtz3ZLfx9HgTFKliVnXX1DqyEnEabyfuYipbnrdZoBs9Mkv08dxShaPomSkgC2R9E+' .
+	'kWXETrkTfRxHA12CSCLtaUr/NViocp1FM9GyWnqtudID5ti+fzQQGrfZH/NIH1Y+oGbRYx3TgJ99C4qiCsWFMYlhurI6TmScfpC5hSUjAqbrBE' .
+	'G/2L80bG0RZ37z4bfdKA22n5Hy+cK1rRpA98WfcsBew/WZb5D/aIJ/UeeNNaKOoDqIw/Qoek/uDQ7qGfbrCLcg0zhz+YYsZjuEPaJfJbZKEXH6' .
+	'1esfYTVHjgvxvMe46BIgPYexGexNxEsfBHRWtYj5a6YW427U2tkOlyBZDka+K5okt+7QGZTtt1la6T5Nq6ri5RSdl0YqIIflyoG+zUXMuD1xHq' .
+	'Q6SGGTbmRWfKJed29ib9p/dm2bNUEQ+0AhZaXJ7+rnvF9lvu0jY3qMt70VunxP0Ks/t3vCAW4aM/oMGhckrbXLFr3Br0LtZCSks23+9oO4gtxd' .
+	'RWFMhx5RYwGB9UWK5BX7GyyU4CipinrMuESuWrOG/rkgrdtXmnhnwWi3HpE8wRHnxCekahp+QeE2/mrf3xm3efbVl3lhwswc7aF26V3BxjCz+c' .
+	'xRRc1TbIGnEJGJFiERCx1nxkI9C9kr64IsdWkhP15FlmlhXwRhpU78ppXjLmuqIg6HD8cKJWEWOUMDM8hE/+0Ogl8TJnoP67zwNBDbrgNw7VTJ' .
+	'WOJSS2uNJadEgJPbi7iZ9E+J8JQZpH5bcmkjyBSBQPCX4bXK6szCSj46e1cMQUTdD6Ny8DdEjWWFTKuE4kgES8ydqRqmRUGsV5Oq8NLUmCcHQt' .
+	'UBSykL/YuizlhMeRlPPNm4JhDWv2Tlck6PTKwqjgIT3ZuffPrJE7ertWk8NDE1x8kdtkV0Dp9gymA1D2fphSflZOe8Bdc9jfWGE5U4vf1uYaM1' .
+	'XHfEPXEjBbcavsgLjhyIXEjAsN+0XGwevNstrDZHP/BQQbyR2xQ0bpwhriuqfUBel3VnBw1hRcqjyUOq7DbGMotin8ogMWHEfhU8BfPA6mkKjq' .
+	'AM8agp+qRIADkR5/kcA1pyAOmoe5t+RK3vwaqfSBifTysaWLeM5H1/JmByF/bEcqI4itEqKvFIX9y/e4t0/Wc7tix8eHqoiu+Rztydlg1qTVQC' .
+	'DO5Ee3ovx+6+zHB2wolpC3lNEFvlEElOEGexPVMFMwFr38KC7Vh/vmoct0it8oySqJvzC7iOXEZ0w53sak0PhbVNaGxIp5ObDSNqpeDzP2ZCa/' .
+	'Trh/j7A5bVbPFEv6OxIaQv231sYqsx6eLVdGcwh61mqHfd3j3TmxtramIyuF1ywDwN2BpBZapfwHVIf27C/K51WcR4nmRR5UJh1eLEmMKJ3ZwR' .
+	'N24CSVZgUWyl7F0dYKdnnVAmIFO18nIAb5gyiN88Nl+5yzVM12BUYbHoVFaMkzCFOYdJAsBPPKOluRfF0HRxfwFEMxKm5DdwA6fBEfDrXaCWhb' .
+	'DXMZ9JS9Q1LFY60Jk6MStkuYxXfFxMmhdHdnCcXuwNVW6G4pvtKZYV0pI/A5XE6VTVFgwD1UR1Pi443IjEJ2Pa0YscrAJ4VslxU/U+Rqcfso1Z' .
+	'5dn5ief8bjgzTmEGigbwIKymRAHcTK7G9+718zHw7WNG7OX7wfjcu0m4p2Z7LDJSZduxmeiOmzi3UexbAD2JpZr0aa2FnfuB6fisM3crc99DFo' .
+	'uJw4mlEe2ketifwPRG+wglo3lZPO9gHw1AYb42vGVRpjPC25f37vFCZ252Hluon7qPrCuQmomvMwjMaD1KNN3NzRzYA+0b9lmIu3dUw6AdPwYA' .
+	'AzGymCUBNbUq68xLeoBFaFaiyuot07JtpdV0f2cATt26BfrAyUUh0G9UJN6Mx4lLevUM+m7o2niVOgI3Mu1QytmanMrfq/ieB3NXmRcR1mmVpP' .
+	'atSZsYgIO4oGF7UHuc1O77zDwESQtE+QjHAAvr1xfOvVx2uT22WKwA/ZPyzogkrNvJGfUxpPhdXtzEfmKnbIA9l1JLhCjheboQC2Dio8qzuAk7' .
+	'Icfmg539eat5i3qiN/cQ8OlZfnic9uMjR5QUpUKhm5kVHaRKMUr7BxId9RhUywnEQsmAFsAm3NY3LsIsvb/ewz6gLVHpqIYlzOnKFPEEKndD1e' .
+	'PA==',
+	'65c34a7952f0c70f347d0534f2fba2679ab2ce93fc56793b5655abe802bc177b'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

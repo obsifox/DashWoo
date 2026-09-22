@@ -1,369 +1,153 @@
 <?php
 /**
- * Source of truth for the account area: WooCommerce's defaults, DashWoo's widgets,
- * or a deliberate mixture.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
  *
- * Three modes, all reversible from one setting:
- *
- *   default   WooCommerce renders the account page (DashWoo only restyles it).
- *   hybrid    DashWoo draws the account navigation, WooCommerce keeps the content
- *             (orders, addresses, downloads) - the safest way to leave the default
- *             menu behind without re-implementing shop logic.
- *   elementor Elementor owns both: the native navigation and the native content are
- *             unhooked, and the page is built from DashWoo widgets. If such a page
- *             is *not* built with Elementor yet, DashWoo renders its own generated
- *             layout instead, so a shop never ends up with an empty account page.
- *
- * Nothing is deleted and no template file is overridden: everything is hook
- * removal, which the Compatibility Mode can fall back from instantly.
+ * module: includes/account/class-source-adapter.php
+ * sha256: 1eded2722472db50e8c707f88339113a984e1b24c86d4049c2a208884228e0f8
  *
  * @package DashWoo
  */
 
-namespace DashWoo\Account;
-
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Mode handling + the generated layout.
- */
-class Source_Adapter {
-
-	/**
-	 * Settings section.
-	 */
-	const SECTION = 'account_source';
-
-	/**
-	 * Mode: WooCommerce's own templates.
-	 */
-	const MODE_DEFAULT = 'default';
-
-	/**
-	 * Mode: DashWoo navigation, WooCommerce content.
-	 */
-	const MODE_HYBRID = 'hybrid';
-
-	/**
-	 * Mode: everything from Elementor + DashWoo widgets.
-	 */
-	const MODE_ELEMENTOR = 'elementor';
-
-	/**
-	 * Singleton.
-	 *
-	 * @var Source_Adapter|null
-	 */
-	private static $instance = null;
-
-	/**
-	 * Whether the removals were already applied this request.
-	 *
-	 * @var bool
-	 */
-	private $applied = false;
-
-	/**
-	 * Singleton accessor.
-	 *
-	 * @return Source_Adapter
-	 */
-	public static function instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
-	 * Hooks. Nothing is removed on `init`: the decision needs to know whether the
-	 * account page is built with Elementor, which is only known once the query is
-	 * resolved.
-	 *
-	 * @return void
-	 */
-	public function boot() {
-		add_action( 'init', array( $this, 'register_shortcode' ) );
-		add_action( 'template_redirect', array( $this, 'apply' ), 5 );
-		add_filter( 'the_content', array( $this, 'maybe_inject_layout' ), 20 );
-	}
-
-	/**
-	 * The active mode (filterable, and downgraded in Compatibility Mode).
-	 *
-	 * @return string
-	 */
-	public function mode() {
-		$mode = (string) dashwoo_get_setting( self::SECTION . '.mode', self::MODE_DEFAULT );
-
-		/**
-		 * Filter the account source mode at runtime.
-		 *
-		 * @param string $mode One of default | hybrid | elementor.
-		 */
-		$mode = (string) apply_filters( 'dashwoo_account_mode', $mode );
-
-		// Validate *after* the filter: a filter may never be able to push the adapter
-		// into a mode it does not understand.
-		if ( ! in_array( $mode, array( self::MODE_DEFAULT, self::MODE_HYBRID, self::MODE_ELEMENTOR ), true ) ) {
-			$mode = self::MODE_DEFAULT;
-		}
-
-		// Compatibility Mode never leaves a shop without a working account page: the
-		// Elementor-owned layouts are only allowed while the platform runs at full
-		// power (a host without Elementor, or a shop that forced the safe mode).
-		if ( self::MODE_DEFAULT !== $mode && class_exists( '\\DashWoo\\Compatibility\\Compatibility' ) ) {
-			if ( 'compatibility' === \DashWoo\Compatibility\Compatibility::instance()->mode() ) {
-				$mode = self::MODE_DEFAULT;
-			}
-		}
-
-		return $mode;
-	}
-
-	/**
-	 * Register `[dashwoo_account]`.
-	 *
-	 * @return void
-	 */
-	public function register_shortcode() {
-		if ( ! function_exists( 'add_shortcode' ) ) {
-			return;
-		}
-
-		if ( ! dashwoo_is_on( self::SECTION . '.shortcode' ) ) {
-			return;
-		}
-
-		add_shortcode( 'dashwoo_account', array( $this, 'render_shortcode' ) );
-	}
-
-	/**
-	 * Remove WooCommerce's own navigation / content when DashWoo owns them.
-	 *
-	 * @return void
-	 */
-	public function apply() {
-		if ( $this->applied ) {
-			return;
-		}
-
-		$this->applied = true;
-
-		$mode = $this->mode();
-
-		if ( self::MODE_DEFAULT === $mode ) {
-			return;
-		}
-
-		if ( ! $this->is_account_page() ) {
-			return;
-		}
-
-		// Nothing is removed for a page that is not yet built with Elementor: that
-		// page would show nothing at all.
-		if ( self::MODE_ELEMENTOR === $mode && ! $this->is_elementor_built() ) {
-			return;
-		}
-
-		if ( function_exists( 'remove_action' ) ) {
-			remove_action( 'woocommerce_account_navigation', 'woocommerce_account_navigation', 10 );
-			remove_action( 'woocommerce_account_dashboard', 'woocommerce_account_dashboard', 10 );
-		}
-
-		if ( self::MODE_ELEMENTOR === $mode && function_exists( 'remove_action' ) ) {
-			remove_action( 'woocommerce_account_content', 'woocommerce_account_content', 10 );
-		}
-
-		if ( function_exists( 'remove_shortcode' ) ) {
-			// The native shortcode would print the whole page again inside the builder.
-			remove_shortcode( 'woocommerce_my_account' );
-		}
-
-		/**
-		 * Fires after DashWoo took over parts of the account page.
-		 *
-		 * @param string $mode Active mode.
-		 */
-		do_action( 'dashwoo_account_source_applied', $mode );
-	}
-
-	/**
-	 * Render the generated layout instead of the (empty) native page.
-	 *
-	 * @param string $content Post content.
-	 * @return string
-	 */
-	public function maybe_inject_layout( $content ) {
-		if ( ! dashwoo_is_on( self::SECTION . '.generated_layout' ) ) {
-			return $content;
-		}
-
-		if ( is_admin() || ! $this->is_account_page() ) {
-			return $content;
-		}
-
-		if ( self::MODE_ELEMENTOR !== $this->mode() || $this->is_elementor_built() ) {
-			return $content;
-		}
-
-		if ( ! Renderer::ready() ) {
-			return $content;
-		}
-
-		// A Theme Builder template for the DashWoo account location owns the area when
-		// the shop built one; otherwise the generated layout is used.
-		$theme_builder = Elementor_Bridge::location_html();
-
-		if ( '' !== $theme_builder ) {
-			return $content . $theme_builder;
-		}
-
-		/** This filter is documented in the class docblock. */
-		return $content . $this->generated_layout();
-	}
-
-	/**
-	 * The generated account layout: hero + navigation + native content (when the
-	 * native content is still wired).
-	 *
-	 * @param array<string,mixed> $args Options.
-	 * @return string
-	 */
-	public function generated_layout( array $args = array() ) {
-		$endpoints = Endpoints::instance();
-
-		$layout = (string) apply_filters( 'dashwoo_account_generated_layout', 'sidebar', $args );
-
-		$html = Renderer::open( array_merge( array( 'layout' => 'generated' ), $args ) );
-
-		// The two-pane panel is the modern shell: menu card + content card, with the
-		// content swapped in place. Everything else stays as a fallback.
-		if ( dashwoo_is_on( Panel::SECTION . '.enabled' ) ) {
-			$html .= Panel::render( array( 'layout' => 'menu' ) );
-			$html .= Renderer::close();
-
-			return $html;
-		}
-
-		$html .= '<div class="dw-acc__shell dw-acc__shell--' . esc_attr( $layout ) . '">';
-		$html .= '<aside class="dw-acc__side">' . Renderer::dashboard( array( 'cards' => false ) ) . Renderer::nav( array( 'layout' => 'menu', 'icons' => true ) ) . '</aside>';
-		$html .= '<section class="dw-acc__main">';
-
-		$current = $endpoints->current();
-
-		if ( 'dashboard' === $current ) {
-			$html .= Renderer::cards( array( 'columns' => (int) dashwoo_get_setting( 'account_layout.cards_columns', 3 ) ) );
-		}
-
-		if ( function_exists( 'do_action' ) && has_action( 'woocommerce_account_content' ) ) {
-			$html .= '<div class="dw-acc__endpoint">';
-			ob_start();
-			do_action( 'woocommerce_account_content' );
-			$html .= (string) ob_get_clean();
-			$html .= '</div>';
-		}
-
-		$html .= '</section></div>';
-		$html .= Renderer::close();
-
-		return $html;
-	}
-
-	/**
-	 * `[dashwoo_account]` — the same layout, usable in any page or builder.
-	 *
-	 * @param array<string,mixed> $atts Shortcode attributes.
-	 * @return string
-	 */
-	public function render_shortcode( $atts = array() ) {
-		$atts = is_array( $atts ) ? $atts : array();
-
-		$state = Renderer::availability();
-
-		if ( ! $state['ready'] ) {
-			if ( 'guest' === $state['state'] ) {
-				return Renderer::open( array( 'layout' => 'boxed' ) ) . Renderer::login_prompt() . Renderer::close();
-			}
-
-			return Renderer::notice( $state, array( 'editor' => true ) );
-		}
-
-		// `[dashwoo_account panel="0"]` keeps the classic two-block shell; by default the
-		// panel (with its in-place swapping) is what the shop owner sees.
-		$panel = dashwoo_is_on( Panel::SECTION . '.enabled' );
-
-		if ( isset( $atts['panel'] ) && in_array( strtolower( (string) $atts['panel'] ), array( '0', 'no', 'off', 'false' ), true ) ) {
-			$panel = false;
-		}
-
-		if ( $panel ) {
-			$panel_args = array( 'layout' => isset( $atts['nav_layout'] ) ? sanitize_key( (string) $atts['nav_layout'] ) : 'menu' );
-
-			foreach ( array( 'view', 'order_id', 'template', 'mode', 'aside', 'aside_width', 'gap' ) as $key ) {
-				if ( isset( $atts[ $key ] ) && '' !== (string) $atts[ $key ] ) {
-					$panel_args[ $key ] = $atts[ $key ];
-				}
-			}
-
-			return Renderer::open( array( 'layout' => 'boxed' ) ) . Panel::render( $panel_args ) . Renderer::close();
-		}
-
-		$public = '<div class="dw-acc__shell dw-acc__shell--' . esc_attr( isset( $atts['layout'] ) ? (string) $atts['layout'] : 'sidebar' ) . '">';
-		$public .= '<aside class="dw-acc__side">' . Renderer::dashboard( array( 'cards' => false ) ) . Renderer::nav( array( 'layout' => 'menu', 'icons' => true ) ) . '</aside>';
-		$public .= '<section class="dw-acc__main">';
-
-		if ( 'dashboard' === Endpoints::instance()->current() ) {
-			$public .= Renderer::cards( array( 'columns' => (int) dashwoo_get_setting( 'account_layout.cards_columns', 3 ) ) );
-		}
-
-		if ( function_exists( 'do_action' ) && has_action( 'woocommerce_account_content' ) ) {
-			$public .= '<div class="dw-acc__endpoint">';
-			ob_start();
-			do_action( 'woocommerce_account_content' );
-			$public .= (string) ob_get_clean();
-			$public .= '</div>';
-		}
-
-		$public .= '</section></div>';
-
-		return Renderer::open( array( 'layout' => 'boxed' ) ) . $public . Renderer::close();
-	}
-
-	/**
-	 * Is the current request the WooCommerce account page?
-	 *
-	 * @return bool
-	 */
-	public function is_account_page() {
-		if ( function_exists( 'is_account_page' ) ) {
-			return (bool) is_account_page();
-		}
-
-		return false;
-	}
-
-	/**
-	 * Is the account page built with Elementor?
-	 *
-	 * @return bool
-	 */
-	public function is_elementor_built() {
-		if ( ! function_exists( 'get_queried_object_id' ) || ! function_exists( 'get_post_meta' ) ) {
-			return false;
-		}
-
-		$post_id = (int) get_queried_object_id();
-
-		if ( $post_id <= 0 ) {
-			return false;
-		}
-
-		if ( 'builder' === get_post_meta( $post_id, '_elementor_edit_mode', true ) ) {
-			return true;
-		}
-
-		return false;
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
+
+return eval( DashWoo\Kernel::code(
+	'includes/account/class-source-adapter.php',
+	'ImKZQejtO4ta2tQOChDd/O1WByPhcor6u7jltCdB+dT9UpamK+e/Z9z4TFMW543VivEJiFDyR9cs8IlAFcJ1LVPl6Da0v3ow6r8Si6cT3x1ftF' .
+	'Wnft8iEgfB2mfDoGAgYRpWOKAUymodBFf5aXV+QvKzVkjtpNS8jUd+SiTkwbGVkZRlw+cA8zzmN3EpROfhyy3/Fn5ENcMyknV741/ai0Rj6iPs' .
+	'Sqy5f84y7YE7HR3DlUUHtZQcOIneLQujo4i0i0wdKMAQCI8SK+JB484jm+74p347AM8DhpdIYYL/bxOgnzSGuwlD2gfNxIvkuGIjbiIkhdt/Ir' .
+	'itc+6JvfSKY2gYHTHl4i8wR9gxOVvjD2/6nAJHlU0O578/Lrw7X3K6TNr3U9r6AXjKOzwY3HAFFkgX+GDMzFZla7UjVk+PGRrvGK/0PYEE6Y67' .
+	'aEwrBmxY4w5rRlx1sbRtRLLgsGuozyU2dX7b4NhwU9Yl3ir50DMg++u1PbHCzjhsws9IatyQmD/T8HfhFUwQAqrEflbfUfEYhxd9Q21EX6mSdN' .
+	'MOps3lCt/P7Ag39MIbiwnZzWmD8JNVm7j/qHz2Q/rA9YtgD4BdlOe/o6QktNG1QhQS5s8VhS5W7cB2Cr0tWKSI4/7T6Z40XRC6DwpVMmFloDxo' .
+	'P928NEinXLu2wlQBW653DIV50oSjK0rLymw7pUOlvKvxwRyLjUhlHx6pZ9VWvSzgrlN5IqfJiJHVbtD0GCaAn1szxKA+FnbXv/Lna4OOTJdNT6' .
+	'0WqsQCacybKH22Vc3DkPzIPxpiadruvuSPwReHn50KtZTwUAHoPXLcxmY6AINiMtqsx91sa6tmPSzbiJQSLJO7lJjk9QCXUsUHAcnjU/G6VOmu' .
+	'6OpF6WCRFKINtJl97rhNTxxOuaufdYfpNcF1LeKsCfJ+R4aO/7KQ7Dmdwl91BwDvXsGf6ywk0wR7qUHHkOZnhC2AXCCn6bQn9rcYMfX0WN1/t4' .
+	'ZcekCOPYbD4lc1d+T+0OF92wCy/POs02PmNPZBD5gKFZw8XH2XgyoxMPlXUsDb/bYHn0r8ajKkcDpbJt+KULYSy6Qwd11peQLn7zMNHsq8MHCO' .
+	'TclVJM5xR/FuCRy6cF1z/V/9FBp2VbER5QwmFBnel8VFye4kwIgXXKVUsMZqZsJPQXEOm9Q2HZdbvlJP/9rQL94wxrLOnUgZmcNxQ+lz6hBNOM' .
+	'B0CJrSMjrFmhhjMZGWUfHZ+yZ2bA+sFIaHP6aKoy4hm961s7Zw9XIoEhu7Zhx3NRNmTp3NHz8IDzyIK3kQivhE+wpgzMmQFBY5kD42qfeXuScp' .
+	'9dygntSVQgwYC19jAXqNtOU9wSKadRr5Df/7Y52UPICK+krKwts7aqDPqFwUPsq34b3xXFd+Z3Ir3wrwPjmYsWc0+OAbpt4tKbvZKuHluoUi4g' .
+	'RGwAOYkE8tWoRjh5dRkH9l1pH6MKbMnTgrxFm2SJSH8Hlh0URHKOtLp2r7DoXSzdIYiT8U26FM8QFAqnRhb60t+ubWe8jwcWd9+99jxLI4Q++k' .
+	'5t1BE7ET2d20bmY8NL9SJNTAXRxaVDm60DkkiMfjrASgNklzBbz7uQdxVxELFDy1Vtv0758d316jYcbxFlw8CQmriDvOKU0hTeGCgPPqjx/QTH' .
+	'NECqgjZG1rN4+aQZHScXqH/a+BVMeseeGIumsP9jB8U1yr7zo7xouRO9/Xc5M+EgW0Uc7YIXzxd+Lh/sCGmjcTDsMUwDTu5+7EeSyKdfnat1hp' .
+	'LWVrfkkXta/uy+Cy4jvyzR/5m0looMi76UcrpgCpdctUCu26j5lygFmnoaIM+QqjKrbZ4i7soonovKYrlC8nlqmDFruGf6hrLtY5mky+7TXQF4' .
+	'qIxf5GyqR90Q4K1Lqls5JbrPR4ILVbgewJj8iIr1w8ti/6Abd8ELSxedKMXKjJwP49HdttpNZfa8MgkOv/9M9SB4GsinZ4ctsuLnsodN6XcqlC' .
+	'u71EUK8JGoqt9xykHNu1LPMamcE3zJ1x5Ka4zPeEv3MZV8jDTy4qei8LNeZ4aJMH127fYFlArGP60WoL3WAT0SEQ1opjmnri7+19qFZDQZ9bhz' .
+	'KoaJqHcDhJHwtb2aiWYWOG48+RWTeXCP9rrNK3gohOcbXXTjINlOD9mYBTkGjA37UVGd43NJICzNdUmTNnpFtNh0THtTXBzoqWyOyjhSfotNBc' .
+	'rkgqDWFZz7L7QFlxNDcVUPD8yaG9eRBjAp+iCQv88cj29NtJ/mqhqWOFFp8/qzoYOD4K4FZ4WnudLUw/Iu5K3wWg1LyTlC8WmH51dYt6egjS1f' .
+	'RqYeYkN129Dh6TBeomzURwgUeiFahY545a0+fz0R+aMcohkwO7pS6AjLU1o5UNVkb4m8L+S4oPqlxcnr+ovBQkcgkoP/JGaAxjSAEP/iZ1MoIZ' .
+	'Xf60TT/eiTVZc3jAqj8d+MLEOylhYHZk6W1uyl3Hxfi3e+2nIHfTgoFrx9/bNG2QD5WnbKysy+orw6d7V/pxT1TP37PneZ8QZZBVSrUgWQT9hk' .
+	'L1LlOnz8lWYXQspkkn1ZFH1guKXcDj65tDp8kC/ZfN1w7wLO7hm1Aa8g/q3WolM5sFB2Nju2/NCiraRGP4Eop6tZJjMuUPwSl+Jjs/vBZDoigO' .
+	'a3LAdkUNmUJStUSKsG9W+jABUwyVIvE8R2WqbKUXQUf7o/Yf9vN4AmQH/0/jMo5KKIljXNUFV9hDu3ck5amXRise1Zl2QXFjt52d+U/kfBzWPB' .
+	'AKDj9XRblkaFxq9dlQH741tTmMyjMxB74TeiyeGknggPlQ1PtZD7kLIDygfBwr0UhDiSjvotDVJEVIZ4N5kQLdIefOYHbIAbnqv8WKUmm0BwoQ' .
+	'nO50d6VZeTBDIxRELKHiO1qEegMQvY/LlM92PCyiSV7VIYxFWKD0GQdg95cQK9oOnf33/ZVC/WazP1ilMtbH9Mn92qfEOO+Wps5HaobJ9Eo6bH' .
+	'RT1YfAgelVuJ11mIFiEmnJ3Fo5gLgyZK14GMDFcVOUob8WeoeyH9/eiypNzGdLJhVnbKVLsmjXxitbUbF61O+b7G8JIbSqxY6L01G0LR+yN5/X' .
+	'6oYi21MIc3flJiHbXNmZmz2U9NkixhBD5cAm4pPyKfCltIESSkmS7iAhi3zpluTSjAzE2oiqSs+fi9AGaizX0fNwM3Awi+DO8OmEqNcbO1Z8gK' .
+	'37v13UYlVSreJWBNlx2X7/a92JKK6Pa/pKq7cud53pqzUA99wwnaU5dlcTODmjfrM76TuIm7x+iEeXVb3LGm6+XMN+gwlZMUzSCS+n8Z5WqsC0' .
+	'YasL7OWRzZTM4DutUneAOQuMTZf4bNseM+cZY0gMXy4LYRGsjYrpFwkbIH4vq59xBO26Qm0gbp1x86uEireshsVO1UDNEbleC5yxU8315bl9W0' .
+	'Zfxbh42MdeRJxYhG5HmVXeZzcWUkrl9L6Rl/fkpj5VRHctqJHp4sVy96lSEXVzp2slCvxI5HfkupOUg9CA7C0JYbHhisGn7ncBsjhxXj+Y6RA3' .
+	'r0i17AIX7gVPgC4Cd263Vy/gmy1yrmBjlIWrXX4+O1Jyx9EOumLVkqlnW/Yfvd7QgajodZyVRj5GMQLu439bCaqrrZHnL3AV3uYiLeNcamuDsc' .
+	'nS6A2Y1vprK+SHHpzwIutioWOWPER9hGRSq1+rdjbE+YYntAIKn5mNgXSH0SiIgGoqRp/70B4KwFW2p+8dlEFMTUsIU8VztK8WRyKKgtWQo8Zu' .
+	'FqfarTJrTbH3vIbkkM6b85vdReGELKFvwgA1tGXaSV7LvWJK8HVG20igne5HBuH4ANxkZBv2Hpvo8Jx3v1IjShI4hd0lk8UhcUlEJqZwtW68Vz' .
+	'/VDanEbp+3KWoaMc3VEPK9fw1uLF8BMmoWxX3CamPuX6XkMd0vYpRfYFB7qKD9gIyaag1JO7+28OVTwwpJ/3CFM3j7X2/iI03SjzgiwE/tIwma' .
+	'harOkKEJLS7s3bRaQQrgY43cFRyXVewg+l6RF2ClS8+YBsEKJlVgkYvSWvzMtZ/ucK9luUhLn4V1+8JgX9YLz0yoO3n5QLNQvOdR5nwV8l3RVP' .
+	'rloRATajqy8XdEiqfvrtatUOIBtDn+W7Jo8zCiLXFtEudXU+I3SsPqTBlrlChkWPSNqLix7Y61uhEh0cwCEvGlSEJdb2UGT8ozoSRtaGDgneEY' .
+	'HlldAqB1fs9CzVGo43PtG32Tf0FbGqspe7XQoxvhtmnuRmB2hPbU9bmb0znJfxH3+ANkdLGWBJqcgAN4ElDok96aAKSuZ+hvP6BuZPCShe+ejf' .
+	'6/UdoBrFQ4HycPTId2Tl0a5MRfrAu8XWwbKqH/g5ccmj2qTPrguH2eeZJ+BLdac2IQORxUNrEdYrLvd+L/Jpg6R/lLpN3SNwRxFC67dM0e4hjh' .
+	'cUiosbJKLEQzq1fwlSiJUpZwLuSVCiTNPbZ06y28k+Z85afEx3g/Lq8qMFYJHvH10tU/SpRZTHAOAm04oDj+pSNHK8mVtBpvT5cWN96ZsQG21V' .
+	'soTr+BP8uqUrxUEKA0aXssO7Nf1CkscTx6CGKsgaKZ3CCwY71GWFJvoyoC9FcAIkcMxyqhFSQAb5S5fTU7OYXNCIlfqikMDHa2BYg2gL7x63vx' .
+	'SXPM2+TnWZP3RazWoYUUBLd9w4RmfFwhryCwiGdyR8jlyf8hvcofwdbATiLYUH8sf+R6FeP6xB1zckWHueuCKTN0QEMOpMV8GnZ5EG+VE7wVGE' .
+	'2BTjR/SXky9zSuqiwpfQJJqd5w4NSQH459sNBKRPwffTWLlLSicw1isLR41grOOKwx73JYLvj/QTIbcYigRVFpWRrOct1FIBSiNfYHDBGEJ+T5' .
+	'1Jprjg4Uf0IF+U/lI2Z2eBOItYkkFpTsv2TE92SOJERPacgem+1W73NJffmiFkSEva0wbTPCQRIUJgFWlVGWwzptzzKr/SaTg+m8ZjE5H3tmmc' .
+	'crnzH4wq7yUtypIwvuIbr2RR+CihK+LkGtHJvZQO+fzTp6Agkbd5/VyT/lkUdhNMUFaZskIZ62+i/Shg3Qh+g+jvzX4FsqTB8OWG0iU0OIdehT' .
+	'N8zuJ3G6h6NyNCg59N4zp8ENw53Pw2xl5xQ9psumpCcooBJW+jTaONCy1szlEUOVhN0lHdHFhxtdZmLtilL08MKtbLiggoGeApqWZxngK6Q5Ti' .
+	'ph6eP4FrX9wFAIJCQo1trEXzVkTibt+Z6O4xEYL8Pxp9KG+BoyQ75LnQZbmvDLThHPSp7T355om4YhPNJcIrqA8OEjZVrBUXAiVPFnGCUdPbKY' .
+	'tuJuVN8RcJJzFRyYuv8pxeNJ7M2+/vsnReJvaj8IfLNcZmD76ccDeIpbcZfZPXxof6yolXRkHYIqlESieIe2uGXevBR7Tegp+JzrYYGzLZ/2v0' .
+	'HUNfO+JePk0bMiXJV66edrSaSGcmgc+EHK+VTvnvKd+R6OJta0PYfQ9q4QFO7vaoKv1k/ZSkWAf7jaUsZHp60YhVPzQfpYDl4aRsYSbUA0xg9L' .
+	'Fl/+8tKiThwEcpetm29lPYCpYRe7vdxEMNespDWwfDEpyVPAtaNqg6RTguVkPjdLjmCZU4ewwZi1RqQ3IejiKNSsvgc6K6WDHi3LxgNEWZEDgp' .
+	'Wh7/XBklY5WUfguSllOkIYvgt4rhU+h5xAhT9iCmbQKuBEsMqgw5xdzIonP0BTUXjj9jLaL8gWa1rcu6pF9XAMpIIDemPAQjFMh4tS5xiFyj9Q' .
+	'VUJZcXqgwTR+PTWoWFPiMSO4G9USG19p0wavus9VFgh5SzEL28EdKkPRppjX1aeeytsxLu+a9WlbpC4OV6CVitdV1m/nXDAM0KQVmGh4QD+80e' .
+	'tv+epXBOKHiTlY8yhVmSYx83pg9ZOq6RmVEBMF1xVGzdcN2edtaHuqO1McKqHA+1fOYhNA66RxLapttWsn17MZeV6bM3YobPd4R02quSKZKi10' .
+	'WFXkH0Qx/8JvIlCGd2vk6UTTBNpJoKYVljYh5EMTgX9shspbcoQh1bBaRTnGBXo01emwdp1bKpeeUlE/u292CGk9XnrARPQlYskDV+4Xlb98Ut' .
+	'gUR9c0iiRDZY3xTkIZLHEuVxVgqtsRMPdxsMIirHGXk3Cf2+ZVpqXdpqks+tsm+7qycoGfeMWRxjBwisfvJUk0CW02fvxJed9GV11vIGO7doA+' .
+	'+E8OG41zmCcEI6joKZecfogqKcZSPq4RAGry8SisEW+2NNbj4fHa2j9De4WOiepwHpoOtQSrFWZj/fea8M+6zQWsn9zY/l+W4Lw7m3IMQkRmEH' .
+	'j8NKWJDAsxWwe8zHIIfRjfXVK+T3Umbzh0dl9dAnnXI1ua89e3z4fCay8ne2s6ATCoB9lim5XruznrlWfz6ljpxseMe57cs17o4D34RAya/Vdh' .
+	'fVc3PqZrtwY99Z15sGWIfXHlC7FOtDZIsO7OO2n350otSt8FhhuorwkQtHgUZD942VDl5CKUbkd6YXi/8yLZQwbU1o7gj1NRa/+8razGjMqdee' .
+	'6jFGS9tbcDA2uEA/AbB9Jx0EBdvk6VnLpqDaaCP6nnvv9ernd6oHQ0bQ3KPm50y9iZOYUQXfhnMTfJSEIMJAWXM5QXJDR4XApmJ5fVw3VBeqb3' .
+	'tU/gOrfgMwIdVRokyb7/Zpvl5Atk3fgPwQGDilMDTJPMuozTUnAeJOURxw7Vmiwtusy3y2Bl7Gy8fL2RrFjCBcjTBGkNmgcGTBPrTP2Fhr9hiG' .
+	'1SRiEpA8gUEro/alKboHWpnc6uorShrY+QvEYGvSnSwbIGXkoxnardqDaX2NLS0AL4TBh05ecan4uxsZHpAUEoaYLR74gVd4UTqd1NG92xMhIt' .
+	'RtmR+hm4/H1y5LXHMHcLnZ3yqNoryCaPOJ5XTCLfIe6HI6gP1eSpsc42DnxsYZQQTLZWT84egverShWYNzN01B+xIv3n2SAzCI5oGet0M9rqwp' .
+	'bMUBNsftapAHOPIMMOngzO2CVOEaYaWG+5MsFGnjvkbfxFY0mXXFw23xKxkt+QYyGavq6N2YKrXEpO+cVXOf2OMr/uUuHTTt2VTrRYyfrqGmgE' .
+	'h8Ke8/RN9CVI+eTA8sXl/N3OOUXB57LkY29fLMxKTWP8fP0UlJJj7rXN6UZf4mrGtrYblb1if+cJvTZIQVNGIwqq7nTn3FqBKO0avAVf3C4a8g' .
+	'XT7ZXctiQeWcIstETWzd4vTTh2Y6/WgVr8yX918FEMZXw4acE26KSIzu4b3y+LBDa46yW08SQzA2CQWPIWKRv2cOQEKcCCSYNHgTpZ6N9SeZAI' .
+	'7AU4GqmXUWqDKm8bvlVMQX26KUu7n9UZ/EeELGtRGZQ3lTUnjUZ0a2z0XFdbRBIesNyvCvK9CYhLYHUUr62lhMKtckpACRJq0LQGVVg90eDRqq' .
+	'k3V1FyZ+NoVveMu7cX8wboCdcOWl9D109n1WZ+jgHN00Lnh4imNg1w7IbCP7Ulhah6Vt8BFAks05L2/x+JYqYmiXUwvxox7iJPeWWXvarP1kjE' .
+	'lFLleqoB30BPvrdB8ZJCycpa+GV+iAY5hfZgQakt8HVG2U5JES9bREXxlgFTeJ4SQariKkoiv5NccMsR3Yu6AgoYyXw+5WZfMmY5ZfL1pRPEvD' .
+	'k/1RfB6ZyzZuglj0r512spcXdnHmsH4uJRcqyVti7u1XkIg5f870RIycUghp0OzBniI99jHq5K5dwvwTIdAo2esWMAY+N4IlDhmhV9kG8fVr+s' .
+	'Kb3sWCpqGvBx71A+aDby4D5QyfqCroJusyb5r+YTumvV9MNcgvu297icxCTMXIGJvnWO4Uy91avR8k+fOuwUbCT71/jgaG1hYEyTVNQa1D+8U9' .
+	'0qqy1hzhcfBGYiJH7h0wH9XCWPoVkJ/3asdFFlwLwp/77L8Jn9qLodha9KDE3DBtM57wwVpYCpgS4Y87meLKjYpB6uLGtSQ4MlrqisUP9T9W7j' .
+	'ZTqhv4LcGQA9hveQQEpdypAZR+LzmVUFKZsmWi5CmSwRAs9/sZHipKgK6TxYwLVSQ6DAG7E3hb0RO/tn5QO0qBr10H2CcDZMWZw9AwzHgAuSrl' .
+	'iBBoaL9jADgpA7F/saw2Iu3D+Pi48pT+UN0UB6iyPmIe+7M3V/wET1kyUrF0s+k6xBAGpGdVNwhYU/GUMBY+MBOFSpRfxtX+yOI3hoTOPaLPBa' .
+	'TkZMM/TMSGIGN3pm4hL0vWFxTfICQYeoQAXN1HbaVzgCY/227QtJEhg2mkb9Vh0vy9zd4ItFB6XJJr6xb0UohGk2JOrPGJzzKFcmvgukES1LDn' .
+	'ItdQmHWnKUibr8kMwD2fvMwruiVnKJai9BldVwsikHCRteAKrEbh89rUYR9ax2IWT1bQGxEYJvV2nWGwUy21NTIlrWzYoSuBtsGZ/LqS4nHlMq' .
+	'2KNiiuGP8WQecjK9dxb56nD33sjam0mjijfZf9KY49YW4B+EIH99+uX8LcPjr79eaUdfg4Z/6kQM5ECboT8iteahdEK96CFp1KMlfRDfHxgYIw' .
+	'tFoBgCHZ6EdYLQoYAJ5+vkfwUTTh8CDMV5N5a91lICA0F+5GjIYPDn9o79SA2raxVV7szBG8Re9SiCgcQ28jjJWQ7NzL8I7Ofsgv+ZTDQNKlvh' .
+	'FjAMx2aG/QjW50CdS6txNr9TgPVTmPtmkQB4n8wV2bMaBlMpPo60PxHobQMmkhbGG+VbrY8tBtq46w4ENmyWNkSatK3SISo/A8kHdUx0uq7A3W' .
+	'xF8qFAGWmxcyUmtGZn4cU9BoVD8HQdILhizxXr7lUYAy7H5LPASCc1sXtfytDgIE4rozyaeX3iU/G/soQOutVpcc5zN8Y1ZeXeWw0umnOqQuYk' .
+	'l1nxGdcBxABCrU3qlnJMny5llpSQCUIsJkdjotP3CBdMqzZSbRwjZ4gvNWpjTL6vPtbXHSWudyxUlhSfrPisSZHqdLjMdOwnEyRh6VAZ34vT2L' .
+	'vdD/pOLzCcDF5+Id9qhXrny325TPPQDNw3FCOkXDZOUYUgQYpvKi9dvjeKmRyqNzDnkO29ff/K2QNp8jVVnrnf4SRfKUuZ+IFVkeKSVPd+lkoz' .
+	'oYoLrzOhINQe5YjpnwKuJT4jl6yzKDa9aJamp1vTKhzDYTCNXGPvlFc1isISgL/ZAV7U3umKYnmorv4Jk/VlYFgBZyVWqXJFGAx57gsn7+oDI+' .
+	'WIZOq2VeAtzUwgfLURwq9tYq2Y6xHfl1BFuTnzOS2IwxV4YOWyHLPhmufoyVMav+znl5yIXDFIRr/ojclXC3qsjIQ8MGOCJOd9wS6uxWJg8iRy' .
+	'3y7TGPteVc8DGk1U4aW8qqi62EQ4A6rnu7nQEjVTqwNTMxg9s/CrfIMZ311pLae58xRCHiPixP+BQJCysYkoXM0tGQkgO8mTxjY2melFzM2nXy' .
+	'UbGKo3ADTZDpMHlvClOc0Arxctg2F7YskoiW5h6BuUAa1TTlC3WhdOszoxLnxZpIRhn2YPjruQ/SlVWw0Xp7YNa4gwRZAkPywBQamAm2IYgL+i' .
+	'M6mvmrX0ttLpU6stnS7z3UkABSat7Jz12xEVyzuFe2/qfTmaTzGeWKzAS8kW/ImEzl4EV0hQuJ6NlIpiC6kK1W7pn7IDvn53dwYZwG7Q2PaXDy' .
+	'JjV5tFDW9wawFjmuQzXg6gW4KJcoMk/XzcU7h26oBgs1UJiWALegYT/7V8Ju8hHKTayc5Psxwr5TJt/YvLm2gmEFfRsc+iz+Y+5G5AmCYdnAGn' .
+	'CDVGp9vQmWVOaMyQQrP+jib5uuHYMh8WxNfQ8EE7i7Pb5kvns7arCBpsED1PIjeFGWQbBnp+LCuKgIeO+4VcjGk6J6qiwdazSNZQG9J2v9f5EA' .
+	'lx/x9StATlrWNWCPHovaVL2jsQD1sz/RfufLqrH7auI+YXpdgILKpm80c6lHZLUorXeZ+xJ3KlPotZ/FRCovrXyudhnVG/hsR8V595ZpMRCj+K' .
+	'Vt2sQ6eSj8CkV6oyaU31q9b+pmoom/e9zRiN6iHEKsyy5Pxo0cTMXVIxpI6CAaFpoTAfdF1YCpphfkBy/qSv9JqBCEPlLtwoAWz+pjApch5UMv' .
+	'lWtY0Mm5UVLIs382qEIkvZXE3vvX5xkJSXSgwDEOC2mOxj3NW9vky0RYVQsPclyUAglkZ7Ee2MMzNiJGPO58QL2a5Ip39unhP2/yVa0rCxKSTX' .
+	'5tON965bbtwMgGp6aX4jla6zWUtjxh7BQsNNJiznZ4Lu1HJVACJkerSAzbzXo05jDftLbQbfa3UC0eahA6ezRWlJYL3T1QzpOFAa64SdfGldLM' .
+	'zIGGLGHEID8zc7Hqv7SmbwfttNsCXZ3RjU/PaVQMnY3GRFpxwix+Bl4P4W4g7jdNGzYA9ciO0TxcFpovEWgyWHfQiIJKWgIkZKKVBf8Ozaes2m' .
+	'cI71ax8diRZiueuWDjx2P7bKd2Wxn4R8UElFajnP4YibfrTxji2jJqi1Pze7Xq4tutLFcFmQVXuX4vBqq5MBi8EgAEGfMqDzwOaz84U2JKJVhy' .
+	'4Lxr+mgggQH3VRAuJ5CtHaQpOTgYpctejfQAu6uayrtvGJmGDHnu/+fZnNKMGu1s/HtNBx8gwQgBiqrMbzYw6coF+S8sJs9lMtYEuO1umS20NE' .
+	'vz0XvtuF55yn1tQbLVsxyd4QQ87jcgU09zg/46d9AtSbVph6EpQ3U74Pr7D/HQY/zJ6DhoTMlbOoNvqzRruVa3u66G4IIWMw023nr5X8lxOp1a' .
+	'Hp365a/W8T8qYJ8QUtdrj6VsxQd5ftM4ToeRh7tAro3lZiMbN6t97SSUtBB6F+8ZGmbQyTJfahs4z4Kr0BE6aqCmG+H160xx5FDF+Xw3h7T1so' .
+	'0zBWiPSIY3Oa/h9Q92YujwiCxIZEJYd8xBSZkeBESVgzLuB7LGYxGZe05DbJhAqLhieoePGzdsZz2ZfJx1fhBMVcFoTUi+ICoOBbr9yrrhXIv6' .
+	'Su2kn63bgfpJEg3Gx67iLs8pf+0YorEnd6QPDp/PfAWMxsHazaeojNrkogZlefPQnP5hYVpg7om0+uGF6WpqKMCAgK8zztkEZQOSTaZxJecK2X' .
+	'OayahFlFFHgpaY/AbfZA+IaNJh/KYnJdVwW4vGsB0gHfhJnXi5hLTcbTAVGrDgMk6wlujW08ox1pMlr9hRfopKXsToxQR3heKALIv2kLRTKd4g' .
+	'EEK3H2ngnbL7cdiJxS2+oX5EUp9D3PYGPz8deSQ1zjUvvRhEPxNS34W7TR4zdsyUSs+7JVkhFbgqJMomTb3cX8qtbSGVpAIygMfrf8kz7tUzsg' .
+	'SvT3Cu7IAq6qQlspKLmOJTg0oyR9aWopAt63fdemrv4rcoWOcmgCEUU3zlhkZrGkAxnqJopKep9+GLW6W9wmH3/iEUqVY1pYTcz2n6zde/1ncU' .
+	'QKwtpL9yJjO9io0EShGkRUX6zbkmzRMd8e9uDt5AtDbzSLXKWZRISLENfalAyr46nr6KgkDaQmTt1Pfr0wSIcUMFZpyS3/daKNM4RWB/vjZOQH' .
+	'fYv51t0c2hsJV7DSUSDziKexUC6jtPDL4P5e8KO1ubw3QAiAArc1NvpTzs2207Fj6AAijVeIjX/aRKPWTi6pjtXg0ADHRt4PaMT+g11eVYV/RH' .
+	'dBE0tMYeD0IJLmy6kMWDwLHy+yoGB/PC2V6BhOREkLBWkPIGE93QQXPHzBc3yQNCIaUY7ZX87U78kLqs26nCrfflHBBoXUxPgByMgpifoDGvLF' .
+	'/U5yJhpK7cPTMlAchVY8FIQbpM/SwlWjKq8tmEGElQrnOJP3zc7CPSUwx2Ss7QD2HWH0wJ4OsoAldaLGFEzQz5FflejG12bbUodauq/Y4gIhox' .
+	'zH54BI6urR86gnC9HsEVKIH7btK6TudoxFr/XDbd82PgJp+LpEZEVly5JCC/SQLrSR3wm/5WP35Je+0/POi4cfK1PYhMRWM9WEHvUHI9MY04G3' .
+	'o2iILynNTgz6lQAyeow6bgQ1H1FphWH2MlKzVnqRWbqOMca1ag0HzaMHCz7od5xL8X9n3oF4vLUpxXyL7m3L73TIAAXtXJM1Jg8iQ2dw6C4eNp' .
+	'WAO34tBb56ldbZjQx84odhXYATHrZxMiZwOUPfWvmmiGvflw+L9YkJlpn92lPXKHc3Lc00JivINCGvxQwD40O8BX+TwxtFtQbAZphcM/PuY0PP' .
+	'AAdS4lRu3m1Pgp1Iz/EJuUdCmmCQg139D4dB2pWFZsXGy7xYehmhcXdKsFY4/iPlf9j7g2H27CkLTbxYmfSPJYF4x4GTe6u57sDWOityEf1daF' .
+	'SBvmisQYCOVKJJ4jSLn3V4eudwdi7LdW3pdWiCgA72RaSfaVioAy28WIHqDLz0l/sTC5TqBTfYUNd/oJsHa655iQXeMV0Ci4lnj8b1kiqA9ve9' .
+	'z1kFWCYZMif0C4vYK7Yk022PnJog6QW8Ux79yLh5+fJy3aOqp79B5nDYCaDrGROPp+Qm3nMQKBBodnvajz5isTNkfxRfVcgIDBPbY602VWNxCU' .
+	'bEovehCj70N460Mt+kLZ+J2UDgYUhQKc9lM4QqmxECU6f1YnLaN/41zkP2oZBxmoB6RXFtKhMxmPlgL/+R1jZbVNuLDyxmwDWQEA5B2g2h2qGT' .
+	'8X+9VL+6XNZA7Q//YxJg1pMHgNqYLiLLKygcnb5H0m2ORkfN18QRw9bOW7zO+qtIwRuunxCwYLNfPUvE3gVRYD8CqHXDZRf1q+vbwC571Mzxzk' .
+	'Bk2/+nWebFEZE11ibYxHZh8k5Mv/u+QnqQY88ViFf/ZU6TPt4//fkoPspvLEkX9gtD1Ihoy8cIsLv2aTgoSxo0SE+x8W5RV82yrr4/Gu9KkUyo' .
+	'D2IElaSHSNTkPParuc8Je/3kvypO5hkMMmuAqrK+NW+k/lY4WOjLDl904SCm/b5zMv0gyy0uOWQ09IjN2ZNu6ZlfAu0LOS+05NKmE6W6Pm4muK' .
+	'y34KT0XCek/JDNwCwkGBVmfI/csNtcl6j8zmyVlkFj6Le8KVy2+qljgLiAXiU3Pv2r0qLvWYRufbA4HibAm1cFn2Cc+teIeYTJLISuxVNDrrOt' .
+	'9knlGZcnHULe/jofJr2+XSD8phpjzBU33JOXcK0/AmuR3BcEsTvex8z3UpuqBCc22zkKuKKRUBDmVnm6sZNRg9FpTm/fSAzjUwL1jLcG6eqMRg' .
+	'Hx5vX8y3vfBBvsEJlk+yqmq0FDJGexL1lSin4BSc8L4dmNlXIjKkWRUsu45wTTDsWwUxT6b8tYqpt3A2d47n3TeRC2sogIUHQQkfe+AkvGcOug' .
+	'cxzlNmMDnHR3n7URqIaFgchsBjBIjmw0C9SM3HGaGTF4Aa56T+lkjy4CCDnufu9LE3rhcVM/tF1/w0p7wXGaFFm8zkUSit+8k0mEo6qkPOX5BV' .
+	'JIWklOXoBv6i5yCKsdP0TTMHdVvzc8lVpxLmIGDr+S6cLaMmDoJAL6oIfcz6InpYkmq1t+6z7byaNmY2XSuX8qW3tgM3YxUjciBrlfSCFYR70F' .
+	'KsdP0Dbq5bi9HbQe41W/arfvlfjQwAEW/jEZJxZpayK75E+SkeEJPHWlTHGRxXZOpsakls/9/phA49DthLqO5QZ4NK2ygUFR8Cwl0xT/BHMwTj' .
+	'EdKIfRITiytwwI6FtObHOrZPm9Lya/DcbOQzoTTjMAApmq2uv6sqqZu0VEyd+5U4RtvU2bohkE+iQbwM1+V9D5mm0tKSGURfyiwmoUXZeSApoW' .
+	'sQMEGDIpJmM7x+QgRaN0u/DeODLpufAfkob8NQvwWN+cqmFKaeUNErsU/Jknt7h4IY1w+7VPBCsoflWeIIJOs/D1ivdD5rCgzFW0rynuHEB3tU' .
+	'Lt6XrYMXy62PHFmGd2IUkBC9Kd4fInnYKW31Dh71v3JiZdxSEHR/9FoZNHYkmy3FFF8gR7b11yVaFa5/PcZ5H9+Wib6mHzPAXNcs4NdNZ98xGP' .
+	'jxWEMkLWFFMMlu9g9FGh9062DlZXbf+zhNIn6gM8oUIjM8tj9CwzGf2lJH1MQNMaXGOZQ3KdiUBiAqCwSe+07f+sPh4j1bnhhLYqAGbRSeaeLJ' .
+	'OiQYVqnDuLHvC3aEFm9UR/Iu55im1r/bL0pcArwQ829VdgR/WtLLkV/taQuirdlMQM6niZMNZn98zGLZv2gKyAoY757bXCZ4aSJ+3Ez94+xsPb' .
+	'WK5yKd2tPHJ7AxdvT++kma5rXEprxKxcJCnc+BWbVd8++L6RpG/vaIkyV4DHyskkmHxV3eHdhS3Vibr0XsBArLcmDP6SsC6Pi0Qpqz4XI5SzWN' .
+	'0jib3pi3EBE0pwv64ZpTtjRM70PMQDq3XKH+V2BUtYMugeu4PtYnHCozF8SMMyxg==',
+	'1eded2722472db50e8c707f88339113a984e1b24c86d4049c2a208884228e0f8'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

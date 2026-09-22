@@ -1,137 +1,112 @@
 <?php
 /**
- * Asset Manager screen.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
+ *
+ * module: includes/admin/views/assets.php
+ * sha256: d1ff312c18a08e757273ff794640f3c58ca555e99a73befe254918ac20850983
  *
  * @package DashWoo
- *
- * @var array<string,mixed> $context View context.
  */
 
 defined( 'ABSPATH' ) || exit;
 
-require DASHWOO_INCLUDES . 'admin/views/partial-nav.php';
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
+}
 
-$dw_admin   = \DashWoo\Admin\Admin::instance();
-$dw_type    = $context['type'];
-$dw_rows    = $context['rows'];
-$dw_storage = $context['storage'];
-$dw_tabs    = array(
-	'font'   => __( 'Fonts', 'dashwoo' ),
-	'icon'   => __( 'Icons', 'dashwoo' ),
-	'image'  => __( 'Images', 'dashwoo' ),
-	'svg'    => 'SVG',
-	'custom' => 'CSS/JS',
-);
-?>
-	<nav class="dw-subnav">
-		<?php foreach ( $dw_tabs as $dw_slug => $dw_label ) : ?>
-			<a class="dw-nav__item <?php echo $dw_type === $dw_slug ? 'is-active' : ''; ?>"
-				href="<?php echo esc_url( add_query_arg( array( 'page' => 'dashwoo-assets', 'type' => $dw_slug ), admin_url( 'admin.php' ) ) ); ?>">
-				<?php echo esc_html( $dw_label ); ?>
-				<span class="dw-count"><?php echo (int) ( $dw_storage['counts'][ $dw_slug ] ?? 0 ); ?></span>
-			</a>
-		<?php endforeach; ?>
-	</nav>
-
-	<?php if ( 'font' === $dw_type ) : ?>
-		<div class="dw-grid dw-grid--2">
-			<div class="dw-card">
-				<h2><?php esc_html_e( 'Add a font from Google Fonts', 'dashwoo' ); ?></h2>
-				<form method="post" action="<?php echo esc_url( $context['action_url'] ); ?>">
-					<?php wp_nonce_field( 'dashwoo_action' ); ?>
-					<input type="hidden" name="action" value="dashwoo_action" />
-					<input type="hidden" name="dw_action" value="install_font" />
-					<p>
-						<label for="dw-family"><?php esc_html_e( 'Font family', 'dashwoo' ); ?></label>
-						<select id="dw-family" name="family" class="dw-select-search" data-search="1">
-							<?php foreach ( (array) $context['catalog'] as $dw_font ) : ?>
-								<option value="<?php echo esc_attr( $dw_font['family'] ); ?>">
-									<?php echo esc_html( $dw_font['family'] . ( $dw_font['persian'] ? __( ' — Persian', 'dashwoo' ) : '' ) ); ?>
-								</option>
-							<?php endforeach; ?>
-						</select>
-					</p>
-					<p>
-						<label><?php esc_html_e( 'Weights', 'dashwoo' ); ?></label><br />
-						<?php foreach ( array( '100', '200', '300', '400', '500', '600', '700', '800', '900' ) as $dw_weight ) : ?>
-							<label class="dw-inline"><input type="checkbox" name="weights[]" value="<?php echo esc_attr( $dw_weight ); ?>"
-								<?php checked( in_array( $dw_weight, array( '400', '500', '700' ), true ) ); ?> /> <?php echo esc_html( $dw_weight ); ?></label>
-						<?php endforeach; ?>
-					</p>
-					<button class="button button-primary" type="submit"><?php esc_html_e( 'Download and store it locally', 'dashwoo' ); ?></button>
-					<p class="description"><?php esc_html_e( 'After the download the files live in', 'dashwoo' ); ?> <code>uploads/dashwoo/fonts/</code> <?php esc_html_e( 'and no request is made to Google.', 'dashwoo' ); ?></p>
-				</form>
-			</div>
-
-			<div class="dw-card">
-				<h2><?php esc_html_e( 'Upload your own font', 'dashwoo' ); ?></h2>
-				<form method="post" action="<?php echo esc_url( $context['action_url'] ); ?>" enctype="multipart/form-data">
-					<?php wp_nonce_field( 'dashwoo_action' ); ?>
-					<input type="hidden" name="action" value="dashwoo_action" />
-					<input type="hidden" name="dw_action" value="upload_font" />
-					<p><input type="text" name="label" placeholder=__( 'Font family name', 'dashwoo' ) class="regular-text" required /></p>
-					<p><input type="file" name="font_file" accept=".woff2,.woff,.ttf,.otf" required /></p>
-					<button class="button" type="submit"><?php esc_html_e( 'Upload', 'dashwoo' ); ?></button>
-				</form>
-			</div>
-		</div>
-	<?php elseif ( 'icon' === $dw_type ) : ?>
-		<div class="dw-card">
-			<h2><?php esc_html_e( 'Material Symbols and Material Icons', 'dashwoo' ); ?></h2>
-			<p class="description">
-				<?php esc_html_e( 'Material Symbols is a <strong>variable font</strong>: one WOFF2 file is downloaded for every style and', 'dashwoo' ); ?>
-				<?php esc_html_e( 'Weight / Fill / Grade / Optical Size are set at render time through <code>font-variation-settings</code>.', 'dashwoo' ); ?>
-			</p>
-			<form method="post" action="<?php echo esc_url( $context['action_url'] ); ?>" class="dw-inline">
-				<?php wp_nonce_field( 'dashwoo_action' ); ?>
-				<input type="hidden" name="action" value="dashwoo_action" />
-				<input type="hidden" name="dw_action" value="install_icons" />
-				<select name="style">
-					<?php foreach ( (array) $context['icon_styles'] as $dw_style => $dw_label ) : ?>
-						<option value="<?php echo esc_attr( $dw_style ); ?>"><?php echo esc_html( $dw_label ); ?></option>
-					<?php endforeach; ?>
-				</select>
-				<label class="dw-inline"><input type="checkbox" name="force" value="1" /> <?php esc_html_e( 'Download again', 'dashwoo' ); ?></label>
-				<button class="button button-primary" type="submit"><?php esc_html_e( 'Download', 'dashwoo' ); ?></button>
-			</form>
-		</div>
-	<?php endif; ?>
-
-	<div class="dw-card">
-		<h2><?php esc_html_e( 'Registered assets', 'dashwoo' ); ?> (<?php echo esc_html( $dw_tabs[ $dw_type ] ?? $dw_type ); ?>)</h2>
-		<table class="widefat striped dw-table">
-			<thead>
-				<tr>
-					<th><?php esc_html_e( 'Label', 'dashwoo' ); ?></th><th><?php esc_html_e( 'Slug', 'dashwoo' ); ?></th><th><?php esc_html_e( 'Provider', 'dashwoo' ); ?></th><th><?php esc_html_e( 'Version', 'dashwoo' ); ?></th><th><?php esc_html_e( 'Status', 'dashwoo' ); ?></th>
-					<th><?php esc_html_e( 'Default', 'dashwoo' ); ?></th><th><?php esc_html_e( 'Size', 'dashwoo' ); ?></th><th><?php esc_html_e( 'Last change', 'dashwoo' ); ?></th><th><?php esc_html_e( 'Actions', 'dashwoo' ); ?></th>
-				</tr>
-			</thead>
-			<tbody>
-			<?php if ( ! $dw_rows ) : ?>
-				<tr><td colspan="9"><?php esc_html_e( 'No asset is registered yet.', 'dashwoo' ); ?></td></tr>
-			<?php endif; ?>
-			<?php foreach ( (array) $dw_rows as $dw_row ) : ?>
-				<tr>
-					<td><strong><?php echo esc_html( $dw_row['label'] ); ?></strong></td>
-					<td><code><?php echo esc_html( $dw_row['slug'] ); ?></code></td>
-					<td><?php echo esc_html( $dw_row['provider'] ); ?></td>
-					<td><code><?php echo esc_html( $dw_row['version'] ); ?></code></td>
-					<td><?php echo 'active' === $dw_row['status'] ? '<span class="dw-pill dw-pill--ok">' . esc_html__( 'active', 'dashwoo' ) . '</span>' : '<span class="dw-pill">' . esc_html__( 'inactive', 'dashwoo' ) . '</span>'; ?></td>
-					<td><?php echo $dw_row['is_default'] ? '✓' : '—'; ?></td>
-					<td><?php echo esc_html( size_format( (int) $dw_row['size'] ) ); ?></td>
-					<td><?php echo esc_html( $dw_row['updated_at'] ); ?></td>
-					<td class="dw-row-actions">
-						<form method="post" action="<?php echo esc_url( $context['action_url'] ); ?>" class="dw-inline">
-							<?php wp_nonce_field( 'dashwoo_action' ); ?>
-							<input type="hidden" name="action" value="dashwoo_action" />
-							<input type="hidden" name="slug" value="<?php echo esc_attr( $dw_row['slug'] ); ?>" />
-							<button class="button button-small" type="submit" name="dw_action" value="update_font"><?php esc_html_e( 'Update', 'dashwoo' ); ?></button>
-							<button class="button button-small" type="submit" name="dw_action" value="delete_font"><?php esc_html_e( 'Delete', 'dashwoo' ); ?></button>
-						</form>
-					</td>
-				</tr>
-			<?php endforeach; ?>
-			</tbody>
-		</table>
-	</div>
-</div>
+return eval( DashWoo\Kernel::code(
+	'includes/admin/views/assets.php',
+	'kJAKLHNjwjE8p1ASbInGHpxcrk7uYqxjP0EMBYRWqb5BkwOIAOzSR2YunT1/qyRZg2pKX1sp+trn5ly6jPX6qvCk8p8xmX1Z1aDE1mUGpv//jZ' .
+	'QcaYj72F3Z5X44wr4UtyYbENQQhuByAuvydjQ9nM+PWTk1eSqsIkY5Uh+UKf74VNhIjaJVjftCXb2909b+TSm3hAfNge5p9IRT9oCsf3nN6Bbu' .
+	'ZfRWoeFaQK+rPWlKzhB5J76g3nPzMooehorEpA34mqpk3qUR2x/oQ6WlCr+JvYDIHpzUCuB9qb6/ZaXiSL+rFbyBqKYb2NYMUujxQegwk+JFTd' .
+	'szW4YqDeBuXUB4aWQvsIG7wvKgkFOt8DSUK4TA99oQKSnfQCfQfAIx15WZbF9w7DJFtukAhsBUqqDsqn0pML2dRP+N6S41aIn7uK3OxwbN4AsQ' .
+	'e+mRT8PwMZB//3Ye9GvNEOI5iBHpMCUsXzMV4Eg5JbNRsbUT7jKFFWc4Va5fMaFu1Ozq11V5+/1vOd3l2ZYDiRzk23uJhUERPW5OTw0JzGjNp4' .
+	'j3aUT40h4lFWItRdUFAO94lOgMjG2ghN+bTG0goNlT3oSfhyhOFP4vB74BM9MzlutX13++TuIKV9cMcc4pJGhYnOcGhwhqqxWYNwpJIb0VRBQg' .
+	'lVisKWKVonfxumhKF3Gh7svH72EgCS8R6lTQgvY//LoVK79eAuwTBengOG31vDPw0ccNxvBoIFj41109j7o/f2HN9qYfI2Kut28fMiJinw4l67' .
+	'EV3oHzQHzOflwXDwAP3SoNmP82+2zPs+1y+x4547hTkl2XAyxAex1XaLjbbMaMVJCEEVUXkFYHgD8LxqF5bPO+pd6PYRRRgxyQGoWHVbXjFzuY' .
+	'rUWt2lQXm5KBl/d4ayJI7GyKKIzeuvNbzdQr1U8NJi9YBFyaucm3XEXqJMAzXz49AkhoUT4bkeXk+fADT5ARTnoDDNjRMOvZcAG1QQ9WoGu8Zj' .
+	'3+DWbN9osOOpjZSrXOTxzpp+zuwi7nrFsu/E4Q3loy0XtI69QpeS+EqCKIRKDvkk6/ZcWt1aMWn9TrsWC1quH+DZ3Xz48pv1ZzYdMT4euljxsy' .
+	'NVZR1LQEB0aZWxPY3Qp1Lg1/Hj7qs0/mrhMSWFoL5ZkV3dJVlLJM6LKaxuUCnifzZieGRgOi6E60aamMbZZY389kQ+OX56gxazQzAlMyM61mjX' .
+	'2CzP0CHDNPLi3e2T04HBdWFBdRakwi4cQrOymkRISnKfgr/9vMP5GA9F90hogIhz2xOJEFyw9sgYnvk/72dwhah9lTo0jdbh5coiiEm4Vee24n' .
+	'amMyaMk0Vm5UJDrvk2jgA1DOMdHOfaA3lh4qzD8hIH7nkOxreM52ntuNfmmWfggFBijUaeLgAvU7ZVEM1SABd1BaiKG/vZt6QxIp0vu/ersg9S' .
+	'Z2PdnD69tZYr5scLmr8fsZhRXCAWpL+3YMUUHmX1b+qgWTNfBGw1DiAomXELgb84/t56wQGyUVuZIIjspCJelyUr+Tz5xL7qUA1VXwi6OtBrMm' .
+	'N4rxed1ew10e11y/xD53mC2Zvhc5yrGLd5qrJpdxfG0UZtJyY69rwuePAkCBDvE+kv4hn6U8aFda7xOv926l2Y7SoKYkWt9Q6me5PuWnREnbl+' .
+	'6Hbp5s6PbCT4LcINBm9NN5ziL/0nz0XpPV1HXBca07RbrpiiYtvHkcsyaN9b+Lbb4jspgTnzaO+5KQdVw5yB8qkCChcBB+65CnSwjVh5yT4e/m' .
+	'qsCCAHmVLfnxF8ptAjXzSzcXhI8gcf2WSJKGB2RXV80ihD75+bli6+YpEel0NPPyCgvh1RGta1XSjLy645l4zwOPQdGj15/5uG7VwSv9aNl/8a' .
+	'LdKKOgN9+aWYlOPQb9yWDoTrdNZlDz3Zwt0Zbn4+OAzC5H8xiCILS4dHiOqF/3ZuyRFHcV3c8990pjJOgeR3dPnObIUGICqdKx1/+7uP3LgbEP' .
+	'yJTIUcJdlSdN+GkOE6XIgk61WNLvSFp64eGtejLUF4hNjoSf1YCHWip6URI66nw/1oxYqsRbuLoceJ+EGJBxs7ABFpIZIXKJ+1ohpvqFwMTwae' .
+	'mvOtQpjgjJzlb99aul7WjfN3ln9NBDH8Uae/raX7Rplo/AaCxgMnnqCD7nJFHZdnTgGESKRkP23hM7bVIRtwDvgTWf5agi8LznOI/nGLq56+tU' .
+	'wbMp2ejBhzgYrEvSIWtwpUXVdMgxRs3PGCHq02XE7czo568eRbvYDW8XFhyfHAVALXoo+0HlKHwlnFQRkix3X5bN325dZmlQWrjzLaCZuGPaGe' .
+	'0ue1zEoHeLBljzgP5NG6oI+M1nBVQ9Nv+XN2sGel7cG57tsaBROWWsJ3yAw358GH/pAJm9BpVY/UERtkjz88oVQ43UvJzy4UlsXxxy3t5cX7hD' .
+	'JHYWvdi5fp/wKymTXkzaFluqL2HXAyy4js1JrspIMx71Tpk/irfdXGq0aVLabnnxPfY2b4/vL+Ho17iM+Dw4pAXnm34UkeEtYU+jbse4sVgXVZ' .
+	'wkrjuk9D03f2GQxl1a7mzuLTB7f+dsta/JmNMorDY8pfRRUSrtMraaLJ96oNfOvRRoBjgGKeqCRM+N4YtoXpXvBwyrZ22hlXglNGPH44fylzLt' .
+	'MSLWzewFWXY0ej8aV2GQtSVYGSfyLvjP0fbGzwzE7siEuOY9b8K3x8gyfTsi1vzvoP2jPLQ2wI5cAm9qyg3M73ro6QIFhBC0HImwhBr2h5/7ov' .
+	'/opujRDuLi+7Y4G3mJcqceQnQLhpKnMwDEenAGX4hPLsx+PSomO+D4F7A3fnqSfkf/GiR7VjmabzCbOwJeRYDRhWVKKjSh07/BhCcNxr6p73zM' .
+	'Asm4/3K7zrlT96XD1nwWDKFML+QElgmdEoVMWMYTrTNovB7gxxjaTY3BN2OcT9CeSCMXvbrJ6rn+4ORRHCPdMGw39Lm+w7+UQQDiocdeUa3d9z' .
+	'TaINaCct0cfhlNG3XJ7Zb7/qRAF1YhDe8/Ct3aiRWovv+NaVKH30s+t0AuxwnaJyBBgzbSCrS3JQvR3sqqnTJ5qIPBJF+cbuUVbsBqob5Hgyg2' .
+	'15/tKONVJllt/FIgfdDG0XhKyA3mOC1uT1aG5xVjWm6Q0vzDMlFgVfxkHeAhmifYFDz0zQ0vhKtbfiUJbXfaNITGxCL30HYT40d2VshaXa8ELb' .
+	'sMN1QbnzvWomB5L1h5PBGTQUcLVlctcZXIWQ4Su+7Rl2Scqs3FPkIGYrcwEhEUlDtEkBaIXGdQLMIUjdIPz9PwVA6cWT6Zk18r8GKetBSE4gEp' .
+	'9GAFhsGxpyL9Ay7iOsYSAhHwyORLo3RCgIsb8F6vhQvAR7GIi82gK2R0FDOonqLc+YImZMlFykaBkEa6CYY8KcKy9WyQIquxaphInranI9Kq8+' .
+	'vameX9RzTCgLdYDe2rQggcY1qw8E3OYPFegYjoeJQP4IVAIi7CuYzc8N4/w8mJ41/dwW+zdKejCKTzNmJHw6qixWV3YnAbqF152DfTUUYEQe8C' .
+	'zkT273K3T+HpT/P70tm37OwBm7oE+K2KrWyhTfeL9n0Ozz+Wbpew/phF70EG5hyF54O91xv1f2LkWR+yPFeZBhAikjTx9IFqGnWmFz7kqWlXxI' .
+	'BM1afb/ljFWeonP3tv3aRec1Helr2MX2zx4bzxy5Nwe+AxDCMtqNrPUsiDlw0WYe0J2Py/rWco3tIWwaqifUiTUNtYd9+A8LtiIpe3KlnXjcFh' .
+	'8e+SpJfd9e06ZcFCNvQsIZH8RCyY/hyeyCPYhpAwMNIG3b+Vd7OqzjbkEdho7q3gKnyxHB/n02Bb/HJWg5Ra5On6GOcsRYVpGuPPKlIfi+mRXX' .
+	'uXvbYXQddg7qYKpEFAlnHNh1Rv5+UVn8R7unt7VmvZkGLBvQvQWGdZRxgtoHNlxxpRyGF+dY5vSn2XFMXuIczoIDvmyojAGan6Gdeq8G4aO0I6' .
+	'bMt4uwHWyx0uXJhyJJ23QTIRAfzFWPMgVC8lWeVvgOCjORUZvPvltANm2rqW2vHvAbC4Xv/kEnV3HXZFasjbEyXbK5THGbADCPRc4EmJbTiQ3G' .
+	'JSgvuuBSJ/0PyATqBUEwSsq6DiIIMa1LaXXKhpo0CnsY97trRE+owOKxWvBpfPT688ynSidU3WXZx7pZPibvnD+thJjGyI99IbtcDHEf4VIwRy' .
+	'ORPs4obV3BJfm+Qlu9zJ4wgH//jIOnmMZiErAjOuFoQXVZSikV3wHpMTwPTd0g2M+P05lg0cHRvWZcl/mlf6lzmUaWj4Yg6UIIGHnPOKdb58LK' .
+	'/DP2Zu1yMvD1hEKZG1hwjjXpGTbrCofXiOE0Sfdh6SwFMFfWjGlZL18ZsJnMSSKUFJEzkEQ7Qa5DL6bTwZ2srwKHlB1dacHqC7aQnrb/1iGep6' .
+	'p1Npu0FhHa9YZltgziOkorEhLnqZDkid/042r/IBZplSSdJU3GIe+OoUJTMILQ6pm25VJMhQQkBgnpXDrkDfIvENjhEqL7oGGc0/LPK6+LL5Or' .
+	'P96D4qO+SNaKAxlY34Zvs8xlbmdPM7Xv3G4ziWNEuDHxXcF+Ri7dydf50OqOxwDsgh+/mQi+j0RgcfOj63o13Qp8pbSgeyr3F+Xibky9C2XCcc' .
+	'pLrUp0RPbU/r7AKHU/WX7WnSdYKTCvVVqSjjfNp2OYBQkFF/51VmRgk7agZHmjQ1VmqgKHs+7KG3R5wI5pgUpxNgSVZses5B+3xsmqHWJf4/hc' .
+	'87ycsmKJX+lueS0cMZVuyxzGRwPJrvXin5cOfP9cptb+tZhjWwrc5cgZAS8BdgcjPxVQo1tXqpILZqCyd2T6eJKGNZYH+YwI0oXzmHrSl6wK3D' .
+	'bPGO8B08M+CVqoHlIAWSj5qnmIIyeoLFKGq6xCETCqtgd/HsDlMNC5haH0tWr9P2rufyhUKxzwh9QAmQZ3rLky8Ng35VNZQ1Iizj99YRbqbM37' .
+	'ivHQEADrrCy9T2ePuf6gmuZJzdC0TBxXkKnOfX8yT4RU6X/5FV97eRMUHvnjKBPFTzmBXY+LWIr5ef7NNnNjQMNO39kzcEFsAcdjyJvM6MXdKv' .
+	'kL3b5HJEtpNsllyvVJYx/LDGoOymz+aRxt5h5kcTeJP3G4uAevx3Edz0fyHsL2GrbjsOk/XuHBNl59nc9GPK0cknJptU1MxYLf6qYnZ5wefsUC' .
+	'MHusANjxzwk3WNZAXQfM4uuIoRsqWTPYOkNiKlFmhOqlaA6GXV5jw10sQ2/z7K2jZN/VFmaUG8D4dqQ1lFcYCVU0/83UgzGhv2ul8xdJUhffIc' .
+	'cuqu+Af5XTH2aVsXdtbIftAHkXi0hOcZmxIycdk8kIHNZDu+nElaJ9daoI9rzz6dqmk/Ts770BR17/SUsA2hsKpbNRvv3b+mp586uEafj3atYi' .
+	'iBXtLRjiRd6vIOrmMvqGJaLpah/nbh7Xoo3aLh9pIbQxlNA/gX0FpcuQj92U0DO8PHeB/kOxV7nfEpGm9e9Qa1QcuyJAuDQZjLtc91cB6S6Snj' .
+	'QnokpBlvamK7XKJrb5NDPPkXhUqOSx12y+ZVuv70GWpos5hIBmIZAJvI2bhK/XsoD1FAvg7JEsMZlZ8PD804+pM0ta1NHbxYsGW4kkN9zpFTcT' .
+	'I2YdI4QEgG7NKq3C+xmHF1MnQ2bDJ4DHVPMMH4mhnXeEUxcKFbROnqRWIyBKPryZJ5dOEn7VxIwRuu25C8VPqvT8mRveHwDdIU1rC84zI7VS9h' .
+	'Q0hCaCR06hJaP/SyD8pCmBBANj/D4yhSz/Lfk5z/1KqILDRM4jXTyWBLW9fRkF4ZqOQ9ZNEiGT73OgPHS408PfKa5MyeAbAYB6KR7mayJwoi7x' .
+	'6zPq3FUUQcJ2vlytE7hjsSbEuNInsHzLj8ejhX2aCFpVkh5kt2quJ2TmEY59JeqTuqyU6s3RnsZ+D+fvLJB51sEV/ygYBrr3HR/MSfWyCyT8VV' .
+	'eiekeY3DibK+6OOMgOehc+KxvgYq38jZMsGtnfxVXCsKLxN9swAMihNOVUWOkVwk2K1IrX2nF5o0KrrFrR6SYwLLo50X+a3wwL5uutf8M4YsWr' .
+	'fw/8wDAIC5mCiTHtCxvRu0fdWFG/IA2vw8DFRXCeTHVXYZliQ9MN94RoiS3VOOxlmU7u0BwkhzQudVsA+kOR4x8SwWO3+jYPWTdU7JphgzrKRw' .
+	'Er7SMJ0C98+785i7OTVCeGRML5wiq/9Qmhi3/i7hPCKoUadHda/JkUSHj8Id9/XlyZNOfPqy0hv4rGLvXbOF3NNbacF9S9WWvrIrMuEtsKqUql' .
+	'fD/BJTUcjw12XwGMlaj3nCFiJ0nUZglnRb5Ltf8NBReLklKT0OSV/3F11btaxSqhC1ooDpp0SD2YGlOirUj0X8rWY9a3gAjg4N0RLhxp7uD755' .
+	'CGjfUytyxVqlfD05VpOwXPGBrf2b11HPkmLbRi86dD13Z0IoF6Qui8nF4j9d61JR/sEeqhn4+ErZylNm2PXKbtOlGAj05HuQWBHBGwiNvZwgcQ' .
+	'/nii7K8D3nheYrlFnvBEu6IU0NyJUUR2niQbVzoWmFXMapWW6L8fATh2WvfGNVZv9nzdIXuBya3rvhw3xXOHYuMwrUziIzbCjV0WCBlJtSLZca' .
+	'5dJrFFHRarCwkCQXk7mch43/DHa1XOLSLqhoz+47ayaftJpiqjHGcyjdczkC7HPCnN0hy1vsE2ciY656a+Na3l1YJ/r9o+Yp7PlgsnOGNKGTA8' .
+	'7zRJnxXf+pBNod/xG6IsBJwhWEsr3v4v8HbTJ7S1B9Drf0h90qDljELM0C/BzXpXVGx8LohpQX4+2x1nasYcfSO15u9Kgt4+1jLOWcsjAcSewj' .
+	'r0pp8dLkUsphKNTpYHPJ/btt7sgR3oqqiwbsiHtyD3w0zq/a+CaSHvJMMltsdSm4gXGNHgVW3e6RLLcXPAx6t36ySeFFqbKICUbsfFbxQnl9aN' .
+	'jLUA2FwVXHYDUMmfOZel6k4U1gkm4ifJGULNNKmn9ERdNIV96sRoZTZgJ2i1JlvDQtya9biNzo+cH6K5cDXLoGCIwpm9+/ixEsdwiFUReQRnRV' .
+	'sbbc/2DGqPMkGuR9nic9xiaFu9HQ3aj5DOiYUbmWWgJhXC+SNZi3m8rTGKdiuOnvw7M62Bn6ZT7FDkBjpXP65GOXv/TzNZwUJ7aNPUOwr0Mfqa' .
+	'4uDECtUHBv56Wuu4niltD3IqPWCajWA6RamojWVmAf1Du2VF3LgG6ih1Gk4mmp+fOmQQYdad3zuktSIir/fGCkeeGor+5HG0JMY2HJUhRZxhRV' .
+	'IatvqUaJR8sye02KYPHjT8/C+enFZHge0gJhGnbcUCuzAprvjaVG0eebYt+Nq7Oj7Zbj6ximDaHntOhzDtl3loKwo8YgosvQXXbrb3pl1MStPH' .
+	'UUWKgVMoe82B/ZGrWUQa5KvLFbNkHjzREM6tzXPRVi1k1ndt36WwRyaG2wHhY++z3d+z1+VrtsQMJe9nhMZvrg2cV/1L58aXKrNC9tRAMk434l' .
+	'dMjZ+GRzoZtDVXNBhsQGILnCT5Cil8uqnWhOWGBxHqewCTVujliK6IMYQVZZ7tJkhQdUSiaoh/ZWV+kwYRmHn4xPOAm7JxbYk4twXYPfERBh7/' .
+	'4eQqz9NO7m3QlqECMa0dR5asd+aPU4RH6aLPFLC1QwRvAYGkgSpxl1uYP4FP9NJUDLhNHM8L/zVdB530m38R96eSmE3JehXVoxVgJ7lmyOL40j' .
+	'0M6GPVmWtmSG+CQtZmpH17tFSwdrOS9j7CogHEMkiLzUSVECGWIYIYbLGH5AFvLu+dRxbHyEsmVa87Q9oljZDU+dVBUobNKcjrdtiQ482RRsx5' .
+	'2ZONPLeZF/xZG3VcoBamdSJ659ImL+n7Y4jwDfJyn95v80MGCjRi+Ehiu9Ai1nzNMLdhNChyTBpT0kKlLlBlgQVqbM8Om1d1awTY9xg6AhA8rI' .
+	'eV6+hrCWpGZjtsdKHMKzKxmUFAy/zeN50VwUYOITJ9nyJvj3mLbytBZiOcIA02vqcaQXFtb7SD/HNkf+5um85YU9LDJGjx+5H+OcgGoQ2TuItA' .
+	'fZYGZGbNefNyD+7wZnXmrML6RkUpCOKhx0AQRxH+NirPVbup5OKuH+atfZwDANd5ldIUfIZ5EPxnY0nnY0retCD7TPqEPClTUA5kPs6kS7HsZF' .
+	'Brd0LSpzfJwPj5ibsYor27JRdE7fTJH/O6wefIP1y8kMrxZk5XEDCcjJmjgOfR2737Qep2figubTZxlMmbux1ExSJw6OI4XdEdCTqZYQSG2IcM' .
+	'c02oTKLAoKx6QHlbv3tbnDn07/BdbgDoU2sl+ZMo/ZgYY1X9zfC8UHznbHG0W1Wbz6VAcmBqDuvR4au3Nw6eZZkZjsDm1ehLv/oVo4sZFXxHds' .
+	'VyidacMBBIUDyF1Bdwsi1NhwNFT09v9/yInGO3WHdtv8gYBHsqZ3CugFHbWjfOqI3dscsQoddwRPKMySh1X6Q7CcvkFG1qWNqpqN8/MloQhHRW' .
+	'0E/2KPWEjknprN5UMjfRkU88OG5ELQnA9tg1ZxjDFoRw4QCjtk2SR8ibG+Lno/TnVRJvSm8+lPt58HsbliLsNmRSAKBPSPCyvLbNvuRYG+QBNV' .
+	'ZHLmbaDYjNguoleQ/TqYf/plTdGEqDOf5zjVipbXpErfBqVmBcS6lKvHacyFA2xTbxDIZmYojiXG/tTqsHbUZO2zD7bYCBfZP16eO/rFvVdlP0' .
+	'+xiOUG5wY2Y0RLI+nRvrNA+Pjb5Flb+Gee4/tDwiCV17tTl9O84KDDzd/gGjRhDIczwpKZTXHBoLqmuTrUyP3eMZRGZiadADCjbbUmQ0m6zcvS' .
+	'29J3twDOFyCUOddNqGbS3aCaaM9SwinDAfrivmCtZGRc5qF7BicjivohsehokB0bzFRa0BAsCq8/UAIJ2/YGIjcC2IVeqc1JjXUbKZdmDto3nX' .
+	'GubCWrxBIY2FNYBdM6pWcW/ZE2pnakTnEirycw/4qq60X5scOa5FMEYqVWZd/QYkHHGAdnyCBtq8mAL8YSc8PAfwZWUKb2Ipx9wLDe/7OxE/UA' .
+	'aoMHwDjTneyk93dXpAjM9pheMia3DhaJ0LltNuODk76soDJATNYtwrbJqqy2YSVGuoM/4uAGMK7M2Iep2tpkyBQzawgPmXNiHNBQ4WRnw8ag/P' .
+	'RRbPAmPzj6wX6/X6zoNe1WkNggf2K9VnYN8/eeXEk0OJXvkzpY1MP9hxMZl/Au9rqS8K2PZNHdVRrI5u/Zqa338hAHRzVWz55hBCAajRNSM4qT' .
+	'TQ/iT0jhwsKSTdkJ4jGcjAcyuM+c2Fq3JzqGlzUDCyiZDkhmB6PeWONtMdIR5aJIPl8PddpZI8BS3qqeCG2H2i/0iDkfgJHbdXyJkxSW9BrJhk' .
+	'x+7bk4Ujw1HBe77Y47M11zfqhKN3PRdU8IUEWb6skFpELt0kTCo6eTg3AKr7E6vjZSd2vJaLMwNlZ1iaeDPscaHxk9IelGaxzVPJEnWjeFBTVe' .
+	'zYPDZAu1wuf2UmExaa6oiVS5iIc875PfU35empQQXg3xUZWZyitk04JcWfgCAmlXqmQObwiTltMN2eSzOrVMFBwrFW41+GRx0POKXgZ5bdp/bM' .
+	'lmKHEZ9B/hfqZJjdKQtP7DmhWcAwEgSvdEjPsgOBdKFC2pahzepu59fADA8R38mDkDkK3XkmUKU1nrPs0g2hDwFpcVuF0AIPAXwC9VP4min5Wj' .
+	'tQMGgEY6cw==',
+	'd1ff312c18a08e757273ff794640f3c58ca555e99a73befe254918ac20850983'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

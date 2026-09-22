@@ -1,229 +1,95 @@
 <?php
 /**
- * Form adapter: how a DashWoo form writes into WooCommerce.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
  *
- * WooCommerce owns the customer data. DashWoo draws the fields, deletes nothing,
- * and - for exactly one thing - writes through the public API: the display name.
- * A widget's `form` link is a normal WooCommerce form *action* pointing at the
- * shop's own account page (`#edit-account`, `#edit-address`), so WooCommerce's own
- * handler, nonce and validation stay in charge.
+ * module: includes/account/class-form-adapter.php
+ * sha256: b6bbce61a5530b718d5b9ebcfa02ea5dc7688d4d6ab10a7545961b5daee88e95
  *
  * @package DashWoo
  */
 
-namespace DashWoo\Account;
-
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Read + minimal write of the fields the forms show.
- */
-class Form_Adapter {
-
-	/**
-	 * Meta keys DashWoo is willing to read for pre-filling a form.
-	 *
-	 * @var array<int,string>
-	 */
-	const READABLE = array(
-		'first_name',
-		'last_name',
-		'display_name',
-		'billing_first_name',
-		'billing_last_name',
-		'billing_company',
-		'billing_country',
-		'billing_address_1',
-		'billing_address_2',
-		'billing_city',
-		'billing_state',
-		'billing_postcode',
-		'billing_phone',
-		'billing_email',
-		'shipping_first_name',
-		'shipping_last_name',
-		'shipping_company',
-		'shipping_country',
-		'shipping_address_1',
-		'shipping_address_2',
-		'shipping_city',
-		'shipping_state',
-		'shipping_postcode',
-	);
-
-	/**
-	 * Current value of a customer field ('' when unknown).
-	 *
-	 * @param string $key Field key.
-	 * @return string
-	 */
-	public function read( $key ) {
-		$key = (string) $key;
-
-		if ( ! in_array( $key, self::READABLE, true ) ) {
-			return '';
-		}
-
-		$profile = new Profile();
-		$user    = $profile->user();
-
-		if ( ! $user ) {
-			return '';
-		}
-
-		if ( 'display_name' === $key ) {
-			return $profile->name();
-		}
-
-		if ( in_array( $key, array( 'first_name', 'last_name' ), true ) ) {
-			return ! empty( $user->{$key} ) ? (string) $user->{$key} : '';
-		}
-
-		if ( function_exists( 'get_user_meta' ) ) {
-			$value = get_user_meta( $profile->id(), $key, true );
-
-			return is_scalar( $value ) ? (string) $value : '';
-		}
-
-		return '';
-	}
-
-	/**
-	 * Every readable field, pre-filled.
-	 *
-	 * @return array<string,string>
-	 */
-	public function values() {
-		$out = array();
-
-		foreach ( self::READABLE as $key ) {
-			$out[ $key ] = $this->read( $key );
-		}
-
-		return $out;
-	}
-
-	/**
-	 * Update the display name through WordPress (the documented path).
-	 *
-	 * @param string $new  New display name.
-	 * @param string $old  Current display name.
-	 * @return array<string,mixed> Result: ok / message / changed.
-	 */
-	public function update_display_name( $new, $old = '' ) {
-		$new = trim( (string) $new );
-
-		if ( '' === $new ) {
-			return array(
-				'ok'      => false,
-				'message' => __( 'The display name cannot be empty.', 'dashwoo' ),
-				'changed' => false,
-			);
-		}
-
-		if ( '' === (string) $old ) {
-			$old = $this->read( 'display_name' );
-		}
-
-		if ( $new === (string) $old ) {
-			return array(
-				'ok'      => true,
-				'message' => __( 'The display name did not change.', 'dashwoo' ),
-				'changed' => false,
-			);
-		}
-
-		if ( ! function_exists( 'wp_update_user' ) ) {
-			return array(
-				'ok'      => false,
-				'message' => __( 'Saving is not possible in this environment.', 'dashwoo' ),
-				'changed' => false,
-			);
-		}
-
-		$profile = new Profile();
-
-		if ( ! $profile->logged_in() ) {
-			return array(
-				'ok'      => false,
-				'message' => __( 'You must be signed in to change the name.', 'dashwoo' ),
-				'changed' => false,
-			);
-		}
-
-		$result = wp_update_user(
-			array(
-				'ID'           => $profile->id(),
-				'display_name' => $new,
-			)
-		);
-
-		$failed = function_exists( 'is_wp_error' ) && is_wp_error( $result );
-
-		if ( $failed ) {
-			return array(
-				'ok'      => false,
-				'message' => __( 'It was not saved; please try again.', 'dashwoo' ),
-				'changed' => false,
-			);
-		}
-
-		/**
-		 * Fires after a DashWoo form wrote a customer field.
-		 *
-		 * @param string $field Field key.
-		 * @param mixed  $value New value.
-		 * @param mixed  $old   Previous value.
-		 */
-		do_action( 'dashwoo_account_field_saved', 'display_name', $new, $old );
-
-		return array(
-			'ok'      => true,
-			'message' => __( 'Display name saved.', 'dashwoo' ),
-			'changed' => true,
-		);
-	}
-
-	/**
-	 * The WordPress action a DashWoo form posts to, plus the fields WooCommerce
-	 * expects for its own handlers (so a "hybrid" form still works).
-	 *
-	 * @param string $target Form target: profile | address | password | login.
-	 * @return array<string,mixed>
-	 */
-	public function action_for( $target ) {
-		$endpoints = Endpoints::instance();
-		$base      = $endpoints->account_url();
-
-		$map = array(
-			'profile'  => array(
-				'url'    => function_exists( 'wc_get_endpoint_url' ) ? wc_get_endpoint_url( 'edit-account', '', $base ) : $base,
-				'method' => 'post',
-				'fields' => array( 'account_first_name', 'account_last_name', 'account_display_name', 'account_email', 'save-account-details-nonce' ),
-			),
-			'address'  => array(
-				'url'    => function_exists( 'wc_get_endpoint_url' ) ? wc_get_endpoint_url( 'edit-address', '', $base ) : $base,
-				'method' => 'post',
-				'fields' => array( 'billing_first_name', 'billing_last_name', 'billing_country', 'save-address-nonce' ),
-			),
-			'password' => array(
-				'url'    => function_exists( 'wc_get_endpoint_url' ) ? wc_get_endpoint_url( 'edit-account', '', $base ) : $base,
-				'method' => 'post',
-				'fields' => array( 'password_current', 'password_1', 'password_2', 'save-account-details-nonce' ),
-			),
-			'login'    => array(
-				'url'    => $base,
-				'method' => 'post',
-				'fields' => array( 'username', 'password', 'rememberme' ),
-			),
-		);
-
-		/**
-		 * Filter the form target for a DashWoo account form.
-		 *
-		 * @param array<string,mixed> $target Form target definition.
-		 * @param string              $name   Requested target name.
-		 */
-		return (array) apply_filters( 'dashwoo_account_form_target', $map[ $target ] ?? $map['profile'], $target );
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
+
+return eval( DashWoo\Kernel::code(
+	'includes/account/class-form-adapter.php',
+	'YMjgjarOUMPKcrvWM7+sJFXaURiOwzpNzvg3fPAEg25PgaDmvsyCasGTlkiXPQDm3Z/+Aq40vv7GVQ8qTRiWnyiLrxekWwE+D9v2teVF2Ni3pa' .
+	'dG0wzCCOFAxRgxTw+nFn5dh5omEAkxUMtb3smzC1Rb+PCwmshLOEyk8Mj/yXFMHj2jXu6sLb2AA+AxixHkB4hJx2B0LYb/VL2Av0YE+HY9OjwS' .
+	'TkK/I8RrT/YfmAAxWRYe/KExaLwFt+bQm018iOVYVDJ7/ATxm9apLbyxrbuMySEVunuf7ZQidycyJXJLKs0eZzGQF8m9DRaxAl7D3SiyjPMgvd' .
+	'WBjKKY3/fsszRWRGJaqJWXphASqQCqMzefE3gB9GBSFeqNrHL8vYQPm0MyzTyc8q5jmsOlib2gINCT2uA1U4Gu9u21TGkdCi5+dAK2cNw8bQbo' .
+	'+NatxD3PU2zMXF9hQcL09BVDZWxLSU9JXSEH/aOc2qMwUGGcvOM+qDCwAyZUGzmXBAiYpr3u1qaalNSSacPhQyfRgA9qgV+/sfCbdeumAgVXV8' .
+	'UP3Bx82sXKFIwyDUgooUh9X+djM9b+puFXF5SemhCBUHVm1AcdN+cRex1E0FWV8wnxS5Aidr3FJSlh4SLm/w4s2uGB0b9A2AbR98tiCy00p/zt' .
+	'VWuwGcKSDnuDyoASI+wJOhOyQ+Nw65n2rK9+6iUMLQKni7J19IIgr49m0va7RJ3ziGW0VNF3PT998wM2v7xQlJSfdzjJE7Dzbx3uaAoReZfrYi' .
+	'fsaG6xhqD+dHRzNpPdVCKnM9ThBG7KeDdVV11FBF0VlIJb9Blzdhlc/1/AX/akmPIdEJatnr2ezd4f6BJ9LGG9zI5Et3rKwOa6mdDgEW11bQQB' .
+	'z+E7nn77qUwi2S4jYomqk8bB2aW3nIEXBCeV+y8J7x7r9kFLC8VhejwmK8KRLtOs7XpYK81CIA/pBXp7i5GRp0dfRMCTXn6iBUS+KKF5vFgBoS' .
+	'Cofu8I5Sq7CBKH/6SY3Uql2tgfO6kHKUTxkl9DquTbozG/Dj/qfwnW/RvSsEoY1PkfpCA0N2R539UgeNdRHZSbgTdiP2aUCfn8NLbR+Lh6VrY1' .
+	'mXzs9vWOqmLyrUaOYj4Lu+ZqY2APK6KzDFkA3t2VqJWAGX9xTE2Fv2eulTQAkCshx/5uqqg6N+U0p5L4wFp1Wot0qKR6KhygL3qF9BrTVz9TC2' .
+	'EXfk+aOZ0/cRbuHg7wfZOnKjUbEWPsnDgiQpV1MzViKn/CDQnfaeDlv1xCHFSJklDJXBCXEbt/TSzyj3hTi2QoTUFZPJQzSQj3gPaK5lZ6Iws1' .
+	'TxjBKNuvABMItQEahxJALY0TD1g9D9pfdl0cdm38HirVHumARvESznbQjkpvw0e+CKIg/M9o6enqNiIRdW6BBSoCoEianRt4SwnFsUr2RpNErh' .
+	'AqwVWSkuSyWdmSMYt8lXJ7wDStTQuL4KFR/FdCYHaYVDi0ILpyEo92c7Y/tFPl9IaH0dpFXZT45hEjHuk4PpyolasTJvqAsO8m0+je8nr6cK8k' .
+	'efFtKZ62TeS1o9bAI6Z89ir+cIqm0J/sykoWSSjHSGWiRi56DCVag50x6gcJaO7hI/RnTU1oBP66n7YQpnGh96iZdzpcrRnPs0rh2dxovkU6AK' .
+	'FZLknq/6X9HIso+xNSrR/ewB6f5uVh5GQ0JCqnuG2E14FHaTEitmCdKrsTazHD35kd0W6F1K2GWNz94FNWDWS0d7IHnAiJzbOA3BM9QzEFOcLd' .
+	'9WJH5fiCcXZ1yRuRtjDpQJxjmcp5hiXTLPmODPtMZVIk3Ry6K4GJuunDsUqmwa/vQWUsGV7Ah23uA8e+arStHBDixY9KAChixvn6S+pWPhJwga' .
+	'Y3Na7R+HvXZS2wBYOzllzlYSbAlERTiUMdt5UjhUw4aK1kjVkIq61Gyti5tteTWTCmjMhAkRONmSjYiKtHwJP7tuIoOZtLWv3GY889DJ28aQmK' .
+	'ebMOwN9yVhwI8rCyRglIRqZuYInFotK+9a/2mXQp1Wub074QEgYPsgpnYOqaWEm586W6feW6JZdukCzLTH1YWQrX6I4sembqONmJOybrPG2/lr' .
+	'TfgZU9V/EWTuKBjQybzoWmMJWimoZqegiBs4z0UzYNmDqSXjyXM9/XmbQLAQGlj+RGgBCNcgUa3XWCV7DhQgjHGjbkPH8oHsM9c4tVtCGbA3oN' .
+	'BAvZ566xhlhxDpliA1L7stMFhH0mKCxMt+q0fILYP602FYwt+mtJy5fOd0cFB7EDAJdzHjX736zfmAUbWLRPFwxc7fGvIVmPkOQLyvh/zRX+ZY' .
+	'u8Rb8A9tdBQ5RowV3+O3rRlYTLO6gGq1LlU90K/kCFjTxY1MBA7aHheaHfyn1WC32QO5uGMCoh98Vs91SJ2DPTjIKqZDud6fa7qcf4qQcNegiS' .
+	'lgwiqM1NEOIoqI8ci/o+xqRUSQggQbcajQ72OFIIIQGK6HtWVW9nXY/Ok5qkOWh0hExR8rpExGr3XHsUR+xyztsvBNtfNS3VJujduTrYxcBwPp' .
+	'vqU0QcZnUHVIJNtNCssrU6Ue7Prw/0IRUiuuv9Ijc2Rg0lBKt1PRUXPkdT5UHWYDVVVLF43fb+PvX3+PGJdFCta+6AQUb+XpIySpvtSqjKAx7g' .
+	'tNX/kM4WzXQAbxKQky5a7Ph9YtXaXPjA9KAy/DdmsLl0a0tiWpWc7xufGqGhgJAmGFqMDl0arqWKfMp6+3YZtvibohMCuev9CZswXVkHGZQNSC' .
+	'oezdPZOgxsAhtO6cgVJ057QpL+GrcYF2i1hUM5+N5BLSOxgvowLkl4nEWVBMgojDmZZBdDs1U3d2b3mF0mdidU8k0OvNtWN7233YU0l/KHVJbE' .
+	'yIWbBcuJyLtzn0vcQI2jHYN77NbVX7A96Jg7mFyUK1l7ttDEPe4yXtUa/fRVYR47FH2mo/yu7VFDv0lZ5bvyshu4JkjB4W7aQLghYecaKJyvgM' .
+	'o+njgO/0DjZ1uyvA3BVfhWjEikLTMAXgpzksC/6rb2l95ji05hVhRSyt98QJfO5lq4dz9pdNJ0Q5WO4HOMQZwdnGmiJqUTNY1sc59tJyfrnDz9' .
+	'bYMsx4tGCMIDyZ3h1Jb4c4uLtIv9qs8VkSnH8zpnvI/BHQe13nuN4mdxqkxZcHkqLyZawdkYus5IPtFe//l90D2I6wj8zPH7uqNLizH02qsx5o' .
+	'8crpnKtlHnrXyXK4EYF4XC9RnAtlZx14V+IeGp3hxZ4qi58XQV6/EiiD4tt/jr6OXcStQDtbjRr91SeIUnY0k9wmki2L1osQ0KBLmqaYeLO5iF' .
+	'D0q1vHZ03tqVOIrvf4XAFUyyM3WIG/4N/JmZ+R1BRxqSF8bkqeGwHciWeLFN4QVCMfsjH4043TpiKt2ZOPVcjHvP/Nd8p/T3C5A21a53fJWDAA' .
+	'A/Hj0w/EWI/YckjWsvnZGFWBEAGhZYbDq/WDeLI88znFQAwP/Xdvnz1IeFXfYSTYK3GS7dyOgfn9uZunypYDZJd6rpjff7BRToI8C+wnY1Q4Az' .
+	'ZBgekaCjOmX/eDEK52DhzClJe7V5NynbQUiWguxAvRQY5gji7UDdKDGKiQZ08fnloqhxuQFiKnS3BziqQGjeS26uoeKjIGCBA/BnQwKmgVsoYH' .
+	'8ZH1vqf3vCSqoiRrv7oeQMCjN5oZd5aAKZci0885VAGo++0KAHAtZbwzhknfjWHlkn5Wm3LQpm+S2ITFtrrNOeyEMTpTc+N6GBDoV45pnw19f2' .
+	't4EhDvt2U8p7V0Hrt9qr7+P8vo0tJbl/UL91+7lwMFElAHEc29SLL+nyTh0yqA26WOLMIgocnQOkdEcPwzBPflla4iVJG08Ye3KvW+ZZ/AUbw9' .
+	'QThSetrrXGmccjhAmB9iGYM8tnuv0JKQ8SggtQrbcdrGNLgfgagQReMDMmgrRo4w56h7gtRzz3xqfRoTc35wlHhMYOSkeMHu87HQ/jDt0Md+pu' .
+	'zkIi1X4yJNqCkt15lVZ6tZNtOi9JB2X+YFRvvFZJe+NqzhTaOyN+l0Nz4RgNsCMbX+3ukH45FBdHzOGpcMkdlgbAL+heU2Tvn2aqb19Fm8Mojy' .
+	'D6vgPb4l6RSmk0Cy0W0tvzl4tmb+A4TluSosrnFxlP5cBS25gGs3VJE60MFyT3+LVZO418WACrg/z8YTj/vT1cMtC7Gh11xkwx3CblVXQKhNwx' .
+	'QNdreqPZkjDW9jlK/RwSYjENWgWJPgv2gvjx4xSFBJOcG0HHDD8VhW9lHaauMIibIE2RL9Z/trMSBOOTBu2E30hmSiBVuHWCkITYbBPa9lSJns' .
+	'8xC3VdZxdOz551iq03eZgFyB2Pi5Sv5ZELWbvYkxcsyolRXWOfvhCD472/SsngEbCZNx3tV2Jn6BELTH0H0YkKqiGgXdPLCxlyIEXM5ViocgxS' .
+	'dhBdxA0NV7wZ17j/qoLo9m4b45RgOqQkb0x3iAGgXjJZCUL2zjiITWTm2xh8sWY/pcTuKDG2QkAxwkv4+YOYz0gzTx/+MBvjoa/6jU6jtj3QWd' .
+	'ia8ioBRbpp4XcglrmHjZtASTpc5YUAVXx7vr9VU+Cf2B9nnKsqAzEYWibpOAYSSxoH4b4EwiQ8nNL95+17T8wGX7utTjb7ZLC8NGNCuLIm/yui' .
+	'+kkhcm6OJM3R7lJtzr5XcqQn79uwnJsKGsbG4H5JlzX4a21A9h6O0v5UjsNabTcJDYaLHkp1eG4/3vzHYBnXg5UK4du/a+rENVrMXUvWI8ZIvn' .
+	'Z0OFsoDzwnNtKcpQzBoAMksR6US0qzRyU6gdNcF2AwgMvcSsf33uD9L05KbbMyexmVuLlBwyAyGFR1kRu/yojlq01Qs9CocGd9TWeG51VHxEZB' .
+	'KFiu6pPdqctT3xThkmbqKtLdLE6EdEe0R52uZ/ZldDaDLHemE1xQl4RFfSxIt1uxMbJ4nzWTBZhKfN5UYG8jXsbpdTuRXCATP01AwJ2pDyffby' .
+	'VaJgyBxMYnQwjswQ/AzkD+2YSs1jxSM1JGfFzIRkv4NHDErBj4cwTDXNzg+hJsT4sixgy9cA/86BlVskAIgWfOmo5W4TVft3tCOemXmoDGTa3q' .
+	'VA+Qb/nab72bITd8IsqFHt2LC60/2atydXvI90bp+vRrvfq6qk2LO5aPFGIayKt973+NScod86nhwOuDm5qojm/x/BT3lo5jcnHA5q/VzgABdf' .
+	'M4TjC77Kk/0FkopPMMF1yHLRzBj74WpjTbOGUSx/KwXGARuKzxSzYpeKGUVJ7aBU+FTA7HluZlr7fwfQ6OuLt2pWd2NXAVjnn0jsF14B+WeG1c' .
+	'1k020OpjTwTDBiVGSQMKB2H/X9dNMnXwvhZlcr0ar+kXbXTXOdWvzzcBK+gNvcEQiQ1Ct/RWOGk01HdYMd2OAeg3ezr5bn1lSQX/ulLe7Ka1Dg' .
+	'FRxVy9EbpnURnODYBETV2gtNM+m69bvlc3iAqloxXPgXzO7QCXdjsu7cOH0mQCOhv1e096+eLbQnUqgiDY3DNb77mmaMrk5JRulM/ujHQRQ26p' .
+	'E+NJG7nmLhe9WQLe3Yd7ioN+/m4R4glpB1kWsD0L02rKudGAGXI+kJZ0AbF5Z1qIkVlLqnWB4NqxBXCTDVbbsACIyL2xf1aGVtWEON28paqoWI' .
+	'1JK56SNQcA2jqJitR753rVvKSJxdlOXCMIA23mCsuHSOl7c2u6trWwF2RkgYSL+0+0Nm+Dvv+yTRdRGZ3z2E2HG0yH9IkCuo20MpC5jN+AmqQO' .
+	'1oU23v0JLQjxBQssqHsMCutCrc4lPQsuhx97F/UNMa2C4tZzkiM7DMgIdQgBy9Uv3PcRmzFhVRYupaGTFlBYyGY2zSyUwoxWkna/aqVqTQttVw' .
+	'01MfHqX3it+jebwNToI+Wg0PGCb+7hfFTNjBgxg/oe8vASkHvxzwop6oURwxbU5jN+nBtfcaZgbqIvMHJLH9099ZbgFfPFtxVhWgoPyzhFz3nz' .
+	'azdTNZks7sdP/6ib2WjrBEImCkA5tJFNS0aePPmMNJQsXtM9L73Nk1u/kNINTznQULsz4gv9u0dZOHu4CQpg6C9Ai70CR+FaC7df8JXlZbwqES' .
+	's0oJid66NcbMWqX7PdO6gR+zvADbWfkgRSiAfHevn9vteE5xwRCdMIzQV5dc8FH5JIAh/hxiTalKk7OAlujYV9g5Csv2+5KS5rm7vJR2PJKyhU' .
+	'05kDh0aYVyO7p8h91uqyNXVhMmXJ2bqjDBfnElmPnBxiEnfBjJnxj3MOhfYJmmWn5SuNaPSnSg1XkSBsNryjXjNV3LHCLuKKk6Fa5WOVfDw1L2' .
+	'/vVH94uupKu9vnfhFBDeCn1P0gw6e6cmAKTLgR/x3QlIQ6rXF920PYBcPoCNK1BSMmxHIk6mpZAt7MjdIALzc26+8pDP6/E30xjmYUZF4267qm' .
+	'gbrKq6TUbUT3/l4uqAccQYyn9a9u2eALy8+SoW+ZkvydILwSbh9DZYB8I2cdKeEtvaDg64WeM7vaxxYccESMmgtzBNvKOSMsyTvLEnldfjsD7D' .
+	'ohulzRSTxU+jqEr4cuTNhtH5OIyg0nBo63/vorDq/0lH00Fh5ukuHjX5ESymKC93pHpPHetuiSTz+aEzsadiiAWwFkFQYuOWfhFO7JjJzdNGR3' .
+	'YvsLBT+764emz91djvpnfp7UBjfss9SKWx9LDC+r4KwJpeayU37yXQa0P33nZOY1NpLZhoSNSsVHe2Bfin0gDOEwB73NI0wThANtzky+7HYvnG' .
+	'OD8NA+1PvL+LLji+o0A40O1ziiNsEoL+Zl+Fo8vWjRwFYS9ozm7RwVMQLpGqcCGq8KTJ0i+KyiGD1YK8Cz6VDrTI5zHRod6W+Fc6Fz593BeL+9' .
+	'Rqg5ct+m8aszO+9YmBttIn6BeXGPuZZR2dMQDreoP1+zzoYqX1TXOXFH9/rMJN1BaabiM7qZoWB3mxBnM6FDoMwVl4OFya5FOQbY7o4PU3rCzJ' .
+	'ptUhcyW8Z6n08zXMhA8v0BIRd9U+A/LkgJNNhTAcadgPsCYIH4EKcjFU2e4ibUfYxpLCx4Ao6+8S5Q3649lVED5gADvJt1dQjDTXOd8My6/IR8' .
+	'L61Y8lfGFkALn4zZpzjlsjuf7dVEKSXhxNlNlXRg3x6yAa7QNXRbnabBg/ELc9u99kj7ExcJEgC2+PLrOfU8fsoIqtoA/KC38IDZd4YeTWSnt9' .
+	'GvqCkUFn8TjDm1zYrIg6KzrUAVkROE7pY1ECNCaPpoyFCySv2dgYSrUBpUSwuTFLwcpNmkBa+saJ2Tt442OXqMWdI0s0Auhj4Rw6ANAYu4FtiY' .
+	'2UYoRNjyQky503avUXs7hQXSMkQcuXB9nDdL5ZQ+uEGg9bTD4asQ2A3eA2QgGhMGD6BfG7nHTWnrxDZj2/JEid6WWSCsIyjN6u+Vfjk6H9TxnT' .
+	'GN8GmleXh/1pC6PeYNK1nf3CRoIsgdZsrUXz2LLPGfm2fM6YjzNxpdaCuYqYBdQc5hyvxcT2GP8jiz1hTYSsRpQ7NOOFm3FvtZ9GNRM5JLeKwO' .
+	'SwlDABoWpSzua9AtfR6ewlYk+kYHirsstGK165qsPvhPVlcpdDVIEZi1nlltTcFpaH8JYee6dLlypsAIicRkcRzU1O2Had47eV6mUZeCpGeYX6' .
+	'p0CdbdD2XU9ukhepDy1RZoHpQGg+uXTiUR0UyJ1s030wD4ThzvIhMPSab8qVOdDKT9R7HdfyFmSDVc0ZfW3OvD5Yc/R+U+023F4FCQ9mNieuIC' .
+	'q+MHlaV9dRcLPzbFrPm6HnWfdxla+X8sXAY1yVyuFAE219gFe9cdrVgLV5VKmfJfw6Gg+E0WGTM00uHe80fpiLhPGyCq8j9mJv4JdwGwCvPaYP' .
+	'Kx4iowQjE=',
+	'b6bbce61a5530b718d5b9ebcfa02ea5dc7688d4d6ab10a7545961b5daee88e95'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

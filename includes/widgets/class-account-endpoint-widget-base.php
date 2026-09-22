@@ -1,220 +1,92 @@
 <?php
 /**
- * Shared base for the account *section* widgets (orders, downloads, ...).
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
  *
- * WooCommerce stays the source of truth: the widget asks the shop's own callback
- * to run (`do_action( 'woocommerce_account_<endpoint>_endpoint' )`) or, when that
- * is not available, prints DashWoo's shortcut block. Nothing is re-implemented,
- * so an order page can never disagree with the shop.
+ * module: includes/widgets/class-account-endpoint-widget-base.php
+ * sha256: cff53b93d68ae55eaf21a6e8f9ccea57d3affd1228fdc8e3f9c3cbf8b10ba48b
  *
  * @package DashWoo
  */
 
-namespace DashWoo\Widgets;
-
-use DashWoo\Account\Endpoints;
-use DashWoo\Account\Panel;
-use DashWoo\Account\Renderer;
-use DashWoo\Account\Templates;
-
 defined( 'ABSPATH' ) || exit;
 
-if ( ! class_exists( '\Elementor\Widget_Base' ) ) {
-	return;
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
 
-/**
- * Endpoint widget base.
- */
-abstract class Account_Endpoint_Widget_Base extends Account_Widget_Base {
-
-	/**
-	 * WooCommerce endpoint this widget shows.
-	 *
-	 * @return string
-	 */
-	abstract protected function endpoint();
-
-	/**
-	 * The shortcode-style block DashWoo draws when WooCommerce's callback is gone.
-	 *
-	 * @return string
-	 */
-	abstract protected function fallback_view();
-
-	/**
-	 * View: the endpoint content itself.
-	 *
-	 * @return string
-	 */
-	protected function view() {
-		return 'endpoint';
-	}
-
-	/**
-	 * Template section of this widget (orders, downloads, addresses...).
-	 *
-	 * @return string
-	 */
-	protected function template_section() {
-		return Panel::section_of( $this->endpoint() );
-	}
-
-	/**
-	 * Parts the shop owner may switch off.
-	 *
-	 * @return array<string,mixed>
-	 */
-	protected function visibility_spec() {
-		return array(
-			'icon'   => true,
-			'title'  => true,
-			'meta'   => true,
-			'action' => true,
-		);
-	}
-
-	/**
-	 * The endpoint hook WooCommerce uses for this section.
-	 *
-	 * @return string
-	 */
-	protected function hook() {
-		return 'woocommerce_account_' . $this->endpoint() . '_endpoint';
-	}
-
-	/**
-	 * Args for Renderer::endpoint().
-	 *
-	 * @return array<string,mixed>
-	 */
-	protected function view_args() {
-		$source = sanitize_key( (string) $this->setting( 'dw_source', '' ) );
-
-		if ( ! in_array( $source, array( 'auto', 'native', 'dashwoo' ), true ) ) {
-			// Backwards compatible with the old "content" switch.
-			$source = 'yes' === (string) $this->setting( 'dw_shortcut', 'yes' ) ? 'auto' : 'dashwoo';
-		}
-
-		$template = sanitize_key( (string) $this->setting( 'dw_template', '' ) );
-
-		$args = array(
-			'endpoint'   => $this->endpoint(),
-			'hook'       => $this->hook(),
-			'source'     => $source,
-			'fallback'   => $this->fallback_view(),
-			'title'      => $this->shows( 'title' ) ? $this->title_text() : '',
-			'show_title' => $this->shows( 'title' ),
-			'url'        => Endpoints::instance()->url( $this->endpoint() ),
-			'per_page'   => (int) $this->setting( 'dw_per_page', 0 ),
-			'icons'      => 'yes' === (string) $this->setting( 'dw_icons', 'yes' ) && $this->shows( 'icon' ),
-			'order_id'   => $this->order_id(),
-		);
-
-		if ( '' !== $template ) {
-			$args['template'] = $template;
-		}
-
-		return $args;
-	}
-
-	/**
-	 * Order id for the order-detail widget (0 = the customer's latest order).
-	 *
-	 * @return int
-	 */
-	protected function order_id() {
-		if ( 'view-order' !== $this->endpoint() ) {
-			return 0;
-		}
-
-		return max( 0, (int) $this->setting( 'dw_order_id', 0 ) );
-	}
-
-	/**
-	 * Title control value ('' = no heading).
-	 *
-	 * @return string
-	 */
-	protected function title_text() {
-		$value = $this->setting( 'dw_title', '' );
-
-		return is_string( $value ) ? $value : '';
-	}
-
-	/**
-	 * Read a widget setting with a default.
-	 *
-	 * @param string $key     Setting key.
-	 * @param mixed  $default Default.
-	 * @return mixed
-	 */
-	protected function setting( $key, $default ) {
-		$settings = (array) $this->get_settings_for_display();
-
-		return array_key_exists( $key, $settings ) ? $settings[ $key ] : $default;
-	}
-
-	/**
-	 * Shared controls: heading, native content switch, fallback.
-	 *
-	 * @param string $shortcut_default Default of the "use WooCommerce content" switch.
-	 * @return void
-	 */
-	protected function register_endpoint_controls( $shortcut_default = 'yes' ) {
-		$this->start_controls_section(
-			'dw_account_endpoint',
-			array( 'label' => __( 'This section\'s content', 'dashwoo' ) )
-		);
-
-		$this->add_control(
-			'dw_title',
-			array(
-				'label'       => __( 'Section title', 'dashwoo' ),
-				'type'        => 'text',
-				'default'     => '',
-				'description' => __( 'Leave it empty to show no heading.', 'dashwoo' ),
-			)
-		);
-
-		$this->add_control(
-			'dw_source',
-			array(
-				'label'       => __( 'Content source', 'dashwoo' ),
-				'type'        => 'select',
-				'default'     => 'yes' === $shortcut_default ? 'auto' : 'dashwoo',
-				'options'     => array(
-					'auto'    => __( 'Automatic: WooCommerce content, and the DashWoo template when it has none', 'dashwoo' ),
-					'native'  => __( 'WooCommerce only (no DashWoo template)', 'dashwoo' ),
-					'dashwoo' => __( 'DashWoo template only', 'dashwoo' ),
-				),
-				'description' => __( 'When another plugin renders content for this section, “automatic” shows that and nothing is re-implemented.', 'dashwoo' ),
-			)
-		);
-
-		$this->add_control(
-			'dw_template',
-			array(
-				'label'       => __( 'Template', 'dashwoo' ),
-				'type'        => 'select',
-				'default'     => '',
-				'options'     => array( '' => __( 'DashWoo settings default', 'dashwoo' ) ) + Templates::section_options( $this->template_section() ),
-				'description' => '',
-			)
-		);
-
-		$this->add_control(
-			'dw_icons',
-			array(
-				'label'   => __( 'Icons', 'dashwoo' ),
-				'type'    => 'switcher',
-				'default' => 'yes',
-			)
-		);
-
-		$this->end_controls_section();
-
-		$this->register_visibility_controls();
-		$this->register_style_controls();
-	}
-}
+return eval( DashWoo\Kernel::code(
+	'includes/widgets/class-account-endpoint-widget-base.php',
+	'3QKyeOWHpag1jBcC8mcQbxVs9triRzGBvGMxqv+X6Dh4VnauhM3DjGojjhkx74gOQHoyTlijBYUQl2Yj5Fps8gi7RLSXA+iRrdNRVk4Ez21eKR' .
+	'hEfesz4Z1IpkOFPNcNk/YAFMd/SJ+ctQ+a17QUWWvsHuX33V/DrXM8aaVExsKn09yx5E6rVSfeHu8xV5+igCxu5YxOFcfXlKPaRG4Nnfi1oeeZ' .
+	'jLqhBop1hezxQNO+gugDo1dCzudHRHvvnPu5M7Vowk9mI8086aaveGDDatjV7NGkBVBs4DsbHVNSmgeqbtebDcatOoYAS/ZvUAQYojeoTV2ZDo' .
+	'HMH8fbdLJH9CsPU4jvAP7RVwR28ISl7N2VBjxgYhQWHgKcZlzntAq1lP08OKG/sglDTgrrA+ccd5ZfIT9/pqe2IHdg7X0oZMYwAcUc96AokqGZ' .
+	'2jdP7BRgl/VYWXf3guas3E8RZmWiBR/ownIL6OUaiZhOFkldJw5Y/x1y1a7mx71lVe2STRLee7O0NvYx7eW9b/PBKtxljtAAgMtQstl+0pv3vK' .
+	'v4nX28N0sBnqqC2pTCf4rjk1FhJNT72RB2YDfAdierRFFOKWzSWw/SbKncmwlw7312OR6DJCCGNiTw36hRm8fV0GoS8jvRgAJdC8wzETXehi9E' .
+	'd6R4peudCuTCRdY6+oTcuoxNze+Qv9qxrC6PZHuVjPeeqwVls3H33v4VNJfuxZbs7J4J1gXgcBsmhHJB5lTDYjKxJt2R4AHZMuo+ObW1X3lvBR' .
+	'eyRmNhlWWY7TPaEBwHRzTD5h3OGkQ5E2IaYPVeOfony+MSIbb+FRKcZD5EjQcZRIcaSSHNEJLbwImYmGXRQO+UgWHHe9cLwRc1xsJr5Ql37PWq' .
+	'xU3SUybOEfw1TrknTzD3q5dw4trimRJjPNI5xjX/VPTIHXD23xnPShVezolKhtxoJb2xbnkQhtrVc3qX6P23tDRGou+li6Gi8cfMRmJUkjUZiU' .
+	'86dA+i7kU/AhRX44ZWGwTNox+vFEijh5hFj7RZnqIA3fdbCJcs51DZHeHgVjrVMtFj1KA6oBti/GEKu57m1cINGKNJ4ppf9L2tRGhz8r7GoGrg' .
+	'zSYKKwfEKrtjostNucgMJKngHh0Ej1JxqebzdEHichmXZluoJo3ie+MKSEHQBMj7/0GewULW9vrSDHoJ89EDpNIq+MVRaBv8WfAPFHhdaS+2MR' .
+	'35dFY1JQi1gDL2gQDOKi4IsmIkOq6SYkoGcQicZ2HAGzIcovhcXpUEnO0q5+knvoDqV5+o2GKckEaNykHCEjuzMt5+Tit5ua6lINXjW/8THCsT' .
+	'AwJFvyEd25n70e7aNJspfF2WOdNk+F9kWsolvEpg9P1G/4sNXvwFQ1j07OMMsiGwfPAAe/VB6vuPnhsruLErGY2uwbTRR/svw2pN8tdp/milLe' .
+	'tFiZsyGJCZjTf8E8INeogOvlRww6eGUuL55+HZlVXFEehodoPWRnd7frRbd8QzvjqrfCTguyv0vJmJRRJb4HUBtNu6GG34u4b+lqmT2vKJgrf3' .
+	'mQEgqsh3uBN9fg5rX8vvfszuX1J/dxJyI3rH03uD1OXwmb/TBRrQOafMvEHM2mNz0/tcKIUtaYJ7Rm9JJ1CA982QOabt3DxFrWMpnhEYdKiC6G' .
+	'cT0GY/alCmMlS970otc8caG+CLZqJYqYO93mBupnilIr3OursegbPdtP2tT1EaDj5UkpBF3c8/vUFUdBRtx8I28md1znKjwXp18XlzoXeS/+Nx' .
+	'mMiXUgAoRP/tHqYoJVzyaaTIp55tOcYzBwhjGBOxN1TfKL1/Mos/n7jm1XrRQUWmx7z6qmy278f91aVuwKzmoI3pwHWxSmR44V6xn3fLVBZCIp' .
+	'7UedjsRVc7DtqzXRe3pRAgSfjHOc7momxlShf9m5Ag+IpgP8OpHcYdLMkR7s/ucvGFdeQpsYP+rhGI7/9qG6RuGsnW255sGNEDY3M4kY9kqWAX' .
+	'BsltcLaozb3NQjCW+RinIKYZTAcj4tBxUvdRI73SPbuDnIV060oRHrqD+dgm7hXYLd6xmMJ+ciOWPN/evgEIvBWS0SQZsydmq20M63UmLDUDy0' .
+	'3t/djGqiYKoQiwlao4lX6KxIPQ+/6IEcdZEhaMePfnDUjLifB8GDNgEWong0/jyDrXtlAf4keQmk56wRD0WhqajcGBpShPYVWa9T3yojQfEnU9' .
+	'Wv1S6MDGO7ddXurPgKTxh2P9LOVPRuAitgxEKKpKQKL0HSf8hAg1Z4AqFHiAvgljL/TWEypC8yi4HnP4H74X2+3fgQwyk8LjYtQ5jJ3dBZEMvg' .
+	'nfNU3TGMeF5E24pjA+9HdYTml1Zwlc4K5ZL13qHTwbakQ5t/WxNNaEX1CFfDSLatDE0W9TmV4vsEUkBGAGADye/pBeoZ9Mqyf0nv9cnEPJYVPw' .
+	'nrLTnjVfujRgD06bB8tiD/dz/gGw7hOqllpZmgJk7Lm66dDzNsW54E2PD/3BGcK6zidOhAXAwp0WdEN5Huat7JqQsA4JRuu6CCLFxyzykRwJV0' .
+	'JHBb22jMDJE3eR8YzMcp0M7yAX+hPR5REyq56cs5+Qj6e7GaA3kH7GWTj1YSs2sZHzqlcIGDWLD51yGtUNtnBY2QvmAnVgWHnIeWleEr8zuM3Q' .
+	'zjhYpRRYKaaUPgjf149cFA0FJYqs4Q/NwjTwMwQG+I4rWR76OzVm04tB9+ebRGdgYcZgicifsnOGVN88E7atfe9qXzP0YoJk2x5t2KqQVURkZl' .
+	'twKAdT+IdAU9tTnqTaslYU1LmBruuJeQe9A/QqeTorF3TQxCg5lIweE97jyYP8w2/YO69V5v564h00ZP8+JDt6G6m8fgd7VnIqp/bPCt8aBvGB' .
+	'pXGSkF/ysKzKAvxhQgLPY4AxdXQF5c3gSrK0xYmfdaxjS49roxMoWSrrWST+/Ufb4d7bYxZ/S+g74ZrbRkcJUMhhOEpKXMMMfU/njbPuFjSaYg' .
+	'bs0N6vk3Ycoo2E9iwrLuN0sGxY4tvGFrDDeX1cePNCtTjKuSYTKaPFJnM/IrMDbRAPilK3Q+bHEfunkokSnQ9AWtDJNPC3VFSF3c8vA2royWMC' .
+	'EF908SQFawFLJdnzitbFDW2CVZSBIVMuw3kcDQ0NND046tr9Vt+Vy/i8ipNrG+Z76tIoV/XSjKoaIBqlg+GY1sZegcKLJgkGDNTvWF90QQX/Ql' .
+	'YRO88WuNF2dZV3z7J9h4usKyvhzk/VYjGrclRk4vnKOG9+XJ5pcvRs85ox85he2AlOydImiiIGNuzXw9RIPIUcVEo3uAYGukzk6yPGcNcVpUJn' .
+	'ny+Dojq3eynTiOqEQML/1pRMXs14iTrVVeBXhBtIFRG3+qPBAEIvesntSJWavdU+W3LdA0QiIS2H0sVR01ddrfVO5nqvDYWSmEyy4HM66bNkYX' .
+	'Gg8w61eKM6sz/oth1zHOcOHiRDn3E3moXNn7Q7nf+XQnPLjqPeH9p4OZ/ruoOoj9a54K2hBm/hN0+A/CRuMnNV09gtUzwjxC/jOK3arTlBBKMF' .
+	'FX/PgKpnY8be8f5/laIjAuhmMI7Zf3YiI3DsjVNObaPN5Pe2DAsfCZgLMULgXdqnMTY2TPCipnDwBxiTZ2Nl1jepVXZzM7d1HbYJX71MjJol7j' .
+	'dWQS4U9RaIhQ2LOipsbOqYf23HTgsclt6ABR6R7+KZBBnHpGn+Wx5/q2b12YqKBdGXaJFMho19Xg/UkYg00nneItw4lTe+NGYJraLhH4SYo0Kw' .
+	'WNL3fcDO8UlPvuRs7vUXmQjX5jo9f1Wl1CAmiz5/M2Ul1bgolBZuYEivVcbTs3o/FNskwmtHUsXoxY6WA2/jBWFuTw/o13pDcGmjLVH+7ekVcU' .
+	'AO19pm5DfZPqjlWAOFPOMmDhq/AWswYxBPZ7M8jLZXr9icqPI9X/zXYQdugq9QmkX+AQaOT8ClCCeOMr6tH0bLU185mTnldo1+Nv25wv2nhC/B' .
+	'6h2vT8eOplcN7ckubYsiMRV4MKsw7iqZhDhCnjMBDagaGs2Dnpaq9V7u0/E1mlp4q0xDOGRpBZrHyLk2/ST12AusgfsBx/nnnhVvtr9aDNQ3fR' .
+	'ajkqbmeFH1rVxkryTBVjqVHP1RzJErUbPxwQEaocciaqSibBS2S+4S1A9jeJ58vYuLCqvm1ayGWuYX70pqCD1Uwd905WeLGzol82BGn15PfIjX' .
+	'zqrfWRVldYBm51zUDAo2Hov1YzlSgid7o2tysuUDJPrG4oroEf5TflO58wcXMpJm1+bUw54cy4wuy8heyDMkS3DBt6iuoUdaxYl+K86sB9xWc8' .
+	'ONHdq6C3/atmygt62PfvxFxj6bUWhWLgjHvojO4ErU+4Esef5n0Ff6y0AATNsXq9dvmXIhLgLxmC7EgBqyQC7WFnmt3N4dnIRJPnu9tFGrFVjs' .
+	'3XkfBjrf/JNVIAeKeTGQQLKGlhHPgCOfK/zcjnMvXRpL/kj2BuyjZHjKlHobtCU+KKuJdc66O3fTxrVGpbHQwtI+RkjbfyP+zsD6THA7oEklUR' .
+	'x0aFei2tjR9qqdd30BoTHCYY2OsaZs6Pwi7aBc6RJq+MZ44pnlpIAcF5xybeMSvZ52x9X5aSgzg3ACVf4si8D7nL61k5x7myd6SJibuVkdtbNl' .
+	'ML/rUf/uYWNLBKAWPZqVZSu1BGgTmbu15QMvGEJs0ybLHhUYnGzEzR3WwA5xP2oURe48L7FbPxb20r5JlJyHMwnGjBPjw1n0JAFsJWuAGd5KAa' .
+	'LNUAH+Livy2piPPWutBiIBo95cRdWTEqOa3evthss3z9kBIfTPusEsAGLQvP6pyBiX0oc1neTDjNgwXzbDhU0fh0s56nEcHEhg+cnnhaLSCK1s' .
+	'zmwXqyEYALFu/a/HJNyl/+0nj6zcCVrJr+shSkXKfGspvpdoTpESFdj4lMsdx7mPsjg+8t+AlroGyMXWRyORlnP4Fk4mwsV29mgVJNyUWTbc1h' .
+	'zr4nJ5hNc/Q+e+2qGd4ZSe/6Hjej66Nmc4nrR7HjBmdiVVyL5YYagZHu82AGztb1eMjYXQtjOEijdwYj3t+G71JWFf7/whaokQPb1sVqr5Z9ZF' .
+	'wCf0jGv+Vn8jvlOTazmW9IwlYyzE0Rt5YdVUon5m+MN96EoBhm6bdEG2PwkrI5Vc/Nk+lmCz+qCLCCbO+SPL8Rfx36nIQMu7pGk6EWEcTWyQCk' .
+	'xZJDt9RiXL9a+RT7+uOocYUGR10YVlnJf/Yx5YXD1vfgul1Bjzi15Gjyd4ppCTdEcj9kIoieE9CgMzxCCgkCDonIGKFzrPb4QQ3mUNmZDnKTy0' .
+	'Vk7NaWV7WIFmSoUbjsd4A9ubVmiGBeB1GJeJuDZG8w/DGa0DI1geVSFL1EQLWe9JusAdXI5+HUNntaPa0ENd1gphudvnQe7RwT6AhM+0m8MXhU' .
+	'ecdV+PyS9eNkbQnPGv1m0whhJUovT1iL1cZEtdG6XOWCnoB9bWeZmkyk4CLnmULpjBNM5mTd19CpvHdOPz4xPsfk7BFB7H94jz/IljO7rSaDvs' .
+	'Hw2vI/pYxGRhZaYYrZ7JreL6YumNgKGRBvzs03A8iHKHidHp2p30u1F7ct0+6W/hNIoyBUV2TxcCnPzfpDCQhchKBauwu2LMMa73el4H+yqxMZ' .
+	'qXPhq2Kf0Lf31TtyfJGZRTmfC5ahrfwDfAg+m0rAIU9EVXn8mLtMDE6Yl1r76qmTrdd/ArM4juqjGaHg+VKqrSrCD7ZFkHgyPxgYM1megwf88s' .
+	'n5e5W4qcxOm6H1r2WtaqBVzpLKDV/oH5Af8lBAgi5qsnKmOnu3bkyP14onRRNU6D5piKNpNvupjPXPIQT1x6RIot5YRVgHMSgwCDV5KyW1/KnA' .
+	'1oabBlvkADXz3qh+PYc5xasppn6jD/JzIJQL8m5nbeQtuU0RH8LatrVe/e7e7c9gMPJT7XxN/R7wfrnj/vhl6mghpwalBOVioDwPhNTJ5tasJg' .
+	'BJlwzLK92ItMUN6TNnDqyV5YmHAV5TzKU8dvMVlzhNbmVyt5tis261LMgqy74+6Sf93QcI46pTMnzXwtQAGB0pSi4bAN8os/U+sruWVccMzW++' .
+	'GVlOuKwgZiNCdnUD/E3XQYsvUXnsuZbZ7vNpTmjEBkG3RIsipRQrQ9nF5Y+VqrtdMeMzwoY9iBukK6Nd7k6DH4x5t1RNeTawsM8tggPoUADK+x' .
+	'z56wwQyyzYP0rY4fb14o+KGx+l/X2wLoskHDETf/aayQpP3wc7X6zl3lpZ9rZVNsw8dzB8TflZFw4fSH7fmqYXKTcrlBU+1HvMVh6cy2FOB/Nu' .
+	'5ZCwge5ST0FXHomioIiCZLdWxPLHdhOcYFhQanyKrNtL8djtkb1i9iuDKhtlbh7omhzM0o+HG4FhsvMnm1+RaquClkxDC5HhwO3CG9sABpA7t0' .
+	'fz6RXTgUEb8ibcsD9fAFK+R6jCQxyFeuL9gQc128EzI0em94ld1OXSHbU77sseetpLK9oelrv2cgKYyZWkQm99vWHhrzaDDUjBaazjTZKO9Ah9' .
+	'y0q7gDuQlQkNC6tzomP9oipJnUDvLnGQ1uipEzwTFo3YQNq1vhR0aUxnUCe7SLUCv+RsUFug64G2MrAigpqX76tv8svjP2Wl2GGvwaVEwbyTCf' .
+	'Yi272zJFF7smk04jVcsk1md/pPaOR/rYby7s37H3kJi6aba+pMzPmunqYcafmZRzpZSHcKx+3E1J3Bk4MScgj5uEDRHo8r5leqZ5WCeiP+Wig/' .
+	'AoU0E+4of2QoU1U+ov0uvL2bNf+LDFAh8yY2GwREg0O4FABR71EYsAhgPFtoG8Qen5K40DQSao3MgI/eeDbuW0sHv0JMc7KpWQQjJcaUL/P1tq' .
+	'B2yn4ptLLBPb2uEEc6ApuF7iSxoqrqRKEnDEPTOKFryvSUwJMvWbVQ14gPfaf1JZVT/fc1CgZqHNozdG7V+HIItnge3HCCUMl3GbdfiLY7bYiG' .
+	'D5+nSFgrG3SEGoG2wJveE305vZYHjixsUcUAN0LWb4L93AmD2cUaL4GAsMzTIEWI9/CzVQoxLyv53WxS/z63hbIZ2i5G4xIEH+o3O8odCmpmWj' .
+	'WhMgJwAfmLKTem/UcqdK2A40lrs5LlHaWdsvvVBwQi3yNHfRhPwJqP5aA4zETJVma0eblVgrHXNGTRCONXAbH2NXfXXiD935PI+v/l0miTEVDw' .
+	'bbeRryApBZrySrYmevwbSIYBY5nE3Ka18i2kPuGYoVhlOSKMKHUmYIuOK2V1+KXiPg2ypFkU1iiK/mzWStFO1s3Fj9Xpz6WL9U6FdvTrwZSGbB' .
+	'eeHPMha6AwU1pgnLM3fD+NvmTemJH91bEmPJBK/KCPJKCF+nfxxhGIxpoLDLobKR7DKEokLQLgH6AK+VbjfrNgJdK6rqggoTZslgkGsWN7SU5V' .
+	'sTU5etYIFXY7/lXwmXuc4agbuadiwRjLmdPsu6LWpnpQWBLOB/ns4+H8xbZHX/3uvobKyepR2tZwCAQqmFRaIND7jLl8gQbUaxZYY2gvXuj28p' .
+	'7KPQTAtnIKwhI1Fu',
+	'cff53b93d68ae55eaf21a6e8f9ccea57d3affd1228fdc8e3f9c3cbf8b10ba48b'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

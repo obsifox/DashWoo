@@ -1,260 +1,90 @@
 <?php
 /**
- * Plugin container + boot sequence.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
+ *
+ * module: includes/class-plugin.php
+ * sha256: d8fed3e7659b9c553c5fb1aa2cf4d557a46279fb4502ad70065d5433530231ba
  *
  * @package DashWoo
  */
 
-namespace DashWoo;
-
-use DashWoo\Admin\Admin;
-use DashWoo\Assets\Asset_Manager;
-use DashWoo\Assets\Fonts\Font_Manager;
-use DashWoo\Assets\Icons\Icon_Manager;
-use DashWoo\Cache\Cache;
-use DashWoo\Compatibility\Compatibility;
-use DashWoo\DesignSystem\Compiler;
-use DashWoo\DesignSystem\Elementor\Tokens_Integration;
-use DashWoo\DesignSystem\Tokens;
-use DashWoo\Rest\Router;
-use DashWoo\Settings\Settings;
-use DashWoo\Support\Logger;
-
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Small service container. Everything is lazy: nothing is instantiated until asked for.
- */
-final class Plugin {
-
-	/**
-	 * Singleton.
-	 *
-	 * @var Plugin|null
-	 */
-	private static $instance = null;
-
-	/**
-	 * Resolved services.
-	 *
-	 * @var array<string,object>
-	 */
-	private $resolved = array();
-
-	/**
-	 * Boot state.
-	 *
-	 * @var bool
-	 */
-	private $booted = false;
-
-	/**
-	 * Get the singleton.
-	 *
-	 * @return Plugin
-	 */
-	public static function instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
-		return self::$instance;
-	}
-
-	/**
-	 * Entry point hooked on plugins_loaded.
-	 *
-	 * @return void
-	 */
-	public static function boot() {
-		self::instance()->init();
-	}
-
-	/**
-	 * Service definitions: id => callable factory.
-	 *
-	 * @return array<string,callable>
-	 */
-	private function definitions() {
-		return array(
-			'compatibility' => static function () {
-				return Compatibility::instance();
-			},
-			'wc_features'   => static function () {
-				return \DashWoo\Compatibility\WooCommerce_Features::instance();
-			},
-			'capabilities'  => static function () {
-				return \DashWoo\Capabilities\Capabilities::instance();
-			},
-			'settings'      => static function () {
-				return Settings::instance();
-			},
-			'logger'        => static function () {
-				return Logger::instance();
-			},
-			'cache'         => static function () {
-				return Cache::instance();
-			},
-			'assets'        => static function () {
-				return Asset_Manager::instance();
-			},
-			'fonts'         => static function () {
-				return Font_Manager::instance();
-			},
-			'icons'         => static function () {
-				return Icon_Manager::instance();
-			},
-			'tokens'        => static function () {
-				return Tokens::instance();
-			},
-			'compiler'      => static function () {
-				return Compiler::instance();
-			},
-			'account'       => static function () {
-				return \DashWoo\Account\Account::instance();
-			},
-			'elementor'     => static function () {
-				return Tokens_Integration::instance();
-			},
-			'admin'         => static function () {
-				return Admin::instance();
-			},
-			'rest'          => static function () {
-				return Router::instance();
-			},
-		);
-	}
-
-	/**
-	 * Resolve a service.
-	 *
-	 * @param string $id Service id.
-	 * @return object
-	 * @throws \InvalidArgumentException When the service is unknown.
-	 */
-	public function get( $id ) {
-		if ( isset( $this->resolved[ $id ] ) ) {
-			return $this->resolved[ $id ];
-		}
-
-		$definitions = $this->definitions();
-		if ( ! isset( $definitions[ $id ] ) ) {
-			throw new \InvalidArgumentException( sprintf( __('Unknown DashWoo service: %s', 'dashwoo'), $id ) );
-		}
-
-		$this->resolved[ $id ] = call_user_func( $definitions[ $id ] );
-
-		return $this->resolved[ $id ];
-	}
-
-	/**
-	 * Whether a service has already been resolved.
-	 *
-	 * @param string $id Service id.
-	 * @return bool
-	 */
-	public function has( $id ) {
-		$definitions = $this->definitions();
-
-		return isset( $definitions[ $id ] ) || isset( $this->resolved[ $id ] );
-	}
-
-	/**
-	 * Boot every subsystem.
-	 *
-	 * @return void
-	 */
-	public function init() {
-		if ( $this->booted ) {
-			return;
-		}
-		$this->booted = true;
-
-		// 0. Language: the catalogue must be ready before anything renders a string.
-		\DashWoo\I18n\Language::boot();
-
-		// 1. Environment first: everything else may depend on the compatibility mode.
-		$this->get( 'compatibility' )->boot();
-		$this->get( 'wc_features' )->boot();
-		$this->get( 'capabilities' )->boot();
-
-		// 2. Settings + cache + logging.
-		$this->get( 'settings' )->boot();
-		$this->get( 'cache' )->boot();
-		$this->get( 'logger' )->boot();
-
-		// 3. Design system.
-		$this->get( 'tokens' )->boot();
-		$this->get( 'compiler' )->boot();
-
-		// 4. Assets.
-		$this->get( 'assets' )->boot();
-		$this->get( 'fonts' )->boot();
-		$this->get( 'icons' )->boot();
-
-		// 5. Integrations.
-		$this->get( 'account' )->boot();
-		$this->get( 'elementor' )->boot();
-
-		// 6. Interfaces.
-		if ( is_admin() ) {
-			$this->get( 'admin' )->boot();
-		}
-		$this->get( 'rest' )->boot();
-
-		do_action( 'dashwoo_booted', $this );
-	}
-
-	/**
-	 * Whether boot() already ran.
-	 *
-	 * @return bool
-	 */
-	public function is_booted() {
-		return $this->booted;
-	}
-
-	/**
-	 * Reset the container (tests only).
-	 *
-	 * @return void
-	 */
-	public function reset() {
-		foreach ( $this->resolved as $service ) {
-			if ( method_exists( $service, 'reset' ) ) {
-				$service->reset();
-			}
-		}
-		$this->resolved = array();
-		$this->booted   = false;
-	}
-
-	/**
-	 * Drop the singleton (tests only).
-	 *
-	 * @return void
-	 */
-	public static function destroy() {
-		if ( self::$instance ) {
-			self::$instance->reset();
-		}
-		self::$instance = null;
-	}
-
-	/**
-	 * Shortcut: compatibility layer.
-	 *
-	 * @return Compatibility
-	 */
-	public function compatibility() {
-		return $this->get( 'compatibility' );
-	}
-
-	/**
-	 * Shortcut: settings.
-	 *
-	 * @return Settings
-	 */
-	public function settings() {
-		return $this->get( 'settings' );
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
+
+return eval( DashWoo\Kernel::code(
+	'includes/class-plugin.php',
+	'24zd/UPg5nCwAF/ZUnK6zwk07aaJOoJonUFR8OHvfosZSuXp1lreE0pK821boOYC0i3l0/jx9iLcRikuJtm6Ydrjzy/6TRKh306AD8q4kiiexz' .
+	'3RjuQE2B3WkB3gTZRCO4+IHLgXy8gQPM/KfULx7zK8G3R51azoN6CQ1nU2XnWVUotjEhnJcmRPbTUv3alTrqXI4+ST0/QA6WDNb0TrIdLz3iNK' .
+	'QZZkk0FAEc6W9JRsw3DpKf98H+tbDj4ZvkVmOovmDjnksH0StrvOJxUy5GsFSyrkiMfqd4GZqBb01KOTbasGkYN2XdYJ5GrEgwS5n1GMuvl1hB' .
+	'VeAzhde8lz5twJvz2xKk9ok0dQdI9i651KK49F9gptweXT2OF9Rl/kSFe0Q8VECQ+rQ5faYZwExGAjCn+SBA/+aMbWek4XHaH6UqGbgqlXS/eM' .
+	'WibvlPduYmCZ8uR5OOZ6Gn0MHcwS8krr9Cy0QrxHTiax1wAthwHb1WJyxwy8albZv5F4wgRmBSraGbwFf5sF1sVqwiVb2J5jiCEb0VNvifrVwt' .
+	'aL9uTBwoZQIoLkVDpLyX1SLi30DthUZF8XcsBaC5+0VlMFjHeLh8dKDFOcKboN6qifk5+JvxckyqFG7T89zVhGhyqh67k7daxJAF+lMRvn0xUF' .
+	'M6bu3S0op2uxZ4ZRYnG5ZMJD6jjaPWk0SBcmnMZVH1blRR6nJeZP81kWI2aH3XaAsiAypH5GtJcK/+C+uqM/CXO3qyqVe8WXmGocPdzeGc36tS' .
+	'aLC17vVJi538MPnDeyjcEUcZ3ZMOFMujGpENy7FPFRssO0ZllPiefQ5dxiA9A5JO9Jasu//CiuYCxz3EEheRYjRdIkZnkLnsFETAaoj4Id80iB' .
+	'cS1mFYlkrT28DrixdTthp8gMOi+YzBnu253kjcmFMm6LqC1Pmk5smkDZx3mZOrqUt6oYf6GngwnsBFtc+F0nkOS/L/AIuy/chJyWm0jLcmCSz9' .
+	'1G0d8I58Rn2ItcGUrhWcNAacWksB+1ddGiCOoJzNMp+42FaSKe26rmaThcEspwRW1/51jIz305tcEtlQVcsWdqqILYKRs9Av4mbjIZJ7lSabkT' .
+	'sx2NXVPedy/+k1k8mpduVEF39BBbNvKh+oyM9VBuPNSCCDz4PAV6Z01oADZbDXoYk3L6PpiaypFlpzar3vADnOYzrCZwnSUBjz1EfMlUzDusYu' .
+	'fzsT5Js8NAFnXoz838EjYMAJGDdkWyG/Tx1QloofgA4WdomSW71YVjVC2tlEmnyqwhUSXpwGeDWwNbX7eySH+1QerYG9dnyVlNNKL0jwn9JOYh' .
+	'8gugKFfF0w+NGfg4XEI/aHzb8io93rTeEDncB8EBDiNiJMZnwAQCxnVT+4k++VjzLsoe7judKzFp/kH0n+aHOGqJhgyhVMZP70fOUvPn9I7wgP' .
+	'Nz6NZNEsd/xqetYxntHboW+YCoMvp7Gsgk2GnJ+3xFNFowz7U4/emrz9EjtYLGUz0TyW0z37RkfN4ATStvnRIQ+jyZySWblvqbRafh6c8k0AuG' .
+	'RXrI5p/QTVETWiHOsVCj61zUvJ/ro/2XzQmGoH09YW2q/DhHXGGD3zccV7DrcrTCvv3frolKjMuFArx/B3HK4TxGtM8ZKkbRWffEOMq9mWNQF3' .
+	'TEbtkPrWbhUAf6Wi/HmGKbFQihQIV/+cKsF6d/SpExerMlygUE8Ql1UUXerew/D6Wdtw4xrwCRX0vZi9cEpDmFUtKRYd5BHvxu8bxDhnMbq2hi' .
+	'qYIX+qMjkpoYkmhaus7DdldUppr/XbrmtTO6id0lZa/NA6lNvniml8oYovTefewkSRHUMLGhM+oApqg4EOKTEzouijjl6KubsBVk4z03ZkDMjQ' .
+	'EN/hw+rYTwQ+85NpOmdTH6fk+Vw8G9KhNAoTdf8e11Ro62JvlUHMmWCWXAhXWN5HCkare9fqMK9w3GofUFCS5ZlWmGKQOkOI0kQxZA5AXYm+Ej' .
+	'ug+MY/xXt3ukQG/jhvqecYTg5OobssoU7CxXRNmytzV6qUXhNgWw/jRtqoPv0jwDZMQsMGEswDzzgvD1eCyCHx6YXV876uRqV1TOBldPQXysY/' .
+	'buBT9mxlpv/rvBLEjGEbUwc7GLxOB2Rkw4jHzbGmUc1d2ijdfV4OPpcxGQ6tx5lai7rioCb797j/bEafQiI5ijI6YpLSjryFoRJS/x1iii7dYt' .
+	'eT4RaIb4L5RAzeZHDaUc0k/XXrO6ou7cjk7TRj2atKJ3i4WRtQri5/j6Dn/mzH59cpnRmqoblM8OdDOZowYzmVakcKLzz9CzZDyRzcL3d8UWl1' .
+	'tjKrCNu/sxIUHCz73gogmYW3SLiZIStF7QGpkCEB7IESVB4nJ0HvWyc/7+sheZ1lUtn7lXBirNjaLR27eCC521M14H5c2rXJAAxCvNXRKXrUrj' .
+	'ehzvLUdY1YktlDjJXXI71j5cVOVvmfcVBD1axJm+MduY59sX9SQpEpRDlvxGqVPNOlr0QdgtxkVW34XirIQWWlw4T57jHVcDbiXZapYG2HDfVB' .
+	'RpMY+nJUTaC0l+WKwyqerQPaPYMVvkKB06Rai0tm9mLkaDy2hRKooczYyrgFtrko6QbldRPE1KCNu1En4Q8GgYHwzFOmnrWcOmJeXeb0LDQeb0' .
+	'rZ6AtU1tVNK0jgbk03uw1leVWctuhvp8JTzIVYYa3IqAyHG6J1KFwyKsg+HEzK2KymBWEM6t1NuoUTZI0dfmvXgFBWvs4llvKJKzGpBtGxS9i+' .
+	'lYQr50mzrAC1tcEKfdO+Dl5k4O8K8wBur8Q5hK5R1/pnWCmfMWHwbwTkknA5AkK9psmbaAq773XTirZDxh6/XkLNp2hYho3UUB+FrmGwc7co4x' .
+	'S1Q79WEjiwIe4JtBtYs/N8LKkoLtUSEYO/J+AuY/H4Gn50fJVUwJk3o+QliyCz0Tc6eQuJTC34RzyQIUJF1tR37/dv1nLPGVSuqxYrElJzDwjJ' .
+	'31pZZgorTCo8fBQnioGBKjeGBrT6K3kxOkOmAosl98JtXYa91XwADn4WOKOuslHLVFaB0QnjjE42v2yOVL6SV47+BJFZ9V4IuH9QWbzRJy9/Er' .
+	'yklEImTjUw4CxLg16pfH0UVlB0QsuLth+Ulh0lGrL5UrA+oiwIgOHsP+ogwOSRmOnbvW6sYJZYG5Ahdn8WGJQ4NcEROy/dcqNNa7DxoBJ9sIxV' .
+	'tgMbbYB7rQrfaiU7C5scVfuajn7I4MnDlZgUJ7o/DYEvYsHVOD3LGHsusoKxCcVAEdlXZOOgsNRwgE1kJOA/jl0FRX3S89wU++KX99iEB+puu/' .
+	'3GdDHBcsFTKezxtR8AwPbqTdRrRW9+4lAlNuYN5rKe6mx1X0pdI8OOkSD5FBwY42P2AQ4q9Ew7V+RQlYYzmjqzx8PNGUHbPqCsexKdjjoQkWix' .
+	'kgA6jEtcNNOVcuLx4TK2A8RdvTrtJuLbHUjKWel1qL1yVU2hF2XxAAfLBLUHbD501XM5+9IPTGAVafxdJTok8CWJ5Lvv2rC+Vb/xmyWZ9d1vxh' .
+	'OHiBHwDH+YCewhflBj/FSA0Degpzo6349Jj7tFcT5BIL+snKzh4pYBhdH/JHeIEd0LKXQNsQrRJRDKbcQueG2SRPSAAjAlPdEdHSm27FP2pcVr' .
+	'o7jZIty5jMsMkI5Z05LOhh9GWHYz8iK1iCi5iIFqiDtX7fE41NodzCTBYfLA3K52xbtUUaUYWeqxXhTQe28+WvJPjMQiu87bE+tqpD5aPTDS2r' .
+	'L9VqwxLls3VJ5gFm/nqHc1KfIqDdbZStfFyk7l+jAM2UQJooBDixdpyylodE1ugDXMntbYjgXQNXrPRloHjQFps2HWe3p251h950CmckU1wlEu' .
+	'3kurIRGFr+gcZPaBrzmDgURelQty2AeCNQKlM7WorNg1O8/IIyjdQmSZHtkrPpUJlCQMWfOJuedgYuBKQZ8qnfkLInQ2E+5PjFaegRx0zYs8bB' .
+	'wBu24LNaRv52V69jpVQXUT0h/tyfeDWYV3/Nsns7PKzyfFXLjni843CtiMJ8kNWttAfjGQ3jtZLMKo1/1TTb0fijPTfrXiafo6ancDIRUmuUKE' .
+	'H6lKmkEbXuJeTTPFFjMvNESTUsXUi8Oe/ud2766Io6N6R7ey4I5RdkEumqJuMbgtd/e+gknK3TEtSTpv9WpKTMFS0B1IzvAry0SgFBqEHS5ASu' .
+	'431kMHCOvVQ1HQf599VOxruYz0aNOhDIGoC+1C0eUXvIqGxUhEy+epWL5dC+2aiNR8YACyUH405PzKSPVhYb1acBN21yfLv3wsb9jg88atbD8B' .
+	'qih0SZmHSQWLgetDo9Vdz2UPkzlOXdlPtaTk+4/upmo0nHjNFdhhec1mYv7ZHLYUHEMuWKgSbK3GbG2VDMRtgMoEN6al8Rzl/sFh6MLlui/JfO' .
+	'VjgDILoiC3TiW+3qkP98nvReDAdXxc2tZBwHEMIOOlM7xoXG1xIRJPBuUt+UQ4E1FvNocryFBcpOjAYuZjzCNITulqAehFmhxCR3xr2dwSQcKk' .
+	's7Cr3yEfm8WX8r7VXRxHsrWrLZBNNWGZ4ZdA16XpndXHNaSXdEAHSCf6yVTx4qnE7O7ZY41qtylPxKaF1J1TFY73nq9Il1Jlp4Go84cUMixp6T' .
+	'rTkdTM463H45GJ7m1S3bOJclU4MhRL/XEX7tIg+9XaK7hQqsW1ltUn/JG4eMZSiRFl0HlrTDaQbDNrIZdpAvqBx3k2lM7Pt6oCvW6zPO1JiUUH' .
+	'/ieBMzqNuosmE5l0pkwpcSgPsluKWC3K1+uU0xuOGXXgpwsQp0g5ALPjp4O6vYUfbENtmxErmXSZIXFFekpCAsbBS8IAdvp8gwLDbUXsZAa8dI' .
+	'a8uIrftA/+yS3qb0XTn5fyS+dqD4Bpmr/jrtKCwtorltMGDCDD2KsyI0K0xXtIHVChPnmRLo8bUB95rpVH8iT6NTJ+fiXWOoZNJvSIkBaRNrEy' .
+	'm5XqEEJcgmV9FCFdfj+hGOHgCBgCWyUa8czkmiUeqDCoY0GTYrVP67h1sQrSWwUGmRBrt8f07gdhATtuLr19qltbKq/FchPEqxzeY7bjw1WWig' .
+	'7zI+UWg78PqhsYSi4+iuKjw/AemlnFAOgjPlM24o0P9B8KxFfG81vVNBmOooZ8RJd75RDCTTaAupWHD4E3bD6GgRo5B3500h/koQ99obj0UgeZ' .
+	'VR3OAnkE0G+131u5dSwZKSelhx3TWhQ84XIzao3jaea8RsY9KcmcYtmf/AWON72ryI4QCd9LbscoW293DnUTMkiQ1JbLalzI0pU448c2kyjA9P' .
+	'QOAJkGFzdEbAZVd1dlQVOG7NdcAc4c/kazJNHsscL3zc+3T5rELvNkWgBqe/DLMUCReBiOMLUXNRSnVLKQWLHAkhDuLxqRAM8F3BzCGSdi7Tjq' .
+	'nIyV4LfbferidoeSkJ0NEWFFLzoFZvHSNb6yeQe2e+mSJE8WLbEcH6+eYjUcbTXBtqJvnwuyGu5oagMCt/vkDrFj334lozujvQA4VUeKaiQoJV' .
+	'jj1ln4CudmPjopPGmahhl7fOExe2RqdGDnHD+gM7riLYcf67uyxYXtIL8+161gxYcdeFYgYr9AlJgKsvAY+y+x2+WNmtdET4aZdtIocghzoKEK' .
+	't19PCw/I5ndlIgF5uERAlDXlTN7suq5C7IkRWftePWVWxTdj+7tVsMr98P+j6hEuSuzTPlKyQ/gYspZSvE0YlQLyRv4VlDRi/gpj4q43zpEAa/' .
+	'g8yD6uT0Hw6DGE+kebVr8/qctr65c6fTHFvJr4rMq4P+ffPxoBy/AQXcSKQ8Bp1pAHECw/otki1DhKSVHw3fgYXS6lFhMRiW7V/fe/aU1Kpi10' .
+	'E5M3jK14byHPGOSNIkRX+++KyHJyQv4ar9QQ+dpPSfzNYnbMYHC1Jra6VfTK3JH8ch7iDntzSMS/SDCD7DGIeBA1cd2nOxlEGja5iXjKUrWpsS' .
+	'jIxx+VJw88OROlbqP3Cf6evmw59vyeIwLysG3RDdaZxvjB4Exo+jtdnGA5uqp1yb994nr3FXN+i1zlvF/xl3salL8oroz9mqtlO1CZ6t0PjhJ0' .
+	'T3/01GvKpD+XAiGPv914cLM9JMP1QFNpNg3w2fQd8PgnocjJRqXEtWVFr0BxFKegBROLktfAMJFkzltB5QAgg4KYKNj7Kkn/MV0n26hyixGauB' .
+	'CmeurEUBgnDmg8yk1CuztK7ia3rjMFacg30+LyU9P7l1zfmyxQBJ/Iq8QiYTIPPWkUPupzEEV+z4PQyxmhijJjKnmPJT9P2dlyPytZbSSrMEwL' .
+	'z0zX2PX2MUzyYsNg9xcIpsnOM9z5q9XGDllmTRO/00Kg4kc0wQ5wt6fqWOlSFKIci8KKjqYeDOB/mEUKGqETx3Lb5augd8ZIoWaiv4hm1pDmU5' .
+	'PvajkL0OMx+bX2SdZexiCmFSS4V8v5WhO179BG2FP9GQKZdoRV5z31TSU5nTJSMDBudkG6RpkLvqkpv3m4qpunDrfkI5erAumU+h6LYcUnbgBI' .
+	'NL43wf3e4rWWLAVJRzSf67qmZAj9driVn+jNbJcWxezfFC5bdsNgXJwoELukiWy3BeGKZrFkrCLdM/RnfGrz57xTpyXNXazK+5TBpE8sVkEC9Q' .
+	'cQxYLFXzW12A3j6Q2FBlmmKiYBtsV4LzQXsTXlDeaYu50OdgvfbHpUyFCb7Od4hgBBsBSh8QkFMnjCn6RSG+Vh/ywtnd7Ni6Pay4R2iEyDbvVY' .
+	'3LQRe+MLScZICjUrqTodt4RRTKiSpGFbZt29UXw5ZpsU3HLt05Lgj2cp88od8bb7UqQqAnzIuqgZKe+AGIx2hL9fBulQaRcXN1lUGl4jW3iNSX' .
+	'BgK3lxsf2dqFQEaeNCT+EdieZFI0V4XCQFSOOCHss9Wp5QenQ88KyBUxfwyiy0/sDb07veGYkwpedpxQrvj9+pdOu+ZtDamq8q489ugv1F+y15' .
+	'z5Tz4UEEdWPEYtmD2HdTE0WzY8Wgk3Cxpm7TMUX+8NGzv6h89GTYJ/JbMcAcOEkNfdsWcyTeTMIvzz9vV7Ds/pRrSSBPX5FHHkHDCaENlz5g8Z' .
+	'b5a/rdYZraef4O3B0KRbVfaZEa2TkYKiweR/fTi0MHZ1UZEUQQDzjrfnPf0R1JxzfkS8ED0K10zuRFK5O4KzprWid0xoUOMPhXCMWMx5MjQ8kd' .
+	'FqtYBxH9sCN7pbQXNMdQgkyHW9vf+FUcktxAa2sABdh9fpppf5p0A5j578RhyvNeG/0IGZZDKiC8MXfb6ms9v5fgNFKsJKjAXu0jgRiWevh7n/' .
+	'J+Z77HbYVKDkUwL7qYs/23z3l/8+l+ENjhVSYE6IEHCMWYKhd0kddWqLldt2',
+	'd8fed3e7659b9c553c5fb1aa2cf4d557a46279fb4502ad70065d5433530231ba'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

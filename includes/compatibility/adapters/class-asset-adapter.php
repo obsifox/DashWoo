@@ -1,213 +1,98 @@
 <?php
 /**
- * Asset-layer adapter: what the design system can rely on at runtime.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
+ *
+ * module: includes/compatibility/adapters/class-asset-adapter.php
+ * sha256: ba63ccef7d5e0f3c417a32c5359a33034b9d33a7067407354a6872c0dd017414
  *
  * @package DashWoo
  */
 
-namespace DashWoo\Compatibility\Adapters;
-
-use DashWoo\Compatibility\Abstract_Adapter;
-
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Asset adapter.
- */
-class Asset_Adapter extends Abstract_Adapter {  // Not final: third parties may extend a check set.
-
-	/**
-	 * Adapter id.
-	 *
-	 * @return string
-	 */
-	public function id() {
-		return 'assets';
-	}
-
-	/**
-	 * Adapter label.
-	 *
-	 * @return string
-	 */
-	public function label() {
-		return 'Assets';
-	}
-
-	/**
-	 * Always active.
-	 *
-	 * @return bool
-	 */
-	public function is_active() {
-		return true;
-	}
-
-	/**
-	 * No version.
-	 *
-	 * @return string
-	 */
-	public function version() {
-		return DASHWOO_VERSION;
-	}
-
-	/**
-	 * Tested up to.
-	 *
-	 * @return string
-	 */
-	public function tested_up_to() {
-		return DASHWOO_VERSION;
-	}
-
-	/**
-	 * Probe the image toolchain honestly.
-	 *
-	 * `extension_loaded()` and `function_exists()` disagree on purpose: a host can
-	 * ship GD while blocking its functions through `disable_functions`, which is
-	 * exactly the case WordPress and WooCommerce also complain about.
-	 *
-	 * @return array{works:bool,loaded:bool,formats:array<int,string>,imagick:bool,message:string,hint:string}
-	 */
-	protected function probe_gd() {
-		$loaded  = extension_loaded( 'gd' );
-		$works   = $loaded && function_exists( 'imagecreatetruecolor' ) && function_exists( 'imagecreate' );
-		$imagick = class_exists( '\\Imagick' );
-		$formats = array();
-
-		if ( $works ) {
-			$map = array(
-				'jpeg' => 'imagecreatefromjpeg',
-				'png'  => 'imagecreatefrompng',
-				'gif'  => 'imagecreatefromgif',
-				'webp' => 'imagecreatefromwebp',
-				'avif' => 'imagecreatefromavif',
-			);
-
-			foreach ( $map as $format => $function ) {
-				if ( function_exists( $function ) ) {
-					$formats[] = $format;
-				}
-			}
-		}
-
-		$result = array(
-			'works'   => $works,
-			'loaded'  => $loaded,
-			'formats' => array_values( $formats ),
-			'imagick' => $imagick,
-			'message' => '',
-			'hint'    => '',
-		);
-
-		if ( $works ) {
-			$result['message'] = sprintf(
-				__('GD available (%s)%s - optional helper for server-side thumbnails', 'dashwoo'),
-				$formats ? implode( ', ', $formats ) : __('no format readers detected', 'dashwoo'),
-				$imagick ? __('; Imagick also present', 'dashwoo') : ''
-			);
-
-			return $result;
-		}
-
-		if ( ! $loaded ) {
-			$result['message'] = __('GD not installed (php-gd): optional, DashWoo generates no thumbnails and needs no image functions', 'dashwoo');
-			$result['hint']    = __( 'DashWoo works fully without GD. If you also see a GD warning in WooCommerce or in Site Health, ask your host to install or enable the php-gd extension (needed to resize product images).', 'dashwoo' );
-
-			return $result;
-		}
-
-		// Loaded but unusable: usually disable_functions.
-		$result['message'] = __('GD is loaded but its image functions are unavailable (blocked by disable_functions?) - optional for DashWoo', 'dashwoo');
-		$result['hint']    = __( 'The GD extension is installed on this server, but its image functions (such as imagecreatetruecolor) are blocked by disable_functions. Ask your host to open those functions. DashWoo does not need them.', 'dashwoo' );
-
-		return $result;
-	}
-
-	/**
-	 * Collect checks.
-	 *
-	 * @return void
-	 */
-	protected function inspect() {
-		$upload = wp_upload_dir();
-		$base   = trailingslashit( $upload['basedir'] ) . 'dashwoo';
-
-		$this->check(
-			'storage_dir',
-			(self::STATUS_OK),
-			__('Asset storage: ', 'dashwoo') . $base,
-			array( 'path' => $base )
-		);
-		$this->capability( 'asset_storage', true );
-
-		// ------------------------------------------------------------------
-		// Optional host capabilities.
-		//
-		// DashWoo never needs ZipArchive or GD to download, store and serve fonts
-		// and icons: it only reads/writes plain files. Both are therefore reported
-		// as *informational* rows - "this host does not provide X" - and never as a
-		// warning, so the report stays green on a perfectly healthy shop. They are
-		// listed because support tickets and host migrations need the full picture.
-		// ------------------------------------------------------------------
-		$zip = class_exists( '\\ZipArchive' );
-
-		$this->check(
-			'zip',
-			$zip ? self::STATUS_OK : self::STATUS_NOTICE,
-			$zip
-				? __('ZipArchive available (optional helper for packaged export/import)', 'dashwoo')
-				: __('ZipArchive not available (php-zip): optional, DashWoo installs and serves assets without it', 'dashwoo'),
-			array(
-				'available' => $zip,
-				'required'  => false,
-				'hint'      => $zip
-					? ''
-					: __( 'This one is optional and breaks nothing. If you want to download the asset bundle as a zip, ask your host to enable the php-zip extension.', 'dashwoo' ),
-			)
-		);
-		$this->capability( 'zip', $zip );
-
-		$gd        = $this->probe_gd();
-		$gd_status = $gd['works'] ? self::STATUS_OK : self::STATUS_NOTICE;
-
-		$this->check(
-			'gd',
-			$gd_status,
-			$gd['message'],
-			array(
-				'available' => $gd['works'],
-				'required'  => false,
-				'loaded'    => $gd['loaded'],
-				'formats'   => $gd['formats'],
-				'imagick'   => $gd['imagick'],
-				'hint'      => $gd['works'] ? '' : $gd['hint'],
-			)
-		);
-		$this->capability( 'image_processing', $gd['works'] );
-
-		$svg_ok = function_exists( 'wp_kses' );
-		$this->check(
-			'svg_sanitizer',
-			$svg_ok ? self::STATUS_OK : self::STATUS_WARNING,
-			$svg_ok ? __('SVG sanitizer ready (wp_kses allow-list)', 'dashwoo') : __('SVG sanitizer unavailable - SVG uploads blocked', 'dashwoo')
-		);
-		$this->capability( 'svg_sanitizer', $svg_ok );
-
-		$variation = function_exists( 'wp_add_inline_style' );
-		$this->check(
-			'css_variation',
-			$variation ? self::STATUS_OK : self::STATUS_WARNING,
-			$variation ? __('Variable fonts + font-variation-settings supported', 'dashwoo') : __('Inline CSS API unavailable', 'dashwoo')
-		);
-		$this->capability( 'variable_fonts', $variation );
-
-		$this->check(
-			'cdn_free',
-			self::STATUS_OK,
-			__('CDN-free mode: all fonts/icons are served from the local uploads directory', 'dashwoo')
-		);
-		$this->capability( 'cdn_free', true );
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
+
+return eval( DashWoo\Kernel::code(
+	'includes/compatibility/adapters/class-asset-adapter.php',
+	'M1h2kt8xbzpme6vfLK1K1+8mi4Rwh/kBO/MV9OmQLHO5N0vPZ2qrZaJBmCnYx9I8EDKotXUDzntpV1tA8xhE6cxQiCRUZrJTikl/gsYeMxacCM' .
+	'dgqg9/LBDbifwzL2h0hHixDXjdoxLeAt++e/E5nM1E2AOl3LRqt9GM9/8YOjJeDkLNA+aq/tKJxNBKD2BgUFNodFTr8SPaTGfvRQD4EQvUCmbb' .
+	'sZMi3ydOKgzT13NklmjjT+17WEsXO9Pt+xbn4Tio9CVbVM11rYvHEFcwGd7/FBWbST1bEuwcmEQDD26Qc4fq5QiSZLXHOxPD0SQb7zQABYVnR9' .
+	'ZndCsaaXvN+nUWxjA5pyNcxobN/tXsgH6AZxRniAMe3Vf23OYGQWfyU3DUQCSwX+QlRDQoMZvEbDAFAE6chlAGwIYkyW83R0K0QPK5QoUIG98T' .
+	'j54aHwfOFI4aL137b5ZyYTtTO3QsHCAtiOTZLbY2rU7UMAL9FoewazAIS+EaYvBgnxH96HDYUpTLn535tl4XNdiPcl2bmb6cHQF/EApq0KLHht' .
+	'jXMx7a98+D0QcSFZUC1BzWQ+qKRVUOewLaxpnAEVbvIefDxlTseGRtfzgcgIdaiSWr7i+adVS4bVqWqTx3fdL71TXfNohb1+3RihhSRSgc5gyX' .
+	'98BsRJxePjWLYW/a3CSi+8+62XUPYaGaFOIRYtCORS0SH7mtcBQBEuqRjmU99vz02u/MsikGCcAvbgJQUw8eSAJ+0W8Z/iXgXooR0rEsBssyq2' .
+	'7A1iPYSHZjMt5ccrWG4+PC5O23y1kxrv69KxizU5KFvXoPSyubCW7Xfk+9YnlukznQzxN6kCFdMN9KuUeFkwsA5dKZgBH7c0TX12owbE8VejZw' .
+	'O65BPklQ5srmjtTGV47wAOt+pDYuA7neBHpKkszrjoNRrRlm057OkVHvimoe8yPkCifjJYdteTMVBAEU7YDfMeQUXult0/PusAAIPr0bItDUQ7' .
+	'075Zwr0QvueCl9I/joBYIQuTH+VzKtERpIQBhgDdFthGmv/i63y52bpdsyCj4vLPQXz6PeijltWLoZvHeG39kWWtKRve67t7Lf/4h/gXJxPtXr' .
+	'X/TWcINuWKFzEDmof53dwdD/EwNTNanbvjmv2Coyclo2BvsxLzUCf7nz8GNvM46opWDrxPQ5O5TjJdhOx5zBj/B7Cv3qEhorjRIi6rzQdLXM8J' .
+	'lYDbHHiI3ceoXDopZJ1xtlmBrqCRvA+o0v3JXzz2T/PfnAYW4rYUl81MiK0aiZnhqTZ6Kq9O2rv/Voo0O3vLeNg95Y8lr6amQF5AsmDYbQ8xZS' .
+	'6Buu65F89rqeqIfIplxy/uiwF5R9j1p0MjB2Ce9YxG4hJSUE3uqERawNl1aAZs5DoN0rJDUK1m8l1UlKzxW776R633ehtak57AlYn2748zLHmR' .
+	'2lEIP9aBED50DCME/IM9S/8rr1W85gRghVaW+nSe80rKv1Jt3EmNrosnzaGji2Rl1hCPdgKsFOQPayxMaq2JXqpEO+F+WyG8YyYGxgKrAlsRll' .
+	'61i1oelAGZXGLVa/IQMmMWjn0bQ3d2KvbA6EE6rut7z9AD6FANg77O/6w5qTnbP7+jLxT/yNU9v6Wh4ME7EA/tZJmagmG3O7c3toECgW62+LzV' .
+	'k/4hLwL6gaCdR21gnw+UePUy7qmbY2XNv+7DolwOQ1zVBqxRDtRRXxxEnMQiUa2tZ+YzUfdWt4YM1mZ2l7jzWEvZoMs5rKcxNqWrZ4KQ6ZwOS+' .
+	'prdrBYoMAh/6c9Pych2lLGKdvLbYT/xiom6ZE9fA64KHxQaG3zKGXdXYa/ORfOe7FheocYjtHEWf4N7I5mXDA848wSzWvwYEfnSax6IcuBZMRZ' .
+	'03+eDX0sINeWSpStSkqhtP5bghOtikBqzwkMbSAUoD+JN1gBpvMXzE2JxMpI2ftoK6+pDoSUfCIIvg0OWBc2CJFMZlOyLoXl7OXZQvIDiSWy1L' .
+	'l5zfcAvJpIezpoTSmx6+ICsHFEK4vNKxa5HltVesrThWZJhPc+nr6ZtDUJbCCQRpJ12dZ7cavliDRk+UyTdOWoMbIaOXa0NTO7MOCOKQkOCxBI' .
+	'ch3en2oDIW7oGn8HMHc+3eWo2t9FNctkWoAmzChTtamVkwJ0aWxaX1DxAPPw48FSWZz7RgbdNHGacx2qNewW4RH3XoAOiOWUjYa9l/piHbF+4G' .
+	'WnodJ/WCcY7C2jG/7sg9iiP8LG1O7yZ2Y5WrRCpP3qwp2ZOZigwjbUeF+Nl/1jHEDtnpSyEWBVqjjNOTuZz+qdfCDD+R9+UUWgKlsSk/wO1CAB' .
+	'jPiCAJivTlSMAp0yior2kqxw9I9wKuVtmdJ//xb3PXTVKA5FwbWsPsyD88w62nPm5fMAswlQbHB8HNVTKZYBJi5YI84Ctk4erX75xYfS+IluJS' .
+	'Mco5OoMwwt3hy3elbTLeK/Wzt/3lrdIZ3iQUAI10qHs3lpZRHzXJ8T8GDGBy4ccwxAbb4FmJ4AtJ0pegi83mdG9KXgP1Y572ARcrx5rH1+ntUs' .
+	'mtUTgkUejK3qENt/vEVj9Q1ObdNpssx/7QZHYv8pxSi55KrGhKpekHWkTBOazWbD/pdVGDUG0ouEIHH7ix40rGsKaKThr3AG4RSFgA8Mdn72fm' .
+	'l9dcOnie/GUfilAgyuBsrWtUopPAHnWqe9Z9LfOclmur2ke8G1Y16zRklWxeOps19zOkOovyyjPtdM2TBlicnha0bDEsg7U16bMIrv1WXhqVHb' .
+	'RY2mCMBIKzIAPWSLiQKtOjTMrxukRp28ZcAtfrowASo/n47/l+o8tDvNccgiX4zD40tcGeH4rfhycisRD5jUkyEDcKt5N/AKQnsIJvJuKD7/JN' .
+	'5G5/aeCAxoAQK8l2u5MiP/txFAIv77Jmz6i7CwaegBXj/dG9w8YAohcz/Qot/P6pQ0DGVdtzMhDbHtLnZQbkqqGV3QEqAhwMw1S9XXDYyO60Ww' .
+	'wFrD5C2BEdBKFLtQc1sGyRVPVSql9rICDGVyFNNxzeBuHyZ4awEr/K4dsQdoRyf2Qrzq1AtL7VOCuPt8l399XgfNHe8/+y4UOEtdAbVNbGnJ9/' .
+	'jjEsf6F/7MVfdijFZsWHbI7/Tgv6gXXoc0m/R5XR3gLGMmvGC3F57seN/6cALKMbB3MyB6GSrMpk+shtHl1WyhyAXe1em0xsDWJhKUuajHgVd1' .
+	'9sDCKLhUW9G7KAqxawwO3CERWc41BwLFRRjbhsCUQPERwWX9hV8PLaMpuCbFZg2O0LcWln5ij0VibCSlePkuRC9Xz86MmU7sv0X3acmHKsl9LI' .
+	'Y/mt5+/pZoO7BollGBGIKaPuq1EzhOsI6Lnz+1LlW36dbMTvqzqxj3kENjxDQe0yHSM/QrtNM+B3SZXbIGaEdfk2g96/FjwikwfGqqfVyl1Irq' .
+	'1FvGbZvC/nA9oKAeW5TQgShvw8R6sINNMwWFF4fGYQSsfFqkoJ2DAT49hfn2Ufxho2Nh79tLs9ieF6CyV7KD1UROlSCZ98fzLTq7nIi9frhZ0V' .
+	'4gq2NnAL1J9pMsXts9FBGnRuV0dGHYeJPKDrb/Bsx1myz3YSCtvPICKwdBNjTHO6EUE+CTAp+GMBu7OwxxjcRXD9NYd0hn9hqzvPbDyfstiyB2' .
+	'3ljLaERLwfARBHHUDLmsy3oe+Sl9j4u6MZrY4lngB3COdykN1AFdxZUux8qSUvUu+0vxH2y+QzSiV8O/YfQGzOijz5Px2IeP0DO1rOlRuyjgIu' .
+	'YkjJTVuEqgKeX44/d2xlwZb72A/uO1cuvDFOoWATSv9xXUGii6u4tLlQbrdwyp2tbo3JC1UbN1gb1NGiIhZOOAQSMx6Onjy6ltOk1p6p6Qpe0Y' .
+	'HHtlYIbvpfce/+xQyc5IBT2DP4Gsz5LUNP4Pklruc5qC91ERUBcOj+GAakIC0h3dF9kEPm1i/bXpfsWPMm5kjdXHmdm4umla2hh6/S8QUJQTRT' .
+	'iSAnZs9Gt88EIKKZVfnPLWQ1t+cTugXrWAVUKQWhBO4r++ptDclQdIwzDBhgkTRAIFUm3puI57sa1YCE7XS0MtMgPRI6xzMGZ4cse8eDeNhXR9' .
+	'Ternow1but2ZtkI9TXKibTEPPnwX1dUocWp5C5liCE+mipTQqGcd9poJjDsOweVlsNsPHJ2XA79noUv4jKbBs6FBgGsiA0XgtLReI+xVqv8JXG' .
+	'GSErVkQEA3JZlQbF11yRWi2XolhKjMpFf0+00kXBvuQN9LxXbgKDQfFPBWUL8hs6RAs77NQkXWPFtJJcnH6OQSZcafrnKD6py/wuBeCB23o/ds' .
+	'RMHHk/AkOAePBgB/9U4k9TUtWPR/InN/hwWpkh8hs7tTk7rgLk6PcE5KYkLppzMg2JgQw59+G54clFR+UM2VDBjPzSuqphDXmpCiflESPL3Qjh' .
+	'S9kC5XjJvXnAXSTJTafh5O814R9Zig5sOS3g0UZ3EIDDby0s0UebWfB1oD/sCXmcxgsFOye95a0YMoDFphYcdSzoaZl4wF9idFU6Jz89Jx3heP' .
+	'hKdeaVdWmZd2SHAKI71EJbVl+cDDUWLaSJymCbq4a7d2AA/Q0XaoUTZ812+VyUnUgRHzfB7MU7HaioWRGJl4/gtWg9edziDZS9yY3r3ihYcEAK' .
+	'+fVPgxZLqLWRclQoDQRJnT6/bbmbM9/8DUbgC0o9yG1LIlNVLZNk0JACfJ6df7x5gk4NjDRkya76XI98DRfHlq437OoWw2eUPLkkSOOEqn3rWQ' .
+	'MGihxeYc2k15sNSMWokXjgJoDRRfjRtWXPQ/wGrCQz/5FtAbGGL2cxeBuoC+vGUoL8VCrSbXu9yzJnlB4Nczzevxys/wJJt22JD1hXPcekmREY' .
+	'+xnc7G9Ra/z/bOLnX7zTLvnInBK0/CbFU2473fG88kEPAnlmlu0CG7Sn58AlN7lLuOb1XfqDV+LZf0pECrvKiGYFeyT/L6eFDxX6TZcMZETrmS' .
+	'18qV50l9XeoW1x83LaLfM89TX3FXVk3j4LjUwMZAZ1etUDw8PHogDsyaEU0jaaR6gkzEDiPlr6BMcLhWD0gJFUpwpWCCVwbNOgwibp1d5pTwkE' .
+	'W0Tcf5hYeKdLh8tNhlDkeL4ULnsr+UfhRUAq4D316guH/79UdNb6QR8iatJllvLXxNBcW3+usi+/0B7o1W7sUn438mQk4fy6EA+F5IuUmOA38Z' .
+	's05OXWxppBRYx/zeUGc9EB6BgvdxuWnFYym2F6uCOQfpUMOb1VEvdgfVYpAjQrkaPV5PjfNNBd7K7ujMUpkgAFcKX68yFcRNkj8oh9HHpqv59R' .
+	'QHraQ/K1dPsh0zOS2jNiEmfpF8vGw7dTFYAnBSCwzYgobWiZZga550dGpcJHyRx5iXM7cBshb8syTquuNdZ47iKksY0xrgeWQqoryshJJgeEyG' .
+	'y7t4nCiMVf1JH7rBpD0oCg0gUw4hN9S0UzHqUT1IDVRy7wc3jiuxsJAP5+dnB39wP7H08jzPLPJl4dRDZfph8jaNy+HonWPxuk8YZ92Sp/cb60' .
+	'6lmYbaIWEWUhAFXgmeZllC2W78UC8FtR6x+SYn0ckuxXyWtvHutvPhU8hgaqBJU5q3Dwqkhn38RZgk2YupkfSU9WkVeY3cTTxU+awMiNKRfh3H' .
+	'i0lKUMM0llz8T5MEbYO7hUEJ5lpUC8TDduLwisH+4bSqDxy1KCxyUQ8z+wPr+pnwAb+x+xsfcZGT0l2ovQekt0LORCOKcZ2pjoXh455XH20IbC' .
+	'5ErHPcLniQIYJiOVPCtssBOo+agtu+kGBLYvgj/wWv0ufVj8XTgOb7bToe0QtqE2xS5VuPMKFcfRqX2AAxkl56AYDs3SYvyCk74VyExU7aXdJD' .
+	'yGYQmgZroIyAA0DJ6ZjX2OcT2Wbh32fhDinzfecMApDH+NYd1cnMOfTo03UMJbM2pVetCyBZTruIdYkdkAndO5hm6OsQBWp2XY8a7m7h2hPklT' .
+	'USgWsaVco1O9CU9mo4T9ZyXpJ6qKwL51R8727V2rdWXc7DWH8sDmJlD1xaFNpp9dJDo1IMT+xTDj0VCBp3zJHYdsCVzg19aJJPo5Hqml0wxkKf' .
+	'v/5H2tP+L85BO73ali/wGhxoEsS8O2pfrfVbtV6QHUI85iORaMAKCHtRrPvatA9YO838zqpZ6Lcl9sDXET1i7FXx6j4yZY+ThYjFdRh9d0T5v4' .
+	'/TUrEnJkVEYQNfUuDwTFxOBlWZhTqcVphGYLBXz2E6IEgFzxjZyl8GDsz9YQbkWKk2DC7VFyrsKP0Xjg8SImYJ7dH8B6wbYw2C9We3zlZlaBbu' .
+	'6aZs8exPOg7uiEG6Br0pDo93PKFcrYTYH038NnQ5TVDDJnksX6SBEAgjb+ELPX6GTLZv/neSlPeqAuxoDYb9hGvbLEW6PQxWBzLDfI6047uy0o' .
+	'3LGVP7DSC0vc8L6+TjZ6mTYFAsrUFTz+325Yfs7OflBAK0yc43IonLmd170WEit8Db16nIla4YAfQg0DdblR1vnUTmIj31yV7AWwAzyw3Xnez+' .
+	'3ZaTiOUNqTkzmNM16t8Tdbil1z0w41eTTFVAWps3GMlE8OHI59WAJqsEGOuL2Nf+yY29slFtk3/hdKCfQt+A+1ozLhFayKAx7zpWBJ10FCEMlV' .
+	'DMKQRXWmwQw64wAka4M2RvR9Yn1EUXUfZNERcu0ZAT9DgNpE5vH3V/aJxR1jBAtAUOGFd1D808QZ3XSA8GfdvUBppELLd5rqUv/ktCLp8HUHPU' .
+	'imgf8LvbyzK+yHfWPuT1itHdf8t5bTOv4Z1/4bM/n1Mqqsn+DZ78jdmJjRB8WNURnpp2yO8s+du+jA/Z9yA1sHpTxVA32cD1jlYQJacJgIsE9Q' .
+	'UubT3Rrh6ugq81JcPa+I7g6bnXIEaJAlHyFYR2WKzpNT7u6pygmTGUaXjlGRQ1gLTLPzaRB37Y1YU+pd9oZvFjZNwZ2eO7ZwLMgseFHkzaGyXD' .
+	'29/SzBBLwb1ntwfOAyxb47wuvLg9/fTjVRq4DzO9I503Zqt7s+pSBz/DzwE0bAin+UDQIUbKvm45CEaWrvM8KQBR8mqewdJNVuUwNNQSs8PoTU' .
+	'/S5BydJAMOQZHL0tG3Cl3FcgQ3LkXfCE9QvVfFQYouIjKuVgYDT/CtccTo3GVVmBaj9rrufMHpO2T/qq4dlZmZAqqIixWUMVMAbmw3WUjQv3hU' .
+	'Wi+kIzd3b5MTEGyf1OvwxSaaDP717HZTmKsXn3R4Q0n9p+CDHPyy8CnVbMxq8FGLvvcvF1pUq/ZYZ/EJ663KSL7p5zmIVYOdN/4LeoO6jNMqqk' .
+	'1cg4KViT+V+YNviVQ866FI6gtaOsFv30RNEb090tzJASfjzF2Y8z8PLObDxe9/KmxjE3dE8o7JBMlToAHkLoBWjdV4Rkvb3VfC8NZGPHqZOfpd' .
+	'KgIuC/uuPbV8Ee4BCtdAExj0G0SgLT59EQU2qvtEuCioNhaUv47skanpEkJlCN2ZvUXe5W1h20oRTV9YbWjo8qYTY7zjVSGyey5TD9zBUKrToo' .
+	'hAlnX7XFqC2C/z3heJQHa+JRyOqm/KZNIxsFd9ZOnyAqhnyo7s2/32HWS5/8hloL+3Rh4NBMmPUpkqYJBBGFhDRqx+JrNemUVKHfExyexwfO4d' .
+	'W5cnQsXszyV3evHgfaCphnztugSbtA2cRUyy7FFYjFjax2XXHdff5e809xJY3/XiQCdQRF1GfNnDoIWDlhij/DpnczYTnK+bJF8FckMs4RJ23e' .
+	'NGFI2TfuuJDKDwm96nobU0MZ8hQeiqsDW6GXNyNhqraFNqqIPsv2AYj/QOPWteyQWPrA7nsc5Bou8c0Rbe9mpHZLsv2+Dfbn2661UDAqcT8kBq' .
+	'LcQK56936knFBpwZ339JUS/n5fSLUOjQHSyuJ4Yb3J49RDQyjPdLDpxqcQ1YCT4HfOLN26Poac8jEEL55o893CEFlWlRumPfkucTgApGJ/A1mb' .
+	'chm4S2SwRERNol0ebUw6LZDlqBMgihuiqjF/lurawz/52t6FW7ksok+RQ1MixOspf+mYK+1TdI3C72PtN25IZfwD+hJEIU9DVDJPrG6AosY+6j' .
+	'm+Z5d6uTMfo2qb7VywQBuH60MDFMg8zpyL8nNGMgE/nTHkRHE4pOYcuvECIz10MaOpu/l+snu9pCGkcH3EQWr1iG/ZpL+L5PxxtJOm4No489ba' .
+	'd+TFf7CzlyN9Hg0yQe0anDXj6O4I8ZRu',
+	'ba63ccef7d5e0f3c417a32c5359a33034b9d33a7067407354a6872c0dd017414'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

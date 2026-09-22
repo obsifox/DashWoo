@@ -1,192 +1,132 @@
 <?php
 /**
- * Capabilities screen: what the host provides and which DashWoo features that gates.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
+ *
+ * module: includes/admin/views/capabilities.php
+ * sha256: ce828949fb4850bc61ef51b9c744bec3992ae88757eb8aeeed7b98adfe2fcb23
  *
  * @package DashWoo
- *
- * @var array<string,mixed> $context View context.
  */
 
 defined( 'ABSPATH' ) || exit;
 
-require DASHWOO_INCLUDES . 'admin/views/partial-nav.php';
-
-$dw_status = isset( $context['capabilities'] ) ? $context['capabilities'] : array();
-$dw_checks = isset( $dw_status['checks'] ) ? $dw_status['checks'] : array();
-$dw_feat   = isset( $dw_status['features'] ) ? $dw_status['features'] : array();
-$dw_admin  = \DashWoo\Admin\Admin::instance();
-
-$dw_labels = array(
-	'on'      => array( __( 'On', 'dashwoo' ), 'dw-pill--ok' ),
-	'off'     => array( __( 'Off by your choice', 'dashwoo' ), 'dw-pill--warning' ),
-	'blocked' => array( __( 'Off automatically (host capability missing)', 'dashwoo' ), 'dw-pill--info' ),
-);
-
-$dw_on      = 0;
-$dw_blocked = 0;
-
-foreach ( $dw_feat as $dw_feature ) {
-	if ( 'on' === $dw_feature['state'] ) {
-		$dw_on++;
-	}
-	if ( 'blocked' === $dw_feature['state'] ) {
-		$dw_blocked++;
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
-?>
-	<div class="dw-grid dw-grid--4">
-		<div class="dw-card">
-			<p class="description"><?php esc_html_e( 'Host capabilities found', 'dashwoo' ); ?></p>
-			<p class="dw-kpi"><?php echo (int) count( array_filter( $dw_checks, static function ( $c ) { return ! empty( $c['available'] ); } ) ); ?> / <?php echo (int) count( $dw_checks ); ?></p>
-		</div>
-		<div class="dw-card">
-			<p class="description"><?php esc_html_e( 'Features that are on', 'dashwoo' ); ?></p>
-			<p class="dw-kpi"><?php echo (int) $dw_on; ?> / <?php echo (int) count( $dw_feat ); ?></p>
-		</div>
-		<div class="dw-card">
-			<p class="description"><?php esc_html_e( 'Switched off automatically', 'dashwoo' ); ?></p>
-			<p class="dw-kpi"><?php echo (int) $dw_blocked; ?></p>
-		</div>
-		<div class="dw-card">
-			<p class="description"><?php esc_html_e( 'Last automatic check', 'dashwoo' ); ?></p>
-			<p class="dw-kpi"><?php echo esc_html( isset( $dw_status['checked_human'] ) ? $dw_status['checked_human'] : '—' ); ?></p>
-			<form method="post" action="<?php echo esc_url( $context['action_url'] ); ?>">
-				<?php wp_nonce_field( 'dashwoo_action' ); ?>
-				<input type="hidden" name="action" value="dashwoo_action" />
-				<input type="hidden" name="dw_action" value="capabilities_recheck" />
-				<button class="button button-primary" type="submit"><?php esc_html_e( 'Run the capability check again', 'dashwoo' ); ?></button>
-			</form>
-		</div>
-	</div>
 
-	<div class="dw-card">
-		<h2><?php esc_html_e( 'DashWoo features and their automatic state', 'dashwoo' ); ?></h2>
-		<p class="description">
-			<?php esc_html_e( 'DashWoo never depends on a host capability that is optional: when the host does not have something,', 'dashwoo' ); ?>
-			<?php esc_html_e( 'the matching feature stays off by itself and switches <strong>on automatically</strong> as soon as it is there.', 'dashwoo' ); ?>
-		</p>
-
-		<table class="widefat striped dw-table">
-			<thead>
-				<tr>
-					<th><?php esc_html_e( 'Feature', 'dashwoo' ); ?></th>
-					<th><?php esc_html_e( 'State', 'dashwoo' ); ?></th>
-					<th><?php esc_html_e( 'Needs capability', 'dashwoo' ); ?></th>
-					<th><?php esc_html_e( 'What happens when it is off', 'dashwoo' ); ?></th>
-				</tr>
-			</thead>
-			<tbody>
-				<?php foreach ( $dw_feat as $dw_id => $dw_feature ) : ?>
-					<?php $dw_state = isset( $dw_labels[ $dw_feature['state'] ] ) ? $dw_labels[ $dw_feature['state'] ] : array( $dw_feature['state'], 'dw-pill' ); ?>
-					<tr>
-						<td>
-							<strong><?php echo esc_html( $dw_feature['label'] ); ?></strong>
-							<div class="dw-hint"><?php echo esc_html( $dw_feature['effect'] ); ?></div>
-						</td>
-						<td><span class="dw-pill <?php echo esc_attr( $dw_state[1] ); ?>"><?php echo esc_html( $dw_state[0] ); ?></span></td>
-						<td>
-							<?php if ( empty( $dw_feature['requires'] ) ) : ?>
-								<span class="dw-pill"><?php esc_html_e( 'always on', 'dashwoo' ); ?></span>
-							<?php else : ?>
-								<?php foreach ( $dw_feature['requires'] as $dw_req ) : ?>
-									<span class="dw-pill <?php echo ! empty( $dw_checks[ $dw_req ]['available'] ) ? 'dw-pill--ok' : 'dw-pill--info'; ?>">
-										<?php echo esc_html( $dw_checks[ $dw_req ]['label'] ?? $dw_req ); ?>
-									</span>
-								<?php endforeach; ?>
-							<?php endif; ?>
-						</td>
-						<td>
-							<?php echo esc_html( $dw_feature['when_off'] ); ?>
-							<?php if ( 'blocked' === $dw_feature['state'] ) : ?>
-								<div class="dw-hint"><?php echo esc_html( $dw_feature['hint'] ); ?></div>
-							<?php endif; ?>
-						</td>
-					</tr>
-				<?php endforeach; ?>
-			</tbody>
-		</table>
-	</div>
-
-	<div class="dw-card">
-		<h2><?php esc_html_e( 'Host capabilities', 'dashwoo' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'This table is checked automatically every 6 hours and by hand with the button above.', 'dashwoo' ); ?></p>
-
-		<table class="widefat striped dw-table">
-			<thead>
-				<tr>
-					<th><?php esc_html_e( 'Capability', 'dashwoo' ); ?></th>
-					<th><?php esc_html_e( 'State', 'dashwoo' ); ?></th>
-					<th><?php esc_html_e( 'Details', 'dashwoo' ); ?></th>
-					<th><?php esc_html_e( 'Role in DashWoo', 'dashwoo' ); ?></th>
-				</tr>
-			</thead>
-			<tbody>
-				<?php foreach ( $dw_checks as $dw_id => $dw_check ) : ?>
-					<tr>
-						<td>
-							<strong><?php echo esc_html( $dw_check['label'] ); ?></strong>
-							<?php if ( ! empty( $dw_check['required'] ) ) : ?>
-								<span class="dw-pill dw-pill--err"><?php esc_html_e( 'required', 'dashwoo' ); ?></span>
-							<?php else : ?>
-								<span class="dw-pill dw-pill--info"><?php esc_html_e( 'optional', 'dashwoo' ); ?></span>
-							<?php endif; ?>
-						</td>
-						<td>
-							<span class="dw-pill <?php echo ! empty( $dw_check['available'] ) ? 'dw-pill--ok' : 'dw-pill--info'; ?>">
-								<?php echo ! empty( $dw_check['available'] ) ? '✓' : 'ℹ'; ?>
-							</span>
-						</td>
-						<td><?php echo esc_html( $dw_check['detail'] ); ?></td>
-						<td><div class="dw-hint"><?php echo esc_html( $dw_check['hint'] ); ?></div></td>
-					</tr>
-				<?php endforeach; ?>
-			</tbody>
-		</table>
-
-		<h3><?php esc_html_e( 'Ready-made text for your host', 'dashwoo' ); ?></h3>
-		<p class="description"><?php esc_html_e( 'When a feature stays off automatically, copy this text and send it to your host\'s support.', 'dashwoo' ); ?></p>
-		<textarea class="dw-diagnostics" rows="10" readonly><?php
-		foreach ( $dw_checks as $dw_id => $dw_check ) {
-			printf(
-				"%-18s %-4s %s\n",
-				$dw_id,
-				! empty( $dw_check['available'] ) ? 'on' : 'off',
-				$dw_check['detail']
-			);
-		}
-		?></textarea>
-	</div>
-
-	<div class="dw-card">
-		<h2><?php esc_html_e( 'Compatibility declaration for the WooCommerce features', 'dashwoo' ); ?></h2>
-		<?php $dw_wc = \DashWoo\Compatibility\WooCommerce_Features::instance()->status(); ?>
-
-		<?php if ( empty( $dw_wc['aware'] ) ) : ?>
-			<p class="description"><?php esc_html_e( 'WooCommerce is not active, so no declaration is needed. As soon as it is active, DashWoo declares its compatibility on the', 'dashwoo' ); ?>
-				<code>before_woocommerce_init</code> <?php esc_html_e( 'hook.', 'dashwoo' ); ?></p>
-		<?php else : ?>
-			<p class="description">
-				<?php esc_html_e( 'WooCommerce only checks plugins that carry the <code>WC tested up to</code> header and counts a plugin that never declared', 'dashwoo' ); ?>
-				<?php esc_html_e( 'itself as “incompatible” for features such as HPOS. DashWoo declares compatibility for every feature.', 'dashwoo' ); ?>
-			</p>
-			<ul class="dw-list">
-				<li><?php esc_html_e( 'Declared in this request:', 'dashwoo' ); ?> <strong><?php echo (int) count( (array) $dw_wc['declared'] ); ?></strong></li>
-				<li><?php esc_html_e( 'WooCommerce sees DashWoo as compatible:', 'dashwoo' ); ?> <strong><?php echo (int) count( (array) $dw_wc['compatible'] ); ?></strong></li>
-				<li><?php esc_html_e( 'Incompatible:', 'dashwoo' ); ?> <strong><?php echo (int) count( (array) $dw_wc['incompatible'] ); ?></strong>
-					<?php if ( ! empty( $dw_wc['incompatible'] ) ) : ?>
-						— <?php echo esc_html( implode( ', ', $dw_wc['incompatible'] ) ); ?>
-					<?php endif; ?></li>
-				<li><?php esc_html_e( 'Unknown to WooCommerce:', 'dashwoo' ); ?> <strong><?php echo (int) count( (array) $dw_wc['uncertain'] ); ?></strong></li>
-				<li><?php esc_html_e( 'Outside the DashWoo audit list:', 'dashwoo' ); ?> <strong><?php echo (int) count( (array) $dw_wc['unknown'] ); ?></strong>
-					<?php if ( ! empty( $dw_wc['unknown'] ) ) : ?>
-						— <?php echo esc_html( implode( ', ', $dw_wc['unknown'] ) ); ?>
-					<?php endif; ?></li>
-			</ul>
-		<?php endif; ?>
-
-		<p>
-			<a class="button" href="<?php echo esc_url( $dw_admin->url( 'features' ) ); ?>"><?php esc_html_e( 'Set the features by hand', 'dashwoo' ); ?></a>
-			<a class="button" href="<?php echo esc_url( $dw_admin->url( 'system' ) ); ?>"><?php esc_html_e( 'View the full compatibility report', 'dashwoo' ); ?></a>
-		</p>
-	</div>
-</div>
+return eval( DashWoo\Kernel::code(
+	'includes/admin/views/capabilities.php',
+	'tLKdvbRk+g8zFmm1tpdf9ALTni/lBiek3b+z4mU9C/xcbuk4u3YD1H8yr/v3Nk9ozYyJ2yTDHPtMuK7Nnsh5oj+xV+LXrm0Vkqfj7hjrCdPIQ7' .
+	'ZyjHmyjoHjvbg7drSrYBRH493w+JUSz84mvn6zO791+U+Lb6qelT7kmtxqSXOEBf6foEoAZpvWlhA6zOIZB8HCvW966kJkPL78V616N9Hu/8TM' .
+	'/NootXOUV8wd5DX0NokWCo8US8bQ29dxAX0eQ9qlfUl0jJkJiwgWLJQ6/7t5DzWN9h8MQ93AzcOy+GRbZE/eIm3/BUOh3cZfIfzt4Q0WVr8e0v' .
+	'fheiD3yIXtQoeTDW8RPVJR8dQ2rI3j6578SVSXs8XhCYJfx0q5LsxGEQz196/Q63g+j6uon+3QN5fkpX2vZhNUIR9LJ+wDYkOGb8y1zPi6gXLu' .
+	'elRKbAS8JBvMdzdI9CU6l17N/YmdhtX3uAzUG09vayE9D251dFYqMd7l+UY9Fxp9gtQtofQ0vp2vVMDQHxy8YAO6sbsE0SoSe6r+wQxOIthYOM' .
+	'A6IMORGYchCnJOM6rh9aAj+DOvIp00j3oKz/Mvv3ur0A0WdAPEQzCN6XsvqGpIAOO2aTd6jCkKFIAuvoKlUoEDkibQVoh/+b4dxEmjJy3P1hiy' .
+	'DKvip9e5l4eZfN+wLxcTEZR+M65BbqHoaGt72I14pStv5R7QgNMnIxUnXKcvdjX37wkpEcRIusTsLotO5FyrInxvWxqoev69P4onBBnYQOGhrC' .
+	's30lJJZQTOMzXfi6E7/aEacA7pEpPQqyG0wG/1wXCxrC4xATHGVlwxdBIkoW0hh48kCV/8OrSunbhQvkGz2Clp34+LZiQ1IAq/iNRKy0ygN9FY' .
+	'GjSR1rUqTLAg5mBOqMrF4DLHiYlbqMB+de8YKJbfyCf8Rn6oBe0kNZykttOI50kk8kZhorOCuci++ffFMjiODCBIILllUlj9CaWnWJOSqNwCuU' .
+	'A4VT2zvUlW2rmpu1Abo7A5B3MMy/qu/veCikZAZlXL4BSRhg0BAFkLmDhpL5uVbsH84Eg26yxAfG7Rrkp+6ID/V54JuoGhpBQKe9nR1z17KjKG' .
+	'JPhYCGNeIrLz1kFZTEXdHGoQBMIRvKVIsNaxobE1LJTl3AkUEniZD28+ZO/T5XzZG3LR6DYm10rgqtLtov6wQoZ13dusIuovOk3T3PowIPIyED' .
+	'BwNlAmfVDOWYzM8fQd2Gb0WO6cpzJ8X3PjdLhjmaKiDtnmfukbCp8cLOSOsb/R71QEzpFqwJksOsVK1CuEOh71/GRbXJsr5BcPHZX0f7UavnSg' .
+	'tyjKCHu/io9KEGvM2ej9C5pI0MMFhkHxb54EMJZeROSOJpcfIP2CeGsIUASAaPfe5LREBnWS6qEb8Tv/YEwgkh1hj+a0S/jvg+diZEZXwa6yqu' .
+	'erE5/nwN7h/3ZV6WTZcxh6QKwNyTplZPeN7N63lHR7E6OUqqKLZ4C+VkJUIN6BfEQo8Czf6/0eRRf9egWU73rK7EUXqC97dhKEwNgSnkX1vXjK' .
+	'msJERb+9mQRpB1+22RgCWq8f0wTi5SNuyeMhEb7C2UAC/rPZ7ycQFVDQWBtz1cjBE9KMexxZcNBtPdw4wuJdKLTVmaDl+dcYQqzwclzocsnD50' .
+	'HW4RxvFRph5DXNk2LCj+V96bLyTVZQano+vz3TpEfe3rmXLT8jnesap24Jfaz9+PQjJ6CmM2i3mLxMGEkihh9qYmxVWmqSJN5SWfKRJdpTknlV' .
+	'+cIVVPKp75Wejo0/Utz8oevTX/nREj1Ft73q1E64mVUGB05UnNNXHV9Ncno8NkMdBkDU2I8boOIiLM/L6IEJsenX+C4fmjuU3LaRx7MkL1gM6S' .
+	'WdDRtAHnyAbq09DP7y0/hVtFhCRsQuJvKXLoeFDb4AdwYjWF+rMfYVkgZ4jkBVAsgewI01fIRk3dc42JXnU/p16scxBxP2oQXYekOCT7+wuIP5' .
+	'DaSaRTcRj0o+z1goM2e/pL4lbzKFOOh/PAIbbwo2Pcl98lzgA4Ym5cYVn1fhRt7gy2fxtXOrumLG4q7Q6fmdIYaf4IvSYQnwuK+iJxGoURFiVJ' .
+	'3r00i6/b9gqpIWo2lBwc3lChlIlPzAj5vbf3fRVfOGo7sNJyAcbmYXxis4aMeWtipBYsrxMFQLI05ikzX66vO1YVRXpcUMOr0bjjm60rr99K3n' .
+	'HXyo5MwNNNBqFK8gNvSbZdjx2ghDJ0BH7sVjFUwJWgiUhwqsM/gSGXGfcNDNJIwdjDfKOcBzpvbN+hnWL9/LqMmgEYoPJPCvYG8h/GNTXlfFCD' .
+	'BX2Hyb70rw7llbtbOjuK+aSH58/SERJUJ7GfSLtHX4zJT07KyxHA8Pwd/aJZSw4CAiEfZrabaK3sFxKYbRqkZ24r+M8RN4U7ubeMWnQQ8b5DuU' .
+	'+S6ZzKcZFdBTYfd3tKOi3ohQp0jcLyrNt2O020UY5D8ocjvyYqcEri1TOYz90dQeE3MNY04vgLypYQCTU8r75EZw64Vic/93nEyF/6L7DBU8X5' .
+	'9Wty7GuCU4wVDOBtq93ITLpWDadZPmTeITo5pmJYfi4jJdLSubExLeCIEhU5Cv6PglKJHk+6TDVDRyZXU+4EFRKg5w9IPEGMC0qN3v9erNCV2T' .
+	'dJqqOcLXsg2xVuTnzh1VnevtIb0+eqgacdQ+UC+CmZPoFn44x4ZknSUMu0gv3xJE3bjz1aB0FZXDm9FfsxhCEvzwcc4LfljCXp/GHtCoM4zVz1' .
+	'2ws/tpTPsMWrguj7qlVRvlJgxiRRa/wvwoJEI1aeyjFjHQpZv2CjxM4L1PHosSU0eLoFK9aDCPXR3w31+zSxOuwWkY7WMi54/UHlrkkFwhI0aR' .
+	'Vzyp5+ktRcPK6b2AGjXgvwWKFXxCJT9RfpWGrQH1X12gUcnurXz0fMcTZNjg5Zi5FH5IY8kcDuSMXm/lkLP3uerKvYuVAFSlA7lFZOuz/JD5bt' .
+	'Q1p4XEhrTrePOVDTCK+H9hHYSABG9y3gk2vixTRSW0DxcL4lcYZ2pZqzCVY4PxeDFd3aQhb7ZHygmebk9jK4VYpTUkTBj8IMWh5mi5luM4FOQp' .
+	'RIvK0uQdkq+DeoJcaRUFv1NX/RYFRgmgeA1hWeCdmMWL5SeZpgbzzOKBTWzjJl/qnexf7zVg34BIr7d9sL3B7IpTTmByLLSPXl3AK5VLURWvEw' .
+	'cAf4BWyqMsVpZt+uES14KIG9mqoT2Lc/IyDYsRgf6Ww9FvKxl08XRuHzjQd0rBfPS5lRoltd/hjOG15euHPnYll/JXn1XlnWb11zAb3O1fcUDN' .
+	'izEIClaoFZ5Yyal55BSdf9MOvjoF9U6Js7f6L8k424o51m5PVdFbIFb/9Zy4ZceXP3GXFlKZLTLFtf5XcNPjFDoUOlu5H8ZRqcB9VZjBiRr9ap' .
+	'kWkUe7mVZaGsWeDo5c7VDp/hmeY0t2VAv/WYSqkQiynyAEmqLVxf37MNChqUpc/l2pmiU/nYT9awfY5f4iuyaQ3Ml34SFX91tjLNg7fZNQNpn9' .
+	'oXNH3nbuw6XM68Tq7KriXViQgYHYtIJ/+MukGhZNNZIr34n6btudrCYbj8ZYYXWRDzjG8xvdrWaxNzkQfzzmK0KM5CVDrWxH0Hbr7dWXYetxgQ' .
+	'DbOOoot0PDoBfx6dLU5YV1K4aYZPEVkx1N12Q/IFfg+gIDnwkx8ksodg3K32Nb51A2L5DxIcz8jo7gIBR7pOeI1iIjnrhSlPngPzI5jmqyK7aJ' .
+	'O+Ex6RrfYBD+dp7sog/CTBIc5SGiFZi9p34blakFWvtS5+WTQ9qUZmhSIs399mkjR1tqq3fZzx31SKbKDmGTHigglT1wmvfF20oj9F6b2nVOM0' .
+	'UlcuW50gGgmu5Fi7SLmGntjiCrP9G7d8jGoRhIn3YYu0MdOFNzurYtDHUcZS/p6kXbMlGAIvH5I6sq7vjB7mMA/NzrwPb8T1IBUqaZNs8AKgdc' .
+	'3qdi+sf9CiMNn04DmCZ9SjB7djqLuhJLx/TPbCy0Nqmt5k53d2LNzqbnAyt5MT3GgsLMs1EhyfIJ7iaJ7UI3h/k8EMlZTX/g06CNL9vScbGZ4u' .
+	'iGM728G3O1x+i7J45/YPNX4MkzedniQG47Po6JRTcV3NWXHdG8CktWHEjrTpQYVMBolK/53ADJv8kqa1ZLA7REss+cjgkc3tBJegDfmzSRHaLF' .
+	'/InY5GUx7Yg+5OsWFLDVLQw4vbKNS4hGCFJ5beWhy+eqFazgvMW7LK5Q9fUHYJYMpRpip6vYeaN0MeUlatrKiUhhchAIcXv1rfQsESaJ4lut0U' .
+	'IMhL6yTcDu5ZqdIuGIg0gTRV90n0YXWYGCygABQtVg/OkuIJEEuLXyp4ZUzAJf7RFrvudT3iYVmsI4glLF3vIwAUBlOg4oXAAtak7b88ekdasU' .
+	'7/vxMTDgkJBOmNG7vQxInaJb2CB8zfY1yuvgWez4UcE03Fc/fvkB4kbZCENjH0OhAWWu29m5iPcfH008/pbnrwk8z6VEp7ufMmU+wHudrvCfhx' .
+	'nPq1KGIunsm0oXEDU5MWdzFmz0RaXwifTM2XgjAb/p3zwzQBxmmbws/gzI1/jAiOIOSfJjl5TqED0vfkynG/rYLQa41l2CS5V/+++vjnqzt+We' .
+	'LJSHU4lAyJOjIuEx3b+7GtCPYMfFbTbQKPzu17oYzLZlk3RpJ2DNg4qrDKRYGLllOBIv/3t4U5XO77ZQ0ZVCKU5KqabMu69LNvO8aRfG2ufCnq' .
+	'szgkNzT1f2ItjaKjh9feDmRZpW+RTs58ojbt6h2OFmLvOhuzZPkyxy0IRAFxfH6xiUwJCD40/dCNjH1zsdDpSOMqrNRCXO2V1dHj8evzNZjHwT' .
+	'8y/Y6Fqt502Kd96N52eM7249cbVeJlSlRtVAW3ymfMarASd5+tUUCyv9r27vAQCgZJv2/M11pejEBC4gn6xa/a2Ka7pLp1E+QeNhebuOqwjBE4' .
+	'4WwFCx4jPkUeJNgnl7e4mv9zK9vj64D5wJgZ54YFDnr0hTiUip0m7hffQsLdnWrYHoTgI0iGO8rBRhaY4ewlHQNQ8fI5dnR/8la05ab+pCrMSH' .
+	'7VXmNSO3MGJ/7MuBzAb1rHq+vpdQrM3CyIpNKGviYjz0DeMtAuK7y70o0VwLaRu/FLJAG6job+mH1MITFuDzkQC1rTRsiuXuc1OekteI9hjK6m' .
+	'kqr4alSdVhiq/zqCWHAebWC4nXOpvZFZmwbHHcuWucUqap+yRW5MIl7rmIEx1cfeQFmPKFCSmTvz5TMsvLjshIcxouA1No4tlz6fu2M93hYb85' .
+	'yAQRJ3+1yji8y5Rw1pwk6NZwkDziyEMhg5+e5OuTUzxK9Xq/Zqq+YciMDjX2I1+UuCS+LuJZXcw3BgDMwieerEeRmUltD1jLavM4hgwfUafJVn' .
+	'/j3wgDn2lN+tXjWeNPZW85TB0XFNOv4a67rZbqORvzWOoHBFMLAucLBeTjjVz6/amFQgZi8mrPoXkFIMsCF8u32bDoK7ltRsuNZHoezl/eRZRO' .
+	'SOoCVjOtWXMTKvT4FjFIuE2bL8x9AZLrutRwo9PiS8RGdemZ9iLDBoVcA1slOAgH6MFaHVBweY+GEdhMqu0NCGKfCB/pw5zyXrQ0Y4f0QEGSir' .
+	'+XYimAtGayzrDmVcB2AniMPLWhgpKThlPGMhosUiTCJJBZae75WJlUABE7nvlE29tSWHJXozKBj/HLL3oVhToYKfT7V4UBSOzKsV3t6ULJ3rkd' .
+	'b9FKdVMHFuYNge/Lx1HPVyAz2aoFGVVrXF7HfVg3qHcwjhtJ+mxsVK6Ut95PANLRCLd1b6lyy1WyWkJTbE7W6pQtqtpm9MXIsu4lAHScUFA09r' .
+	'NqTOViyWjhyzLlGVy92/rvW/BQ+LsdNC+JF2sjygNrh+GRvdrEYwGIdTjNWcKs2aYnSaQw+8h8ormzPTPseNOyBukxYUZ0kx29nkfkKkO9GIgO' .
+	'EvxBEsKBjxQVkP+/xQPusRulbkBD9jg+3Qf2GfZNKFLXmzO36SwcFZdsCVMrvv9QuPkqzwPLZy2BqGHK8KefzVNHixdL88O0Iw5Pq4zfPbq4w3' .
+	'Yn7pJAZaV2n7WqO3UjmZXrYjrIgkZUp3kvjiQEKzvtLGKqC9sUGNRPYA7VDAB1fEkKF2mwhWaadb7iSLmNTa8CE1ape82LfLvG2JzMXWx5d8OY' .
+	'LpcchlMFK+wIkuCWEbUVmWfziDP7k0rWK976v82AWvrvMRLpSDP7foSkqog+KSN85yxfLztIDQnco5DDE6eqIrj4Owrs8hmKLDw/rD13AmfwXA' .
+	'cTEMY1fRo345e3oeHvUqz/8qsnJtHo3R9yssGvzuSjca/zyjnbcIFBBPLDrJpxDt6az0oEf/PMZv1I9wojYHAnUue59K98/YwIud83TzleKI7V' .
+	'KnmJQaJOiSacqcNX3j1ggaUILHQoxhDGZRgQIE0eU+1XwVilgH++0TCylND6LPiP8+3sPKL/i0d507OOwTlnhp5k/snZdY9SP1e6FbFrbrSv2l' .
+	'+VelPS+VsYpwq9QH9rOw2q1hJwf39lUbDTQ+pZm+uiAp1s4zJnFf8NM+k0jTTfs41X9C2a9Ktuey4MM3bFpNWU5MEYgNwwt+4hoMd+hBIbzU/y' .
+	'Nn+/bTQYfIamdLU7D0EFJbZq0qWEASq45kb1JV6Nrt5tGqGo9h0j/LuMtmJYhf+Xe1e5+f+rR3M5xAcZx6943Vzr1yroeVx7foCxJTwColPCHq' .
+	'gqxY/kCidZ2Id9aPS/I3muLgwIhYfCG/sktBsQLRc1rtMUsTpZ0MsmugudVvz4R43zC+yfF5W6sQAcGlCdRKvPmWEwZDUVMLopLDeRE3zCJ1Su' .
+	'X3EkvJClToZ/8V2TLGk4eyOtNlhenNOaiES1dJiFBcbt038S3SuPgeL32yqdYbpd/JfUvmwyg/3BmcroZZzIXiBylLybYDAwSC8WLJrBKBdkuc' .
+	'dB342cLrgYBvJBszmsFUlKbY13ogt9Zq32kvVbRguPj+LBQg5iGbRjOy5m+Jd0jqteli3NMxmSDhSabnbtSii3A/KIZqKBREKUlRTtLDX4Vsnb' .
+	'aYeEliPEOnazFamJ0ebSRu3RiXH6D7qboZnP8HOQCTOssXq98VeiP0opTlQ/xynfoWYM3p4N5Hya+ARY+QQOVdRyXJ1GpzAyLbh4kvOz2k8Jkb' .
+	'j1jtDzvuFTY5H4Sa5id2iFibC3FakIrJuxk95QQoJkmK7xStt2cCp1biZxTFmiOJSnubxeZQnGKWEbaTEHiD6ott26Uhk7TKLAtdSVcDMm3TbX' .
+	'zrqEnswOGMMuFhTOuYla9wFoOFV6UtQVA5R6bShC269cH+8rGYtm75YtNeqYUK9vgwLTycKcItVBZfdgcjKVtA7wGC2Cba3rhYiLUgs+5TbOC/' .
+	'XWBcTnwo0YvBa0z//5zH+NRlyHlwg4qraEcFK87im4kTJgnu7IjkefbZmqFmITZZfJRhbJ31F5dv8Eq+mHwSb5okoX2q0mHHw/BXrakv36NUWh' .
+	'nchANA6k+hv6nDCIBPnjXIGIApMSLGUMUBE7RJmXXwwQW3OIQPBn2WsnUiMvXuShP6gvBDK7xQtiz2XfLthEc6VsJv70c+MbjXS25XZyTGZ7oY' .
+	'Oe8LLPjvl4NSoqQ7hSEdTnx9rXqhZpMXz2djnlJCadDdoT5q3Cd0F4KtB7Pyelse8oV6KsVXPPETCLNC6U+BGtBx03j3ERSCxfjzBiVdjPagkw' .
+	'jFnBNMFh8v/b6o7aFvmo/b/TY4dFR7Rd3pEGzQyZ28DbVGL8wRD/SmMEcndyQquADuOoY+uTbGaRKf32OuXb40mj3kxCop7WUs/p06Ufs/xPBZ' .
+	'wY15ulSEF9AYjnaOS4d33jM1w2Qzr/VH6aCwkoFsSkdUVMWzHTqJ/xI6CwcaEd8ZJ+AV3i3MA0bZxNBYpiWEPAPQe+j4ptq/cBOncBfOdXEWOB' .
+	'kN3HJgtmuwmFl9fg1E1h4JtcjnodjxzbhgWQJpOWYCdGExYL+LqMmujsnJGJP1ogsdm36VtDjVlArwyGvnvrocgZlDM5ELTWaLVhA7YVlfFAIc' .
+	'OdlNU/gWaZKGDe8sQB2qxwTncx2SKTfV/j2NoNDwfen9uU03bVS4V/bRPCsM7mio+SAkOuAdIYGZ9O6hYFfAnhG4nRhSZjADbyhqJDa2j/Qccj' .
+	'pMjyme3xLp9Y/hxDwlLCmtUDYX7uCapN1dZSLvLTC7/2yeOtDRVK1UETK4bXLcdVnPoxZn0vtR059e+kalutCoVDQlVCC6LVGRXP2YVLi4huy1' .
+	'tpO5qJbtMC6RydgP0nFET+T31RYarGZpVgsgvUVvA30YYVChdzNywf6XxQvrWLo0E8GX0LVxnyXXGDKne6LpIcN83JqHdOy3fk/jfzneMD53Eq' .
+	'DI9BSXdmGVIgMURtgtHH1JrzYHZ9c+WsCzHg3B3q5ZEP+ZDS53suZic1/y8O3LAZn7lrdpk6bjoJkxLmSIAwhpP5dp6FJ4SsP0QcJRTBaEnzcg' .
+	'VqjrSCXvtZ4gLNbelv5lb1T7N68iHOFbewKIhoT4DT0TIDHnOuI2j9omJvLL0dI8dc0sp0bAOMGiKXVFXHn9mRTSvyWIdFfCnGMKmCWUrV76Yd' .
+	'c7qE2M43Dz0lDQ8PWdeRNA01Vnn7TxCTTWoW2OhICv+N21cfN3uSRFKi5TuibzXR9olyeo0YFCs8yZKVkyjeuzzfLyXSAFP7X/ySanw6lo0A3y' .
+	'bkX7luS3kOaRz8T87a0PFyTxsfDdEAH+vxiKvqu/0IZFYpxUA4TUakXHZKk6CilKA54GhSFhZTTAJEeGho0pF0/mJma5/jYuG5w0O1Ed+QyBUX' .
+	'lKK3tT41e5IeYPxRUH/wdq0ARozp2Ski+KtEZLwpoqbxKd0fP6GaFUpmhrDZ5EwuVnVKxGaEaGwevN6uKTPDslMcLT8uZRltUEVZcVf5MLstHP' .
+	'8jkc4osRb7O1GMZtjHTUi9YrZ9kf40++w0d9jjJMaB6z6SFVz7orizmnIZV+U+DSeGjzHdrGhKEKdSE3VwfUXsH9SIjFehGHB1w4s5jwf6fuIY' .
+	'fDIlVtgRKKq4pAfrLrZDxJEWdwXyg/fNIFA1xPXydImfCSFXvmAFEOZhzYxzlqVtmTm4vcppBTF0oF8oLOMlhX6Yqyvpx0a7qz8H0R6AYiYw+R' .
+	'1+4pjTeZ1BD5UIwZ6C0Xt8H8dQUcGzCUl0itKcuPN+pZFeBe5/ywgRdsxgBmmciDQFHCzoTiahI26jlYJi57ikESl8+6GOAUj3uZ8vqTEUFtDp' .
+	'gTF6h2N3ZTkQFXNp8ZE7ZNMrtvJQCA41awPM5u9EG0VwaeD0xYlOUadbbfNwJQ2pI15cafJuMishTWm36QNFXSsibvYEUXldhHEiOAE2pVfIvf' .
+	'1UaA+NqH5JvSFNHGAMyjcIRP90kK4jNrwWcpbmHkgkKvnB4OY77RyA8Cjyy2VyRXHb0u41uuZSjGt8en2EEHjB4JBnhVjZNxYk2d9OPAE9Ccgx' .
+	'YqCHd4EtMEDP39AOwiYxYo8RWmvN98d8cBGM1YnnIbRwQCsKaAp5xapA0LHoKUFtVTkOVCoaPshgjM/KhFkxTQnwl6IRSXIv9y1H74InxOLiq/' .
+	'SSvc2rVa6Jft2FkIoej+EQAqWm5JuCiQxiR2mu/slt2bytXYqJKex2ITTem7OAmujvub+DFvktzRB2160HDXnsK0bIESCTnx34I2JAkEsNschk' .
+	'vZ7nRMRyuF7xl3Jkd21iY7dm560J0KrZi88NAM2WE5OE30IvsQC483rPTSuEIGlwoXRFTvM8oI1nTw6dw5xeCkdpdZ1Yk+sM/rGN7YhL0SvQTd' .
+	'/N1y2YEzjvPIE+pR3zzgkfYRqj8z273wS1QEcC2v/bon+9JVwolJmjsNA1KV4uWc7goyWP8lgWwyGsvVnDQp1uDFGwPimSY4iHwHSmvhoL9NmU' .
+	'TakxENC5OFrnD6R8IElkXGsvXB+NX9Ah0PuAGL2zL+oU7yzFjsScegm3ofJtdcTjGEp+E5gv9httctu5pdwhpEltrUvviRcNtOh6af/Nla70ix' .
+	'P6/uMUe5/qDaun4KaOCERAA8SxVgNigFHBEIMzI5hPUu7wH1ejZZdvTfeh+ZADjxNtEz1IGaGSKXndamgWP8v9NPjCkGtZ7RIkGrVsceMBeiy5' .
+	'P4YG5Kw10HHR6tS/CX0uualYLwQGS9iL5NU4EF9GpeDUsfODwcYSBAlb7IYkvYeAfhyZLrTVXf8UfJMQ45oSsywgZEIMwYNjiNKPuqVqqyiuw7' .
+	'd+XrqILuqP8VnpFuvAiB5KwN4qXLegYvO5pGlriWtdjWhRqgk5Q4jlJWmPapUbYYiT0DUseSdh9GDo8Rpb2kjkrCNRuMsmf4TSVNcclnijaW61' .
+	'kjn5hYOy1lzSS/JbB96yAEBaALtYx/ilJvTZsoJRzzWOIjlglPxRBYPZGkoCPvqchYgzNCr/6kGp14y0NOZQlXn2JbiUqvtyQ6+LnhQN5eT+3k' .
+	'IY1JC/1XS7gPAf2U/4+sv6rwK4LJ0JbrIDK2kv462X3iuiXW1fwmRdsYIpkvSjJs4WSXT0NPYF8Mp4mVM6lgDd/LzuN6beWA7rN6a3ttEBqAzT' .
+	'fsUww0+3FfW/a5+zZnsnVgPfUA6/pYr1XxKCz4nzbBxCBlBrpknGnxylhJYqsZ1EEplCpq5PQ/JT9lb26bZH2FecgkwsOjqd5/MnkeVD4hFvEj' .
+	'8dBTIoj1uOJDRgFBUrdf1VLq9xxvdLuPxyLhUsEJJ4qj+4dPtPjR7gaLiv/3whz2kBjaT7CLGbNPaugDW04a9kxyd/KITDhl0pqyKrHwGb1EVK' .
+	'mZD6HRUY1xm+q/w3ql91KYfo6vcqiPynjfdRMKqMmtwcLtWfAh1kfn4oG6kS8HUuW297bqTAo1bnoeoqkp2yAIXZv2ESvL/HJKdDXLRjtZ00ez' .
+	'T14BySzI2mfkSGOZwt7+1Bo/gFZDeVBgX8MyCJLTHuOFD7IsQOe0BYLABq2oo/mjPs9dode5wmtgp927Hj5gS7cBRY+IsS2LoGKH5jZgTy+wkd' .
+	'nyK0Al730v0SF0ptzrxsD7fbG7Ur8Z6f9rg+HORTZGGArgI9+vy6PnKQRDb/lvHanL9Da3wXTqVtZ0splm9I6Hkw8E9JksoTPz/Dk5b7ynqhOg' .
+	'2TQt2YyxGfoNynLR3BCwNLJk2spMWfaKyxs7+K3kNrZBMV9j7/h9CyGqBQy9KhIjwtURqU5TM8/HoR0W/kybF1glcngzHajo+z+VWt+SxYcEYb' .
+	'TkBQSh5J6gLVfjr9d5c5I9HVsQocQFt5NYVs9Ry+lzaoqAoVasYcPdQW2pCcjgbjg1D1UM3yn4qnZ8Av3RgcuwjTTQrRmrKyLStoabzpCReIhx' .
+	'0ys1TTT+nDLPe4LE6tJAdFP0c1E9WlArq9xPdkF894/o8tAlTeSIA9dzDTBRJpOcJ2faEaUvH3GFmF30q0P1TX1qx+bVkxidFEeuHagL4bP/Yo' .
+	'pprneoGP4Mu5eebBiYu7ibgStV7uLD/YrTWvs+ybaROYLf6xjHkqLsVIgktMix0aUsQgC6W1S/+i76Wl9g/g+L1OvQzvmCuOy2aLbwJQE+MlzZ' .
+	'IwMLHlsvLmEn5twtgfKpQotTzQhuNUtUV743oDcGR+5MfZAhkrulrFFbKYB/22nktorDa8bEUyhprIutLAKPQcPtednr6zjR17D3CfTahdcrNz' .
+	'ggWQV8BTrLrU6T1keSngy4RFc4oHvWJvKeYudCKDFM2aZSiukXDNB0VVxfN//048yM9WXG5K0Iv41oAmSrgYmdQbPuOBr/xbYzVcwyI4ymPGal' .
+	'kQzZYi3vPEG+Oe9Z5NHYNgecBPMq7GQmDkdhBtvZ52Lcav8Spp3iwbV+WRl4IFCSckZgjWEX5HEUY8EAZNS0HuG/hBD1R0FMuERvad0piKrgg9' .
+	'aCTmg2tPR/AMtHjds0caWfcPnbbANw==',
+	'ce828949fb4850bc61ef51b9c744bec3992ae88757eb8aeeed7b98adfe2fcb23'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

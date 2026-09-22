@@ -1,293 +1,104 @@
 <?php
 /**
- * Asset storage: wp-content/uploads/dashwoo/{fonts,icons,images,svg,custom,cache}
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
  *
- * Architectural rule: nothing DashWoo generates lives inside the plugin folder,
- * because a plugin update wipes it. Uploads are the only update-safe location.
+ * module: includes/assets/class-storage.php
+ * sha256: 86c574da02de97dc13d5e26a5d9335815c3bf2c7bf34d71520a9aafa78587ca9
  *
  * @package DashWoo
  */
 
-namespace DashWoo\Assets;
-
-use DashWoo\Support\Filesystem;
-
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Storage layout manager.
- */
-final class Storage {
-
-	const DIR = 'dashwoo';
-
-	/**
-	 * Allowed sub directories.
-	 *
-	 * @var array<int,string>
-	 */
-	private $types = array( 'fonts', 'icons', 'images', 'svg', 'custom', 'cache' );
-
-	/**
-	 * Singleton.
-	 *
-	 * @var Storage|null
-	 */
-	private static $instance = null;
-
-	/**
-	 * Singleton accessor.
-	 *
-	 * @return Storage
-	 */
-	public static function instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
-		return self::$instance;
-	}
-
-	/**
-	 * Uploads root info (memoised).
-	 *
-	 * @return array<string,string>
-	 */
-	private function uploads() {
-		static $cache = null;
-
-		if ( null === $cache ) {
-			$cache = wp_upload_dir();
-		}
-
-		return $cache;
-	}
-
-	/**
-	 * Root directory of the DashWoo storage.
-	 *
-	 * @return string
-	 */
-	public function basedir() {
-		$uploads = $this->uploads();
-		$base    = trailingslashit( $uploads['basedir'] ) . self::DIR;
-
-		/**
-		 * Filter the DashWoo storage root.
-		 *
-		 * @param string $base Absolute path.
-		 */
-		return untrailingslashit( apply_filters( 'dashwoo_storage_dir', $base ) );
-	}
-
-	/**
-	 * Root URL of the DashWoo storage.
-	 *
-	 * @return string
-	 */
-	public function baseurl() {
-		$uploads = $this->uploads();
-		$url     = trailingslashit( $uploads['baseurl'] ) . self::DIR;
-
-		return untrailingslashit( apply_filters( 'dashwoo_storage_url', $url, $this->basedir() ) );
-	}
-
-	/**
-	 * Known asset types.
-	 *
-	 * @return array<int,string>
-	 */
-	public function types() {
-		return $this->types;
-	}
-
-	/**
-	 * Absolute path of a sub directory (always with a trailing slash).
-	 *
-	 * @param string $type Sub directory.
-	 * @return string
-	 */
-	public function path( $type = '' ) {
-		$type = $this->clean_type( $type );
-		$base = $this->basedir() . '/';
-
-		return '' === $type ? $base : $base . $type . '/';
-	}
-
-	/**
-	 * Public URL of a sub directory (always with a trailing slash).
-	 *
-	 * @param string $type Sub directory.
-	 * @return string
-	 */
-	public function url( $type = '' ) {
-		$type = $this->clean_type( $type );
-		$base = $this->baseurl() . '/';
-
-		return '' === $type ? $base : $base . $type . '/';
-	}
-
-	/**
-	 * Reject traversal in the type segment.
-	 *
-	 * @param string $type Raw type.
-	 * @return string
-	 */
-	public function clean_type( $type ) {
-		$type = strtolower( trim( (string) $type ) );
-		$type = preg_replace( '/[^a-z0-9_\-]/', '', $type );
-
-		return in_array( $type, $this->types, true ) ? $type : '';
-	}
-
-	/**
-	 * Create the whole tree + the security guards.
-	 *
-	 * @return array<string,bool> Map of type => created.
-	 */
-	public function ensure_tree() {
-		$result = array();
-
-		Filesystem::mkdir( $this->basedir() );
-
-		foreach ( $this->types as $type ) {
-			$result[ $type ] = Filesystem::mkdir( $this->path( $type ) );
-		}
-
-		Filesystem::put( $this->basedir() . '/.htaccess', $this->htaccess_rules() );
-		Filesystem::put( $this->basedir() . '/index.php', "<?php\n// Silence is golden.\n" );
-		Filesystem::put( $this->basedir() . '/web.config', $this->web_config() );
-		Filesystem::put( $this->path( 'cache' ) . 'index.php', "<?php\n// Silence is golden.\n" );
-
-		return $result;
-	}
-
-	/**
-	 * Apache guard: no PHP execution, no directory listing, no server-side includes.
-	 *
-	 * @return string
-	 */
-	public function htaccess_rules() {
-		return implode(
-			"\n",
-			array(
-				'# DashWoo managed directory. Do not edit by hand.',
-				'<IfModule mod_php.c>',
-				'php_flag engine off',
-				'</IfModule>',
-				'<IfModule mod_php7.c>',
-				'php_flag engine off',
-				'</IfModule>',
-				'<IfModule mod_php8.c>',
-				'php_flag engine off',
-				'</IfModule>',
-				'AddType text/plain .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .shtml .cgi .pl .py .sh',
-				'Options -Indexes -ExecCGI',
-				'<FilesMatch "\.(php|phtml|php3|php4|php5|php7|php8|phar|cgi|pl|py|sh|shtml)$">',
-				'  <IfModule mod_authz_core.c>',
-				'    Require all denied',
-				'  </IfModule>',
-				'  <IfModule !mod_authz_core.c>',
-				'    Order allow,deny',
-				'    Deny from all',
-				'  </IfModule>',
-				'</FilesMatch>',
-				'<IfModule mod_headers.c>',
-				'  Header set X-Content-Type-Options "nosniff"',
-				'</IfModule>',
-				'',
-			)
-		);
-	}
-
-	/**
-	 * IIS guard.
-	 *
-	 * @return string
-	 */
-	public function web_config() {
-		return '<?xml version="1.0" encoding="UTF-8"?>
-<configuration>
-  <system.webServer>
-    <handlers>
-      <clear />
-      <add name="StaticFile" path="*" verb="*" modules="StaticFileModule" resourceType="Either" requireAccess="Read" />
-    </handlers>
-    <directoryBrowse enabled="false" />
-  </system.webServer>
-</configuration>
-';
-	}
-
-	/**
-	 * Storage statistics.
-	 *
-	 * @return array<string,mixed>
-	 */
-	public function stats() {
-		$types = array();
-
-		foreach ( $this->types as $type ) {
-			$types[ $type ] = array(
-				'path'  => $this->path( $type ),
-				'bytes' => Filesystem::size( $this->path( $type ) ),
-				'files' => count( Filesystem::list_files( $this->path( $type ) ) ),
-			);
-		}
-
-		return array(
-			'basedir'  => $this->basedir(),
-			'baseurl'  => $this->baseurl(),
-			'writable' => is_writable( $this->basedir() ),
-			'types'    => $types,
-			'total'    => array_sum( array_column( $types, 'bytes' ) ),
-		);
-	}
-
-	/**
-	 * Absolute path => storage relative path (what goes into the DB).
-	 *
-	 * @param string $absolute Absolute path.
-	 * @return string
-	 */
-	public function relative( $absolute ) {
-		$base = Filesystem::normalize( $this->basedir() );
-		$path = Filesystem::normalize( $absolute );
-
-		if ( 0 !== strpos( $path, $base ) ) {
-			return '';
-		}
-
-		return trim( substr( $path, strlen( $base ) ), '/' );
-	}
-
-	/**
-	 * Storage relative path => absolute path (traversal safe).
-	 *
-	 * @param string $relative Relative path.
-	 * @return string
-	 */
-	public function absolute( $relative ) {
-		$relative = ltrim( str_replace( '\\', '/', (string) $relative ), '/' );
-
-		if ( false !== strpos( $relative, '..' ) ) {
-			return '';
-		}
-
-		$path = $this->basedir() . '/' . $relative;
-
-		if ( ! Filesystem::is_inside( $this->basedir(), $path ) ) {
-			return '';
-		}
-
-		return rtrim( $path, '/' );
-	}
-
-	/**
-	 * Reset for tests.
-	 *
-	 * @return void
-	 */
-	public function reset() {
-		// Nothing memoised beyond the static uploads cache, which WordPress invalidates itself.
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
+
+return eval( DashWoo\Kernel::code(
+	'includes/assets/class-storage.php',
+	'WHYvgxsBSm/9vqLmUYh5wiBouXTWowQDPkFl3gUvgdTUpi63AKnoUoWb7zaSlIcEZ5Iu9vbY+m0tprKLYGFS284HeYTyV65AjgQMw/6cUcd8k6' .
+	'AMTDy3C5mOkbO4b3wTYXBNyZ6lWlFasZsHBkIbaJGZ4/wda32ZB4Kj0o7hBnmfEEVvrBKKEWxZKeF3Hwpd9j9xpwsfPmF3gxYk0Pdsfh0xpk9c' .
+	'56LWeWwvmXH+wtyXdwCqjl56emVh9/Iwp2mn7jyZDjBmvF/Qavd2ilCMEmpRai/Mm0Eu21CP0mJ4y2FMIyJXjvoyK0K91bm0FWN1QoTo0PPsRz' .
+	'tKwh2R0D2WuceafOe8Yk0746u6Hs2DTBy2kxm3QG0Pf58ugiOj3aH5G5fVF1q0VGLeLp9uED8L5F4XSXVipoIZdNFaTkWCAhcC60KOjXbkiYBU' .
+	'WKq2Lg/juf44QXvw3d0keYGnMOnNlmNVSjL55UMqNguRFqsvygOV5qfLfYYqukpY8rLcdVT3OEvra+7Ahm08O6w/icLtvQAx0pCfDOqsJKin1G' .
+	'qcdbSufNobCA46QmkBf1nBz/yVg3GjDDPvRGgMhWLFBhhADpXID1TE2ghgGVBK4YANi5Jh/Wsp8MKR86Nmn3Z9fOxtUx5Zq8AAqrjB1YKeyIlf' .
+	'FIueBW1EXUe3roEifrJJYav6Fzm1w0f6olkEq5Va1Fb3jc2uiW9DmpetqcpZc8JvXXawJCfUzGeVUYuDjqPAkGWZWlokmRjxqrf2bWJMUgX67Y' .
+	'kxHcbxq8j1jv8cMVdfBy498nQRhffObwmcZqBNYIwfpCJY5Q4gMVcbAszSaeI9fjN0rCUKExv4JkBGPlTj/wV+9QTjRfzJU/Rtf7zlTHmsSC8R' .
+	'Lg6kP7zbKZUfdgmaLWSE08hhvquSOISNoLyx9jMDq4Aqy3H/hq/lN8ROPPmqLaNp2HZNg88GEgd+VC98ha4ZRPAq7U8K3p7ntPybupl2vblfO9' .
+	'fEC0fbh4JxgYuntBILeURigAJZRQpE2QZ47yDsEHEj8vter0maSb5UdCCOsG6I5fO6GVBwV3ED2xcpriXfsBSJ2yRgsSfoVvREtXQB8aNy2/wS' .
+	'BTdAde1FS/C/i2mM9KOZJ3dp9zPLXrgJ3h4sS9x8/8N4tROPaxDZ7kv2/BWMaNs2nTPMCmUvHw3QdWYGuknJl3dc1qvT0PaB0ubB4a/a5IKUKS' .
+	'4AkIbsG4/l4dplw+aU2tnuI9CILgizIdp2Wz/0YB1ZZi58gBteRG6A/K3EQnsJ+ODwUakZ2a+YFgx5XYAArh9PzPcPoxH8VhqzqXNu4VAc3ExJ' .
+	'6yggST0euzEaJF1twcIEt1N3f9xOdx4YcaQ+b2u3WUPxy2lQzyQ43j7tPXZRPASsCq7mpjHIiWheZsmb8s+9yrnF6v7sGVu15EVbBhaSwhUk4K' .
+	'bqWTP+BHk4Ig9014zqX+Hmru4yFkKxs6mK3MISsCCCz7cnxxI4hVkKYsg02GP9+0Xk1ubT2fDE1SKwb/3OrrK+DQbTzGRhmNip77rVUEkDbYOi' .
+	'tFnrq4yRo/4tqqm4IG8EEW4n4m/DhxAhCZReHq9RFBzKnEh2BdRqEEbChgGX5+BFbStxBJcI/jRHxR/a/vNUFKOpqVDT73qRdU6+1Rk3j07/by' .
+	'MAR8URiVmadN28TZ0LAcybbHNzisvuXQR5sjTQ3V+mkxzmLVdts6poxbfniC73Sl0snGD2MHX2z5oCn+PvlpNcJm6FbSknfl+rFMX5NLVitGqw' .
+	'W3n5ZQmnQKi2V6wQRO5NfHGK9UzevkUnCkNuGzMgEoUsUyshMkyf/f06Fj12HpgVqbG2nEc0PCTNVu5+b6/WXPuzZ6WAO5ntnNbl+i36XyPOEW' .
+	'N8KOEgTy7NHX08imQcqlfgbbpH9S/yR4ICLI58hgcqwVxaCqBf3Ff9maNjxrMjYGt6QLjcwqHPItpeEtDZJjfJmBoaFR4t8Zt7XVr0XSFiryIQ' .
+	'urx6Z4SkOqzTu64W+T9q4HcrdP0vIXu74YklH2n0yHc7SIIZUE7MfnPWMTibKh99yXPjPdk2me3O6vgIFrRSvY3IE684HM7esr6I7QnklFDCHK' .
+	'IrAsKh6oFGgSqhjJNeEM7ipWRJ7aQkPyfSaVkgc5j7rzn9nXbT1JCwFuvj+q01vo4BzjOG0Pw+EgchP/iRBglPU5L9XKQd2XhJ5iGhzWHIEft2' .
+	'J1vheVaksobYh6e4Rlyd/NXSccVXSIjktXkm6JSiu3nkmC51YSzQ9atIXx9Xnqzujg4HLpIo6XXLCVfBSYpcjLiBOeS/tEoTyNXoG0437sGvrX' .
+	'sMBdhXul7I4v7WuZzlQayOMIuYS4wzHTlNkQ5ECXvDcrV/sLJFytzFg1LD4KdEkdItZVyCRlf8WQurXeQ+oZggi0NMgCSek1VzhU7UVyEoqeCW' .
+	'AxR7iMJ6mleyaKjJ3Aub+kwTwOdsie15bkeeUwjT1zWZ+eAR29EEJPrB2L6Jcyt+4iAz/UdMWNPdnibSrVC/YmD1RnmfGaS4Hf2o9jK4mPFlu7' .
+	'850bB8zzC0bbQFWTE7rfnVKyXnUT/K0VgLDfxaQLQSuZL3K7MpDp/5ENWfxmhSLcNMLs0Tl6C4ltyMgw2SnjVwoTfzPz0Sbdvd5Jf+Cy4VVZ6N' .
+	'6xQq53yIHus1N/M7gSMs/thP/z9q2eBgilT0MAfFceBLTNNgCH7OJLZFl/L5xOTaRb3F+5I6tfRsJ/OMIxRDY7bDIIiwDfAyYbFch/4jqHZh+S' .
+	'P6R1R8A+FW8QmR2sjgqzeFGQdKfC7JDhCTjSXV+FX/9JEM/HLkT4WclqIHvFUC6okmAmrDFJmyffSDuTZJpHr0y7Mp/Nsw6woaTQfgUTKemzXU' .
+	'Cg/QchnNPNWVLGMVgS0JkF/v3M1GAcM8MV0PCeQQu3vCXWpFY+xvJVGZaLKw8JG0swh/CCgGXf57QzZyhKkCfPTyxglJOJJKIzMpeFDlTZm/PZ' .
+	'hW2mHB+aTJd/+4J2VWOT8WWJEQdfsyfDhxple404fFyhoh11kXMrtDcxBVx4YX5O4d8tXMg/d0aNSJqnfIzblg51c+ye/+fAHrecEldTxP7QU/' .
+	'rs0m25CkMAUgdThtDRke2YDNYaiam7H9thDQpIVnCnWQNNJf7d7E3QkWXc2vqXRcj+PBoaTq2+SLtRx2U+sxGkQw1Ut6gyrc+rhJlffv917sTZ' .
+	'9W7m70T4JNF7c5QWhoZGfo4Vw+p+iqpu0fsQmQtK1VkH0xMgKIVbROM53Q9+iU6WGDOX+goTAb5VHo4w9WJdNIgVbEUNnPd92kRn4XYPLRHOdl' .
+	'83kKSMV6fkZ7dYCwshGm33MEWM6iQ+r3151nq6L2iIL8/fBpsjjUYcoju8S5eRVzZmUXpKLZoWWW0ebVfVI2wYB19NQcvnj85FUU3eyUbkkhKs' .
+	'qlGpLZgVTmDLKDpbSXuPiicisX1JtApylsckyYVTQmSUWS+0giK5BPem/UsPuP5hoz9Jr8GMOGiDjCU05jizOsnyOKHiG2ah7QoGgiy98nFXxC' .
+	'5KK8W2yg33TXl9i4N4aFLHq1EXz+9UxVx4wVWc+dg7bAHVgd/zTfNuJY/2bVc1B91CCdwQ9c09oe7LfnwmChyGF0nKuCFm4OXqtS7ODECgoA1a' .
+	'h00fb3vcJy5+Jh9P8L8Kxou0xsWwV3mmCbDxqJ4UzR9TYRznex3iI8J3XwHhSYrd0equBAwOVW5CQB2ovgeI41dAV9MZu12Uk/1KEoSbKn6VC2' .
+	'YX95vpRxp76WnPm+RJ7OAXo2EyDh0Pa1mZ0Sct62TM+CZ7cE8IYUZNdIvpK9eaqiq2DEgr8xVUHqCEYeh/CmTva3d6ttyTtDWSgKe8LE0R7gzS' .
+	'kjP8XIt4+IirRLZRuJzGyjHDG22E1EPdt+2YiGHmjQVPRqD6jsBgtOgIP4xpBAHgxNGrIGhw6HZdK8+NmrA2dzMZyUNHKSK7oGdvm7VrubCfkj' .
+	'13gyBzdtD5Kl8qGFy2PhHI2/AUn5SxQ1qXk9AaeV0tuxefeqvd5DQya6Jj6AKv/f21sPXErdr5kA78fyWdxhhYh+edDQYGDuBUOaTcABTKxT6R' .
+	'SldqrEvzIyzm62kbnVRyi1fJhHl/pI8UiyNISHYyEHUqu4ZGeOgEx90ELtgJptbEmUX2BF1SkIUbimlOjXA4q4j/vu9Sjt81cxM7BbdHgRrJxy' .
+	'f9PKEaFaREUtes92I6mKwfEp/ol3udbDu6nEraBTd35OEfekd5SsMFE/DodHssyfVAkpij1xLeFI0dKRla9KPk0ipF+uBl1McCPknr03qQAFYm' .
+	'F5681jMWrldanZlEYVsmzr0UiXEdpGUoVAoJr7EbSiEPosVNDFgOnGRyop/frj4a/m3TitKx2WPuoFclv5wKpdBqWqmfZ9NI2qv5DRsHyNJaiA' .
+	's4W8pS6o2paG6sXaK1xMYzQ7FAjq3SCeyap5p+mRNfVM5S53dwk7FA7oW0Tjnti8VQ2iZnj8v1Ezhs80boRITIfpKH/xofvlVkVWFlXNGgt4ZE' .
+	'mIoujpcQhH/RI8T3wfIVi4dngO3emAqL94he3rS6C4S2QahOf/fLukt1vtVkWNJpPVPtFpJa9MEFIY1VTXkRVKsauyZzyAnj/bOIYuD38DLvue' .
+	'BxZFb/d5O8wkrFmiRl2hkLVyal0OxympbVCPOHICoysct/WFqsdX/leiyG8kLtM1BW695IbCskubVLofHjN1O4gsbRCV4kuFP/W6PMr9tIfIy1' .
+	'HnUaGyJ30fL3fER9hsd2k6y7MtJLHYnmYieGwl4wi7kOSiu3j2q4OBFNnmJGvlwv8ruHcHJQu+Rf5V/W0KnUda0ae5qsT80JTsUqGk+FXVqlP7' .
+	'8JoZ8hFeZmGFXPjRuH8h0uJzFsnHTCQBPQ2WUooWXykhbnLQzipB8lPa09lkOjpi/vQkWDKqOvxvFQiABQxuR94v6oewFD5npLSuRUJhXWZDHp' .
+	'02eHxa7QdB03chAyc53jn/bpZ4j6GvAq2GdQ2o+X7/qmNy6KJIwpvOIfeATRSqwglz/QjrFxXTJrHtLF+I81RgyZkwflzpBEB3wPpWjgB11XZa' .
+	'DJgsocxzdzWZ9l6gST73TCqgj7iH1yywRd7b38I/d3Jm9GcfPGMaK9LWTNSqUxetkDuEn9FWNm/8kCXhDUEj75eydb0jicdwkYzUZKtOCuCn2p' .
+	'HEj0ND28bMWkTJtwdx+h0fuYcUq0zxIS0QHWdvPCUORZV84ICk7e8ShnNsVpiFypHJNMk1EOWDIlMQ5/ABu4X6zf5+j4ndfdv4OY1m70OoG6+q' .
+	'u7tvbZYNkFgNrpy3NVGunQaoNEByJu5EMvoUK6dOx5GR5+QIvzVCCnwBiXxLXKCKmN4RnezBmKgO2p0dEvTtmLTXMuNwBWaSEzicPDLSEeMowh' .
+	'iBv6EWoALDFoEELklB19egdVCFjy4SYlnJrdhStBy6jjGu4ESevDE2Ocm2pNo2kZT0cciyefBPhWo1m2llJLQ7VFfAr5H+QGhRc76pzRo0s89n' .
+	'M0VlSSXNECl816eVl7cYfggTL0gfsTit9vU84BdxJx1Te4Ya9+UbqLtyl1jsKVsfip5uIcs1KjkpVVw6W9WDD622vESE3QL1u+S8jEzmsJzJKy' .
+	'8RG14d5p6AdEU7pL+Lu742HTb3R8zqr67gyqQuTxkymOWdQ0L1YWdPueRfI6608UsQl5k5Gb2hzn6PU2WD6Wxi/UvSdXTeOPOLBnllgtAl3GQo' .
+	'YvtP7WrcSaoWC45CW34Cn50IRoPxYNhbOHCTyGJ63O4dr6YaO4YWrOFfXgFgr7s+9neHCJiJTVCpFXSeTYvp9kVsimuQHXAMOh+BrBjDtQeHdU' .
+	'KGMSR7O7CzjB5dev/klPsWiWmkVCXCDfP1gL5c9xdSYkey3WDrFXzVt/T21ZTKmkmz8xkA8E0LDzPx7r2ICR1LJOM5VzfDE6TmVjjAmtBBVYcd' .
+	'CoS0ADdrBf9E4VO3H066T/7c5a6WIDZQ2zYOkNxv5q8gM3mcTcDm5zK/TC4oMRSBhASIFAwn006H6LcXiZC7OgXFx20XoolmW2//FxEy/I2ovq' .
+	'JWOOohGM74Ko8y9YdNKHiuscTpmXzvcZzohm4j5xppItEtCZ2TMrX6KmEmHhEAmSTotXBE2iKx2zOkk/qg7homqHymSQURTUOIY8uY0/FcHjKS' .
+	'1rZj9lgc0hAW+duERWHJPjNjLmTLaB5CVYi6VqBBYAfTa6iS5g00N0QkqidnHemLdlsZAAA1wnMo1qXw0EghcEq3y1nO6AW4A2RyCJiFl9tnS6' .
+	'PxxszbgfpJhafsi5bD2F0XCP8UERd7BGRHXU2qj9g/XKFySTu1YOAuVclGyA6P5PlIJYUQRzgr07/gcx33wySNT0ZJqX8Pn2ked9sgFP74znix' .
+	'bDUQhVc7pj9eo+IkYG2qgoveThs7hH0PQM2upBRI+a9+vHphXcdl5wMMAEYoUfeSJRzzdvVSR5TmF+a/FZ/hUOea+shxnCfSPuJQInS807Xrfx' .
+	'/MlJJ3p7knqWzoerDdz46dA7biEAwqtM0zNjcTGtihInawVNiH9DrVwjiAsS8c14kyO0OcQRLtY9VOb4lEjLVN72oN+nWjjI020qSGcCsgNLnY' .
+	'khnq4c7TmAx27UoTUaRpBlEnnztv4ONCjrtTYLziDXJii4LeIDqdHIhalzjpJ3Q5rvblONR9SYGGUahtGZqxl0BBRcxGHzlpvZaJW/gIJh/YiQ' .
+	'uk7B9NtI6CHKEosut0uiI1IVGkAthrVhmNX2GqGOsbh0WAVNpPml/4c0cka7e90tAJwOVtXc/9/GGrG6zZ3ZvP/1dPbxy5+t/lj+HTO0JyDGzL' .
+	'TpBtGVaJ56cywTu153gCAaVBmKv/KfA4Oyu3264auYbNzNHGIJT5K6zea1vMbcukrBKey3LCeyOMFsud73sqBa9DU+6jVyGy9CZ6yHT3GXlP3t' .
+	'VCRLFohTD2vq+m49vMSGZO7jZSaVORPRUM2uhYGBtF47Ui0qIPIumKrcSbhqSoRgRo8kKgEjfNsDNptnOnRm4k2f6GMPgZ9dTxcQLWnqWzefZA' .
+	'vlkSFUXKNgbSMLO6ziTbSKqfRb4bbdNq301Okwlf3HwM7RtVgMsrbVha4dmi2CF9PwgmaBTiUll3W/3P+alWT3PeuaGRZye/iFnYE1uHTyVp8h' .
+	'21VAS1KVLtP8q7c/YkvtbWVDYr+trJA47J1QwqGkTQDRjHvK1JT62PY/7Ploe8x3H64A509cey2+Z4pKv5GYPYO+3g8y/P1jnZEUQkODWFvmBP' .
+	'sABILetZ0JXqwwIYhxpJ2nb7kznkDqfbOI18ZYk/WINcDiXCf+KSyaM6+C2spV+JF4ORMDVQhRh5FH9Wh6Mgn1tX/mLZViTuh14xa/7fGBlwhN' .
+	'VGn8HkPKEuvb53yV57GikMDJ8vI0irPHCw3y1JaIjcXmEE0sxHEXeYOBWK09y+vQJs9PCYC2y4BvVTWdp3hU35AwLQUYeI17QjRkrczL0/mKJC' .
+	'P3nY7LPmT01c7wbsXOVLJbOqIz1EHJ8p8aGJ7e4SKHm15i5Gigz8Fi/rryH2Vscs4ijm7cO9tlemWgpwgRl/5sDwojYEJtYJTQEiA4H+9MKe1+' .
+	'IcVjbmwc3uqZmbmG+MDXnxkiSt9tchRbw1FIovSYs0jv40lIcqQ3a/aFon97lqV8xmARQr9O7O+OZXSjB44jHGW2kDPBW3ey083QfGjRH8kNAk' .
+	'qN5jsCR5oaAiy3uCMxyG4neOSUiMC2kphUwphLbhPNz3C+zAg98JPZiWAl0gMGxsNLGRuFRVcu7Avppj1+nBLt2IZQ5/zf2oAWAzHpK5//wUr2' .
+	'wCjf9zZCtjh4aUtL+jx59+3BROwCoVvrYjpC+9kL9nT8bWDwr4I9kcXP6iP8vCk3S9fu6/kh8Ly7sEr8ZMH6ZWOP+i2bwieD4eAbLzxEjLZOM7' .
+	'QyDUgou8XGiCadGvJSc20xdmrAs4f6pL+Pryq+iYxVp1p8WQIlitz9Pl9n23N8fusew+ISUbCneDXCz+Hs4qz6xgWzoSfjV9dcsboZpyO1z8VT' .
+	'9EtN58cPLyeIwleVUeobsGyJ3wqXpvsNhDOFPiRC2NbFynKj1bsIKxwTSyb3KNQ0ABcdLEo7XW43bNHplxefo7YWSivVXgbISI16BHrmNJhQqt' .
+	'GNUSXnJu8JF7bOSmfMp4nOdQ9wnh8480+AiaUs6M7CbxOf7nDu3o9orlAxGZWxn8WXnRXVV3aFv8iMLGGSGcJOdvDVMmJ31Snghyp+YpzOd4y1' .
+	'd9sQbXo+N5PqNEYli6FyVO7xvK0HKsgPoRfeJmC9b0C/Npt+8SyHLHT7g0q2bOhUoySxJiw/oJVpFIfM/BAMM80FksnrQFdmKY+Xi/xsbbnXII' .
+	'DTsS11zMRuk2Nw/hfkJ4OlERDZcqphCHDYd2yB4oKXSWKJGEWpVRcyscRV/ST27XyUtRVwMPGeZKxdrhTmSAkT5YupK4LkHXGLQgu2m9jenuRN' .
+	'/G9HDxghq3URtEJ03Ge056SurD3DffjhiijYrNXMvK2QdCWpCk8eqvVwCtArlq9nu3c832Wa7CL1Ra+yCCdV3p7XkF92pyrX0An9DwIQ/knDO1' .
+	'FklVlzhfuNnXZy5b0XdbRDbJC53la0OOdhF8MgSrqzKrS6aqCCWnx8FHt+FHxF1EJ509MpQqfbwR/0A2RJre00XxL+awccp+pYU388jh1gNvW5' .
+	'JJKgqe/Lcf6eCEagdht8218mQzKtjIrM8yY71+Ca+83FuPBWwmwlqhvJe91whEia7WN4fdKrk5jLcwhAae8gbKEfXSi56jw+tDlzOfrK9eV1DI' .
+	'F2to1jYPx9oPsGGgUZjeqLnk/FHl',
+	'86c574da02de97dc13d5e26a5d9335815c3bf2c7bf34d71520a9aafa78587ca9'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

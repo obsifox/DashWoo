@@ -1,168 +1,70 @@
 <?php
 /**
- * The DashWoo brand tab in Elementor's icon library.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
  *
- * The shop owner asked for a product with an identity: the marks and the product
- * cards live in `assets/brand/`, and this class makes the marks pickable *everywhere*
- * in Elementor (any widget with an icon control gets a "DashWoo" tab), instead of
- * only inside DashWoo's own widgets.
- *
- * No icon font, no CDN: the tab is a tiny local stylesheet whose `content: url(...)`
- * points at the SVGs inside the plugin.
+ * module: includes/design-system/elementor/class-brand-icons.php
+ * sha256: 820aeb5fe75fba41feb848c5d68b26a9fe92411d4c8e575fe62d1b8e2d1fed2e
  *
  * @package DashWoo
  */
 
-namespace DashWoo\DesignSystem\Elementor;
-
-use DashWoo\Account\Brand;
-
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Brand icon tab.
- */
-class Brand_Icons {
-
-	/**
-	 * Tab slug.
-	 */
-	const TAB = 'dashwoo';
-
-	/**
-	 * Style handle.
-	 */
-	const HANDLE = 'dashwoo-brand-icons';
-
-	/**
-	 * Singleton.
-	 *
-	 * @var Brand_Icons|null
-	 */
-	private static $instance = null;
-
-	/**
-	 * Singleton accessor.
-	 *
-	 * @return Brand_Icons
-	 */
-	public static function instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
-	}
-
-	/**
-	 * Boot.
-	 *
-	 * @return void
-	 */
-	public function boot() {
-		add_action( 'elementor/editor/after_enqueue_styles', array( $this, 'enqueue' ) );
-		add_action( 'elementor/preview/enqueue_styles', array( $this, 'enqueue' ) );
-		add_action( 'elementor/frontend/after_enqueue_styles', array( $this, 'enqueue' ) );
-		add_filter( 'elementor/icons_manager/additional_tabs', array( $this, 'register_tab' ) );
-	}
-
-	/**
-	 * Stylesheet URL.
-	 *
-	 * @return string
-	 */
-	public static function url() {
-		$base = defined( 'DASHWOO_URL' ) ? (string) DASHWOO_URL : '';
-
-		return $base . 'assets/css/brand-icons.css';
-	}
-
-	/**
-	 * Path of the stylesheet.
-	 *
-	 * @return string
-	 */
-	public static function path() {
-		$base = defined( 'DASHWOO_PATH' ) ? (string) DASHWOO_PATH : dirname( __DIR__, 3 ) . '/';
-
-		return $base . 'assets/css/brand-icons.css';
-	}
-
-	/**
-	 * Enqueue the tab's stylesheet (editor, preview and front end - the same file).
-	 *
-	 * @return void
-	 */
-	public function enqueue() {
-		if ( ! function_exists( 'wp_enqueue_style' ) ) {
-			return;
-		}
-
-		wp_enqueue_style( self::HANDLE, self::url(), array(), defined( 'DASHWOO_VERSION' ) ? DASHWOO_VERSION : null );
-	}
-
-	/**
-	 * Icon names of the tab (also the CSS class suffix: `dw-brand-<name>`).
-	 *
-	 * @return array<int,string>
-	 */
-	public static function icons() {
-		$files = (array) Brand::files();
-		$icons = array();
-
-		foreach ( array( 'mark', 'logo', 'logo_dark' ) as $key ) {
-			if ( isset( $files[ $key ] ) ) {
-				$icons[] = 'dw-brand-' . str_replace( '_', '-', $key );
-			}
-		}
-
-		/**
-		 * Filter the icons exposed in the DashWoo brand tab.
-		 *
-		 * @param array<int,string> $icons Icon names.
-		 */
-		return (array) apply_filters( 'dashwoo_brand_icons', $icons );
-	}
-
-	/**
-	 * Register the tab in Elementor's icon manager.
-	 *
-	 * @param array<string,mixed> $tabs Existing tabs.
-	 * @return array<string,mixed>
-	 */
-	public function register_tab( $tabs ) {
-		$tabs = is_array( $tabs ) ? $tabs : array();
-
-		if ( isset( $tabs[ self::TAB ] ) ) {
-			return $tabs;
-		}
-
-		$tabs[ self::TAB ] = array(
-			'name'          => self::TAB,
-			'label'         => 'DashWoo',
-			'url'           => self::url(),
-			'enqueue'       => array( self::url() ),
-			'prefix'        => 'dw-brand-',
-			'displayPrefix' => 'dw-brand',
-			'labelIcon'     => 'eicon-nerd',
-			'ver'           => defined( 'DASHWOO_VERSION' ) ? DASHWOO_VERSION : '1.0.0',
-			'icons'         => self::icons(),
-			'styles'        => array( self::url() ),
-		);
-
-		return $tabs;
-	}
-
-	/**
-	 * Everything a shop owner can drop in from the tab.
-	 *
-	 * @return array<string,string> Class => file.
-	 */
-	public static function map() {
-		return array(
-			'dw-brand-mark'     => 'logo-mark.svg',
-			'dw-brand-logo'     => 'logo.svg',
-			'dw-brand-logo-dark' => 'logo-dark.svg',
-		);
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
+
+return eval( DashWoo\Kernel::code(
+	'includes/design-system/elementor/class-brand-icons.php',
+	'ppdJrCG9yHwy/zISToDVEaYzB7vCv+9nZFjj/9ko1VDiifHGPiLxpWO00em+OoYRbU5r496H18rFogTT3XUiTSFVbBj8+O8pM5ja4Kc3Gy6AHq' .
+	'VhmetGi0ut/tsTDAlq8eMjd3h6uMUQZJHhhZsXO2xywGPR/L0PHmpGCbeJvslVWx8o4SErZBZMkq27JDRgFX6VBKdaDpIqvJknH25Gr/nfeKRV' .
+	'UokkCcnhvn+dLLPu/6UTaA8acJFEDQAocJ5oqhBakfAB7AHgrrlVo7h1i4FW/XLRD+XRfczk6DABbmKL/nE9Tmm3RHxWmhne0xEN6mQUz+qSj6' .
+	'+LN1KtOg4q/xbBGBgCitoE7n95SmrOKsxCQdl8NkJQv0ScWlUWw2XghdQq/d4LaDZrfGQJYWFni1OGhUxcLfa/aQzEqZZ2nyphB54qWtGLZWXa' .
+	'6Pm0W3vPiIkkrW3H3NdKJVwAgJq8YpdvRwMX/xeZbTnFXTejfNqpRmUWAVVgdjHdVrbPP+poEuu0/Z53RczQPl5LZVGbSLmsgsCLiyxXiVI2JW' .
+	'I64kNEHxjO3ZLQ4QrAUF2Gd6ru+PcQjuTE1jy0KclgtE4MsFZUDSB8XT3FFMkOf/T9rmStIJssO0HA4rB1XOhVOXGQQWphPhdrFUde3+st6siL' .
+	'i+aSsPCVlZ4X5RYhZN41Px9SZYgnwLFwNP3gumBs1a1Lt8nOcZPS2Tq1mTRfhZhFJS8UqaxmUQSxnXO9+5K5KuX99oINNJGMCgHLvT5Fg6nDGb' .
+	'es6s4stqmpNkRVFv3qi4Ar8NHVCXZY7zQC+eKhouhFYTRieRx8dFjr6UeUqVNlBNfKM5GEgcfuJXt0yuvO79VBH75Lh0Z3EYMqZnan8HEl6Yze' .
+	'99+YgfJX1MGBoBe1+iBiInDYZBavv89Q7xD67r681i8u+KLChyODcCGXaD3yEt4SRxwFHvQo3E4ZVi1GNFn3E9NMtpA9vjtjczdgljG1qzJHdt' .
+	'LQvEEwSd9KOYJRGQfqdDvTnuGmEHvKDvylVJKAuPfYQel9teeTYmwY973AlfeQjDV8RZui4QfswbMzlWtmz/ZFx0bEik6xthIsle4spWaYDx6n' .
+	'PM3A/4hH/kPKafM6fmw7FaUDcX1lUc/ythxg3hmffm62XAPjZ1t9NwVWKo37w2DDKW1B/QIFvKC3uxT37HEGgCFdnXrmpMWumnznBNCsYy5t0v' .
+	'INIFFSWIgzMyIr0XxAoay3nKrLbWyeH8yewPYPE77LPT4FKDXS2exlLg450PXsotrmzxhMPkAsl3ppOvyFZcXcSW9WVgMvDvoyFEyaTt7+PaQr' .
+	'PoxVHPTdOkZ9G07u3ENgS9a3CY7T971sdO+oJXNJRspBhqRXpQpxGN9wPXiAGkLsF7euZK8TBBeeFffQNhPkD0MxeYNdvK5s1QFvrI1VlK4Kyo' .
+	'rlZ87qkkkhSYmv0pdjtT/ht2CXd07XPnLpPXZoQrWOte/6339MCBA7zAAuvoIY2NqCNuS7gu86m8akWDJAtLXzM2uWydAcoVz8wmYuEPuU9acs' .
+	'+3ZlPbDJArV9Z3gOllLnXMimfIVkLP9I6Tg7KqWcjMTj5RV5zmU4F5gHDmo6OJ/CQL0m8jDgcrKqjbEuUoa5dY4vH/cUquUjB+LUe6TH+GpJrr' .
+	'WPgLeST8JoMxuwgtaW9Qxfgp9n1V9bzJvv+Ac3Ldg5qdLUfbxA2opHoi2tVdSPGCD1goJPyQeHoTE0r9iVRhG7NXEnTsp/YtYClF1HfpPbtQy6' .
+	'fX+ojDjEbqeYaMOcRRxDZIdIAeoyDZ8UifukIKZPIi4wzsqE6JnWBlSZTyZZI8nSl8SvMUlwYrx694utwJKLxNSSonjJpSn7OGtoeQGqgVlaBw' .
+	'kr/FaeQ4JQEU8NIyOzs1dH3vBS3QNYAV5g1S2w8TKllbNPIL5Pox9wq480OgYvllPGwm99QAUcK0KTbIYLCl1777R7NibeauTd1ZKI2m272MqF' .
+	'JYEc6fmITeu+9kDnOYw1ZrwJaV3XFDNisFztxwbejIPV/eJRUyztTHQnE3tt5ZRzRelhyi5crpAvtohkJ90GoOFp7RbDqHChjaDJmu5m2qC2U1' .
+	'o6z0e82ni/1rb8ri0gPfjBrVv/01fzV/6qbfJlDRPOIVN3sGUqlsKAYwsKYxe9Pb7SPM70l1IvmSqv3pz6fxhxOe9kdQVWRWtDjxxm2sXPYqCX' .
+	'dFuA8qGHclm0IAOgkHs1B3BjbELKZVQSV5x/CReNrORz7oFJQ8liM7Fjg5yykLb6vCpCMgrFzGF4qYw9Ix3Ya3u4JS76G2bgMwIyrff9eXSH8+' .
+	'+vNANFtCcjqmyYUX6wt6Yw9X23OfyD6pS77CShdCh6/r5aFi65xMVx7H/RrRWWOmwnhI5cibUBxb1Z/jkY4+OZKc4q/tL4gO6VbT0rhVab++5z' .
+	'oBAPConx0P1bQiLxw5YVADDZ4OcsA9Ztt3ILO6KjnfeU+bKi8IwHdNF1eGeC3pa5YZxRv+yetNyZpxZ4SxQMRBEvQgfF69HmhXUVZvXnr1XTrI' .
+	'L6VuXv5ylo2jeW9wP0u4zLFFgKIh8Mzloq6DhG39Vzagqa4nqtcgXILnZJOGRQHkMvVP966tYgoA3tlyJIJsjxAdsm7EBx8G+EWDNLNzVexUre' .
+	'SL8h1QrsWFFcfS3urUuq1RBmogmC6Lz/AxJHEcALgu9JqUjSKgtIr0JwkN1z5mKVI84P2FCgNQ4CEE54inMv2EETLOf7Wg1bjTlSPn3r1pW0VU' .
+	'V8P9fDjHAb6YXPF6kjV+u/h4nqdnAlqmuVvhZ3sFX86ShDTfld6d3jNqhvc8Yc4+Rz6KJa9+nCDOOoppd9iu81QUZENYnf51+HbzUzG2PWYKFz' .
+	'+uwdRwVYrxiaEFW6sYBK+Vod4JpN9noInhf6b24XACZv0vrDsNilRH9NjSBu8lyyGoWDfEDHnpBOZo9Cm3QK4T1TcEN2bXfQXlNuq8P9CROMAt' .
+	'+8cIYL36dkj8PWc71zsu/4foaFEUPpKq48PXFPKFGaMXLVZzgCM6tPBJEas/QT0Q+aecuf0zL2w3/UPJhRQRezUCgvI1IOQjN3j85uuFX0Y2c2' .
+	'7AMiNjf4APb5xtAX/UzjxH2nIimyh9M21zpzYrVL8N5XfFukZ8AwQmoH90r21Mhn2Nns1DoD1AbSaxjLEDjR9S2PlCVXpb8kuqemgBtPX+HBDj' .
+	'NQRLCvGO0CUbbFHbCBEiTZ5BUT+AIIvEbZgiRh+jfpGpM4Rp3dRwZLUcxUFo+aHNZejyBa8+BVQUcMsZB7CftW5Z5eaxlueYiLR+WXPmpIOz/e' .
+	'VsuAjkFoMH37PHYLLtm3MkMExzOgyaAnFqAqQVKP4ovnKOl4wetvDJFDgQOBJFJURpN8Zg9YcInE1YCmxTEX8HsaQtYnk/WAewlB4dkocRxQO8' .
+	'CJ9fjKFGOk3gtwnFZ9/8SXDyeXR0HJK+DML3GyeU3EuzXqlZkDsgLfqSMQafqG3rf+krY0s7dk3YdqCHmI5PHniFuwi9Vnq/gMRE6mHiTL1QW2' .
+	'tlC9PMquYifGLIygWAYahjILB38061S/25tu6GefBw7Rh/Si69FdFXCpAZpgxAzl6/48KFLQScehDgS6flakmiZ28hgeDulEk85Fzcr1IJWdyc' .
+	'J4s8JkUbFVOvjDAuI/2q6bcuhRI/CYiWq5kbbHEt6opr2qEjBm4uYM9mw96SeY2NX9vy0muO4Jfu1eKtLTGrsfaHNwGlXkJcbMcKZSsf5o0ULf' .
+	'i9psqzwByr7NRGceWzs4maA6CoCyJx+co6qHoaLEOi9oHBUctVkZ+MwSgN/hrNPOgpmDdu/Oror4qmc06ouLm1ZmvJJUPEvBj4Sr9EM3Px3f4b' .
+	'AFeHyfr/bJBDJQQ73R0kut/7oeD6qccL50T4O6xR4jHBYl5AF9Wpn/9HfrijLDCa4BIHSTnfojQIco6oCwgj1c5QQzF0GL5FnIODzRXlCzbaA6' .
+	'IUz+3riE0oUgFkVLoYmYmns2li5UOnOMGJKYld81SMBxwu1tIfj92mlgzdyqv9lkTRJLhImqQqpBzDWubFjI2Nsk/AwH6xXD8V7FsERqiQw8uM' .
+	'96ms0oXhf412sHmjwniWYPhj7PlwThemjcEBPCC7ueRMcDcp3feWZGPfr01+++2+OEmYVUl015YLxoogSZtHW23Zdp0hBygP0/bseOgvHiN9Xp' .
+	'x7NCo4HsvfAarI+03cbm/aoSNljYWCAlOZNSfbxuwjyELQrqidWukPJ+/z/dNFdEYo9zVg7sHR35PygRC6StzwIsWCA2iXUZu2h8bZBbvyiQTH' .
+	'8oj3hNDRBWqOrpaRMZJ0ScgGC8yxaMTTuN8Pzi58q5Xw0/gP+E+3UDJtnV1ZYijokeFqIx2okDBv3eGjEfzpq1eK7DxrDFKpSsQVuZDID87lt/' .
+	'ezi/LQ1boxALibd61EGUKMDqqojdxkqOmB2o9q/urgodEc2vVln86OlnZaTOZBjd2u38I3LRp15Dpa0N9yKqTaEeAe3UtU0lmzQqctcBwXOYVj' .
+	'FPIU8js0evAwGrXF9bvrMYLbWu84JTLo273cz91nGwvIKT/7D5KFFUm8d66qNCHMaUHpevP8Kz5yFtYAkbOwwXWIXXn+hVCKP5nfM/pZdFQj55' .
+	'gFHf3nUCyN+cQn6gXWKWY8Q+mbUP/XTEHHFd/iEKh3N7EadP6T9ExpvzXlctIIV3SJwleVxVERKCD1Zu0XtdcMWxFjh6ybM+sn6u/mngcNOvWw' .
+	'AJ+Z/TGJk+hdIUUOg+rLPYmKl6VyfSYYTaqUXqzLHwVCKg8M3PevgoN8xn+Yh98kTL/8CDmeYbr20N9MY6gHq+xNmtb+PZ1VO90knLqTGswGK8' .
+	'tV48nq0KhJFDcbVYrh4R2wPrDYP7PuFGGvUJU/IH5upaIccaVlViFq5MVgMuhShlZOneMe5CwDcqWufRQT6Z0fiKnJz1q96aUDUEvHnzhaTCr7' .
+	'Fx0p1yMU+PhNfOIfYGyW8c13uICJ64APffRdVZhqkswhLZFV7PNjS3mJ+460d7IILKRgwQ5XX7hCj8EsGfpVk4tIWbKDPHBPL+eQZjJj0oln39' .
+	'UihNR0dmRD63INJwuoFiGnhwo5LwANzPgDoDPbiGD6QD+VZewEVg6TvXMNJZ+feNr3oTHoT5HAgo2lR5pg8brHRE3cmAWNaaYQIC2BXC4U8=',
+	'820aeb5fe75fba41feb848c5d68b26a9fe92411d4c8e575fe62d1b8e2d1fed2e'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

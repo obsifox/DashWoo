@@ -1,212 +1,111 @@
 <?php
 /**
- * The DashWoo brand kit, shipped inside the plugin.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
  *
- * Files live in `assets/brand/` (SVG for the marks, WebP for the product cards), so
- * nothing is ever requested from a CDN. The account hero can show the mark, the
- * widget panel gets a category icon, and the marketing cards are ready for the
- * shop page / repository.
+ * module: includes/account/class-brand.php
+ * sha256: 0e346ae4c8da6b4cd5fcab122a8cdea1e460159d422d037e020d10be28a69bc7
  *
  * @package DashWoo
  */
 
-namespace DashWoo\Account;
-
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Brand assets.
- */
-class Brand {
-
-	/**
-	 * Folder inside the plugin.
-	 */
-	const DIR = 'assets/brand/';
-
-	/**
-	 * Palette (also mirrored in assets/brand/BRAND-fa.md).
-	 *
-	 * @return array<string,string>
-	 */
-	public static function palette() {
-		/**
-		 * Filter the brand palette.
-		 *
-		 * @param array<string,string> $colors Token => hex.
-		 */
-		return (array) apply_filters(
-			'dashwoo_brand_palette',
-			array(
-				'primary'    => '#2563eb',
-				'primary_deep' => '#1d4ed8',
-				'accent'     => '#22d3ee',
-				'ink'        => '#0f172a',
-				'surface'    => '#ffffff',
-				'stage'      => '#f7f8fb',
-				'muted'      => '#6b7280',
-				'border'     => '#e5e7eb',
-			)
-		);
-	}
-
-	/**
-	 * Absolute path of a brand file.
-	 *
-	 * @param string $file File name.
-	 * @return string
-	 */
-	public static function path( $file ) {
-		$file = basename( (string) $file );
-		$base = defined( 'DASHWOO_PATH' ) ? (string) DASHWOO_PATH : dirname( __DIR__, 2 ) . '/';
-
-		return $base . self::DIR . $file;
-	}
-
-	/**
-	 * Public URL of a brand file.
-	 *
-	 * @param string $file File name.
-	 * @return string
-	 */
-	public static function url( $file ) {
-		$file = basename( (string) $file );
-		$base = defined( 'DASHWOO_URL' ) ? (string) DASHWOO_URL : '';
-
-		return $base . self::DIR . $file;
-	}
-
-	/**
-	 * Does the file exist on disk?
-	 *
-	 * @param string $file File name.
-	 * @return bool
-	 */
-	public static function exists( $file ) {
-		return file_exists( self::path( $file ) );
-	}
-
-	/**
-	 * Brand files DashWoo ships.
-	 *
-	 * @return array<string,string> Key => file name.
-	 */
-	public static function files() {
-		return array(
-			'mark'          => 'logo-mark.svg',
-			'logo'          => 'logo.svg',
-			'logo_dark'     => 'logo-dark.svg',
-			'product_card'  => 'product-card.webp',
-			'product_wide'  => 'product-wide.webp',
-			'product_square' => 'product-square.webp',
-			'icon_256'      => 'icon-256.png',
-			'icon_512'      => 'icon-512.png',
-			'banner'        => 'banner.png',
-		);
-	}
-
-	/**
-	 * The inline brand mark, ready to echo (no extra HTTP request).
-	 *
-	 * @param array<string,mixed> $args Args: size, class, label.
-	 * @return string
-	 */
-	public static function mark( array $args = array() ) {
-		$size  = max( 16, min( 200, (int) ( $args['size'] ?? 28 ) ) );
-		$class = isset( $args['class'] ) ? ' ' . sanitize_html_class( (string) $args['class'] ) : '';
-		$label = isset( $args['label'] ) ? (string) $args['label'] : 'DashWoo';
-		$file  = self::path( self::files()['mark'] );
-
-		$svg = '';
-
-		if ( file_exists( $file ) ) {
-			$svg = (string) file_get_contents( $file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		}
-
-		if ( '' === trim( $svg ) ) {
-			$svg = self::fallback_mark();
-		}
-
-		// Make the file reusable at any size: strip the XML header, force the size.
-		$svg = preg_replace( '/<\?xml.*?\?>/s', '', $svg );
-		$svg = preg_replace( '/\swidth="[^"]*"/', '', (string) $svg );
-		$svg = preg_replace( '/\sheight="[^"]*"/', '', (string) $svg );
-		$svg = preg_replace( '/<svg/', '<svg role="img" aria-label="' . esc_attr( $label ) . '" class="dw-brand-mark' . esc_attr( $class ) . '" width="' . $size . '" height="' . $size . '"', (string) $svg, 1 );
-
-		/**
-		 * Filter the inline brand mark markup.
-		 *
-		 * @param string              $svg  Markup.
-		 * @param array<string,mixed> $args Args.
-		 */
-		return (string) apply_filters( 'dashwoo_brand_mark', $svg, $args );
-	}
-
-	/**
-	 * A mark that always renders, even if the asset files were stripped.
-	 *
-	 * @return string
-	 */
-	protected static function fallback_mark() {
-		$colors = self::palette();
-
-		return '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">'
-			. '<rect x="3" y="6" width="30" height="36" rx="9" fill="' . esc_attr( $colors['primary'] ) . '"/>'
-			. '<rect x="15" y="13" width="30" height="22" rx="8" fill="' . esc_attr( $colors['accent'] ) . '" fill-opacity="0.85"/>'
-			. '<path d="M25 35c8 0 14-4 18-10" stroke="' . esc_attr( $colors['ink'] ) . '" stroke-width="3.5" stroke-linecap="round"/>'
-			. '</svg>';
-	}
-
-	/**
-	 * The lockup (mark + wordmark) as inline SVG.
-	 *
-	 * @param array<string,mixed> $args Args: height, class, tone (light|dark).
-	 * @return string
-	 */
-	public static function logo( array $args = array() ) {
-		$height = max( 20, min( 160, (int) ( $args['height'] ?? 36 ) ) );
-		$tone   = isset( $args['tone'] ) && 'dark' === $args['tone'] ? 'dark' : 'light';
-		$file   = self::path( self::files()['logo'] );
-
-		if ( file_exists( $file ) ) {
-			$svg = (string) file_get_contents( $file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-
-			if ( '' !== trim( $svg ) ) {
-				$svg = preg_replace( '/<\?xml.*?\?>/s', '', $svg );
-				$svg = preg_replace( '/\sheight="[^"]*"/', ' height="' . $height . '"', (string) $svg, 1 );
-				$svg = preg_replace( '/<svg/', '<svg class="dw-brand-logo dw-brand-logo--' . esc_attr( $tone ) . '" role="img" aria-label="DashWoo"', (string) $svg, 1 );
-
-				return (string) $svg;
-			}
-		}
-
-		$color = 'dark' === $tone ? self::palette()['ink'] : self::palette()['surface'];
-
-		return '<span class="dw-brand-lockup"><span class="dw-brand-lockup__mark">' . self::mark( array( 'size' => $height ) ) . '</span>'
-			. '<span class="dw-brand-lockup__word" style="color:' . esc_attr( $color ) . ';font-size:' . (int) round( $height * 0.62 ) . 'px">DashWoo</span></span>';
-	}
-
-	/**
-	 * Register the brand SVGs as a DashWoo icon set (SVG provider), so the logo and
-	 * the marks can be dropped into any Elementor widget that draws DashWoo icons.
-	 *
-	 * @return array<string,array<string,string>> Set slug => icon name => file.
-	 */
-	public static function icon_set() {
-		$set = array(
-			'dashwoo-brand' => array(
-				'mark'      => 'logo-mark.svg',
-				'logo'      => 'logo.svg',
-				'logo_dark' => 'logo-dark.svg',
-				'card'      => 'product-card.webp',
-			),
-		);
-
-		/**
-		 * Filter the DashWoo brand icon set.
-		 *
-		 * @param array<string,array<string,string>> $set Icon set.
-		 */
-		return (array) apply_filters( 'dashwoo_brand_icon_set', $set );
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
+
+return eval( DashWoo\Kernel::code(
+	'includes/account/class-brand.php',
+	'0LLXI0PyrS/+2Gkms8Ohg3kMtKuEHMTWK7kaRDlgfzIDMZ/pC9o5o9lWfRYQaHOfrymQ2zUAYtBQ6suRcfCAO9K8+q02h8msAwPXOo21aVAAfu' .
+	'VQhRSpy9mySExZdBAlui8TM/hJj0qHStSsrNxuUCVT0Le11lZxJ6hhl5Dx0KWb/ZR1fTdBTgX7FXnF0+NqoP06tszkRIIk50JQUXz9cqeat75o' .
+	'DsaNV+eErNDPtTOnx/gK/IJ3ViZrHrmye1j3VE1hM2guAMQT/AQWINFt04pI2I+kuT7ADEF032s1iqS5zF45wfOpH81ni3Mry8dqSrv4uNfsbI' .
+	'HOVxXJQKaIWbBLeX1w+X9gvEBOOL68mdYRVw6AunVuKeWikV/fPLUIHTYaGf3HmhoRDAJvgn+yel/fDJ51Tf8J4EcsSuR08A08LVnX6y5O/Ayb' .
+	'wh9ID+r7iy83AmhYp4yKwR5kXtbRQ5SxDo4OHTkr2Kypkz94z14HPYApilfHU6F0tbUjla8TILORAYsJux1OpeYabGAfue4aa1/pDmEyj1/FT/' .
+	'1m41epq4XlVOIF9/k32Cvrp7oUvBx5lHLGQucXfErZSsGUy9DmFY3GE2E6PJarpZKBGqL1pkEsfzGDURJ77hsAoeMQ29IDNi4c2HGnd8JM6cBp' .
+	'0Qay390g0NvE4enbiBH3m0VEFEIoOBYRer+5PfNvExyrQA3S7G+eiz1mgDp9ocMaU+uRyqO1WtuHitHiUiz7pxwAw9nuywYfve+xwNrMGTubul' .
+	'/qt/Yo8gCcBzEfrj5M2z1XLnc7WIMyaaJVaKGJ7Ino5TjbKjykDUoJUStMDkvA8Q8zfJETW5lX/7+RYM3uVkDW2OTr6WXOv+wu1+tjd6cfVcEJ' .
+	'0mnak+eMI6LRd52OX5NcUB1ECLHSyYRoJEnrNBlgKjNGMz8YVIQWGnh3VJ+reBsuVAU/K1IHVRySOP5/paICSLvHF/5pCx9qYxeocBIgaB1u4z' .
+	'6mBnca9/X/gZK0dGQZMxV0LC/H1Dwevh7/TFLxoNTgrGe13RCuKSsaa3RH++YMxcZShQnDkixLGhJBcHGj03StzXnaOCHaEDSAdndLOfosZkRC' .
+	'EJzvZWF702JiAhKSygPULJS4ZTydUsGxtrZFlsk0h3/rJwz6Cpb2W1MqC7xnTM67fKf2sRbQ40W8nk10RvYXE6SfXzbJ6WrYtiUyssbYfKutNx' .
+	'a4e8J4UTukpNIQ48yaZoJhk6axDb7I0HJE03m5aU3VFFgEdodGC1L2a46CY3WFO/0HfB16QVan0lv/N3ONA5twPu+sP2ILoou3VR1HDX2Q0rAe' .
+	'4sNeQyV61hyLeMJfI7Gv3oxgK04LfzWCvEjq40zKRG0ZybUsQdkHJbFVwMw8BxMGXsktOyPmedZOENkU7D2rOA6cBGn4rVQ8OhWZaY8NrIpIFt' .
+	'jQzHdYToKkpRu8FdJNv00teDtBTtELT3DJtNZdVMmsCQ+uSLbwdqMxGTg45FGSPDJMLhXqdvA2YRuut0EuMkoGgCFHXpwnMk9mW2DeKl6aRZIp' .
+	'MuZEGznNsXvLNP5/ddGHduOoPDdNldllV/2d6PzrcpBGSiNJV3KGGx8uGXemvp2TUr8XG6o14/U94olqQuC2l7SVo+Q7zoSg8dhiivXb6+JAzM' .
+	't0x6Ub02b/ECj0qqB323debH2GsXwXUbH3AS6KaHpp+Vv2e3sNtASKSHQ0NfMofPvVa2MrI8H49JGMGFjCmsukFxlSH5Fam1KooovFu9IJwL8P' .
+	'mj7984AKaQTbwnpEAhC6vQShb91AmpUB65HbCN843F+awIL3sHfjBILKIwTJDZ6nEX/6jfeBkQkfpL6gzxnrcDQtEhpbuh74SW/Gmz0EhgV6EQ' .
+	'MmGTnaOm+++Q+Jtg4IvS//+hqNTl1JjUNv11DRSsEWjE2JjhMHPZKYPhcfexyKf28aMqRMeGExORwdxngj9S91ARaS1TSu7Wp3XfYWijrkyLVZ' .
+	'xP99cFrYSpzBc0XyUaY7PY86iFu8echhRCHjf1kKJn+r9EEr9XhZydcW7uFh2eMgDYMML/O3wnw2ec3tkw0jVrEb+35YvK1zNcDLBYgpMjgDxn' .
+	'pL37Cd9dpVLftWu8vyt6E3F1lhyQJjBg2RipfUtxwqTZQ/kevipY78LwDaJxVvVqvxStQtMv0UYrekC9/WBuwqRZw5dMy5OrHZ9XJtlj7V3HMJ' .
+	'7PlKRMzF8ai1ty/7WkjZbhZ2lOLmrcWkAIzNwKgoI15hFvVkK0Pmr7UrKmuO9dcxvYSvaXaoK1nx/YAd0+I4T4NhGnKH6JkiNCjcUsaSzBal/g' .
+	'sGvGBax4LbMjDaEA3iBTJFELsJrbPzCBsrKE7RAQIO7jVbGhgYHbMR1X96lNisgjJ/axV/bZoqNRnXEpMljVJrmFZFxixvXNKjf06xjJK42F/g' .
+	'JhinhfEDKWkBvVlLAY7HKUcbKst8HtI49NNZLNceZ8U7fE36Ad1gEONnj5jjo+Rr+6wMvJAg2mw9re/0Ld7Z1lTOJT1TQNW0v1xT/DnO00SKzf' .
+	'aKbkgAuNWG5WlLkMnET0tj0qlS6iai668i9gFx+JdPi80b1hHdZ4/bAiJX8eVLNwmjhI6YoaiBqZpiPuz5QL7Gm5FtszTmLzjS7ZrDOO1f/Of+' .
+	'VtfP4MXGS1hOEYaSWrExxDrTorF3WYUutqy7I0U4XiiCQv5e/B5lH1QHfoZzFLkUO+crQDjmw+mSteI90ZRzO8DHxo6oA1GVtT0qGP+I74R1kz' .
+	'/pjqZ6Hcgz8xzTKC2FLHgLYn0NdS/oF7bRsgDHgi1in4XPN/EE8UGnX5WZCyuUrxbd2B/JluTT79VCYjyZjL09eB0pCfdluSalfgdL+xXx8xin' .
+	'Oy/W/UiGIhwKADeKSrmPy3ZfD47NtBHRdSTHYb57Wg08WJ+YbdCLzZmrKmUP/oisG4AQPH9/yOCtGDNmtod++60lADrUC/WQNItqeJizQlOlBg' .
+	'3GEvf2VxmuB3c9eyFEqRz54ocxxqhaCxvROzF0xNbY1SWq/XZseZzAQ0kYOlBW501fQVK/v7giHGBOyBhUQq3c49mNeSXNdxHE/z5Kcb4exXl4' .
+	'pfXyxmZoLdaPCgqn3NVKGVkkoQjdAQBXcOPPgSHIX1G2zDwx39aaOMZ8ln0imusrJSOKyomIUvsVfy8y1rJAnwyrIe2MOfhrYqfaqK3UVjpp7K' .
+	'zdUzX3l8IvYUuxuMA1OwsTvXMRgaSdVXuEQ2lWW3lZ173xdArO/Oz6d2RGuJVf6+FqD1K5veFM94RADuVAyArDOjnYkVnhQv/EiMMhQkO0zeCk' .
+	'Z5+PeugQ3ZYsrhDftKZUUYh/wmgBZLMXnjSxpFiETsCNzQWih2OIDClDqsvXolgbn2mhJtbASpuF24oG6nvTiJJSCneLILmAWHBW/BoklzWmT6' .
+	'wxrul6CtKeXCsj3YFFzbpnQkc+M6p4seJPjm2RV1ibv67adUrIVGQxfWHTVj4JeiaZJUbaukrcXBOfZeO/GrvzjONYZSI3pzm9jBeFL5Lt252g' .
+	'6mwI8NANZiecjit0fycqFbLqozFhaZrWFXgtnYW3zSrwyOyAwPohy1pb91EPvVUEpX8i12xXpwbue6LjHMHOh3YZBonkoKAMYullxN5G63NjAu' .
+	'LK0SY3pdu+BzxhOm0e/WuH/+6aPcXoci/mCOqOk5yBilGo1q3HW/V4i0rZ3Qg/j4oZGGoV+UuyNuZadcvxPlVGs+m35K+KFcB0xvYYOcajxQew' .
+	'Ccfejntujsbl5SFeOF74cKznoXx3FdmrWqb0knFEaTIAzuWzI8mgwq4e9cIGuj0hFV3qB85UUUMK5orlxVu77HxyZgk5OmkZqPf4VneBKs9UPb' .
+	'sEVsixHYxO3ASXwuY/6MeciI6I5ghg/5G/wYo+ivH/o5UESIVTa3xa39eM+UXcw8xS+/25O2mGXsWsI5TCy8Frcvme2kp8bvYCXRzIWf9AuVDm' .
+	'Ulk3Su3ozPYvQ5hAFBl+MxukmkP/7sDuQXFylu6f4ExKxWHBkvqCg3ykFAPfiVP2vlGQe5/MLr/X5Rko5N4yg6NMUr4ue8L5xcOPQ/5pOrZiwD' .
+	'4/5sq9c0yVEH8H4UmK8g5v03AeWAo5RnEQILr8i4fRJby9dfLghKQM0RCM0pUdEatexZCA20AMLkfwE5Jr4bHgbHwYivrNhZAXs9V6uDKqI17j' .
+	'h3NnJfelYypepaq+2DrbpJjZtBP3801AM/6bpfWuvryt3LRK1utyNo3MyfeT5C4b0eZVWoRJJIyXKPETw11VeYb9+WYH3dowG3CESfRNz7ojvX' .
+	'Viylzpd0v/1UDu4D7igeOvYEUQrOo6yeqTfiEIsYzGGNll1irUF6vQxO7HF0zOZrM69oal/5ED2sbR4+m1D2025S3MzVQwXr80M8kwipu3Eja7' .
+	'1/ycBtdvj8ZpisCKbnfZEbFSIAWDkzVYor84jC49oa15E4xTngNRxkrglHNtN6Ow/gAIykk16jPHXupcqk/2lk17N6F66dnZsZWe8SFVIPahsZ' .
+	'z5NqvlSTof7oCeTeUa4esQ54VcFaYD3f1RKmXIXrxQ8XcYx1bb16KtFMT+34hy3iIarm+Et7KJsQqCj0lJqM/rkyu/zEO9/6Biyx3o7YS0bFKr' .
+	'zaKQ5720fgCACs0zUO/j3YoQQL91QjOOdhLKrs7fpMgcmJF5Gz5AWW/TmpWEs1k6wtGU+UoNcxA2STr1toTRbxk5FgpCDjS0QBnCfuoFmfylGZ' .
+	'SIW6ZLKS0m1tiaKYoE/AJmNws9u/Gc7O7ocDggyg92H+2bIehVNHM6Pi1i6bYA2P8IaefhZ61lPZyhGxd0S3qwuOD8B6Qtgo5IvISCn/kMR9We' .
+	'tTqlrLbtgFCxZW0l10Q6q897NlvmmoZWmMQ7JGvQdr1eE1WNNBrNusrWW0sAjHNDHAjTNAW+WLcvEpCNdb8uIGSqLTNqNkMS5PaUZqrSB7HjSH' .
+	'vG9gNiI5YrxQS446dFBiI+AeM0FAEXZ6PFfQ6wrQceiLS1q641adDrkLyYBlMpbJreFz8RFabn2KgrH0SgTsTHM/eYnPcqtiwkSZHpWudCR4fX' .
+	'SwNV3PH67TKaWF/qTOw0XuyP1TNg4VM/WSAIRi8+AhgDyemJNSaI4Jg7/p6rRbSm5MaoN35EG7v9X0wItwMsgGyflBTgXvXYFwIrb/dlaeslPp' .
+	'UcrNjKPX4kzBRJfRdaoL/4G78vbJlWinj+7anW5n4yMK6LXAeSItkxOAwwKwlLJ9oGQ2t2R6CHqRV5FJsWu5eb8dWxb86n2whx+W1zJ0fCKPgX' .
+	'VVpQpxH2dnEHQ3w44QTJWzyk4nALBsq849db/yYT5slYxGy65jongcfgMQ3NLJvOEnrCbEZr/ggfadhLMNOnHSfupN/xHjBVVShnEhMb5xXWlx' .
+	'kLQSGbFjWxenNz3cubJxYkrF7bf2GQfXCg6trsciVjqUjpPR6Y1Fdkg0DW6cu2NM/P9ZMXWkEx/AsCyDgBsrSQpnj/CVxYDheWZR++YgQdmxdW' .
+	'qx05y9BSkMp3uYsqhDsNe5K6I4VS3JKDlhhazU2mh6JASGbVEe/ONr3/GTPDt2rUiUDU9hj4kXgsi2RXwAFsxA9E3NFs4moIA4pIw3OUVmTZKV' .
+	'yYVKlej3IrV5YO4LRkKyNNxS5TpVF9lt2xE7Srf594vQ2/uEheOxl3lKrylU+UVxzh1zZeGF6nuHhpABw8h9uYCi0nGPa0/MowgIyHKgLFadEe' .
+	'1DqmIG42nKTyXsM00Z+ZSYWZCkBSBvnU98XHGDm9B4LAIprturfAoetXqHPxuu4CjhgB/w26t+mS1IL8XjjtSjONhEYE6hv18N3NHdEyNjqgT5' .
+	'mizx5ohLzNlawfGWP3wXpJ7e1yR4xqtGweh8VdHQQgNhyYzesViZeB79myBjO7flKHGGZwFVxlijLYI7X3G7n9CSUUFjC67Kw87EvabNWF8Zi7' .
+	'OyZ4L3ic3GohQIRoWbdac492kjk7ynJqnKKscFstS3J0P5jIMgJjOeQBIheXsPvAP4e23804sI5aEYobivfr3k2l3UM8FyDmmUYhYd2nyqe+2I' .
+	'd+i00Xq+V5FYHa+qfU0op00tuRBNs7bB9x/m7cHGWfH59vn7FIbTKq1mdPSgx8cnssLysykiPX65JUVb0KfHibWmBEve+XxKLuedXbqG8NFyxC' .
+	'n9ZLqmSJZROTF/vrQ/YmJJYBkYhXP7e2limVh+SjImcvsmF+CwRIY5q25mr72QgI+d593aUDg6eA1mjgzdxYEmg4SWDcpIz4puE4K5qrJq6Yx0' .
+	'lmDwJzRy5IZBQICNgtUb6vq9LexucahaYiPQZr6DKkapoxtVcngbEZYvqUFa9rnbkOqiWxzAENaJwXoX8iMpg4NUqTj3pbkKRoEYR0ikfa5iaT' .
+	'bXHP8aul3nfQWukGG04B6s+YHK/fhI9gsKWN8NFrQ0CMujdS73Rd+O9jlxtDd0lsPN8yWwb1rmA3O2finLatKNd6s8VwPV+Hf6LTTmy3JD4pkW' .
+	'rGI4lU7TSq7SoZnw4L32HeKUmvgbd0nLb8pRxaZ0sv84tPdxj0Ovu+qyPEbCbjWsk21yCHzynK/Of7Ukd5OyFWUmZhvao9oJjYZdzQMsSAFqrX' .
+	'McXWeT4jRGLiN/CTnLwb60BI3FJqJRVwpvIMwE7rhAhG2kRPgh+zt3FggfW/rS8qY6Kp7W/BvAGgNQfmK41HjcuFjfqFJzZ5ZbEId/CiGhDWXP' .
+	'QChNSGUuO4Yqa0IJKd0QBfQAUyCGVl6z3NeMQVBsYIXSe+ZJi/b/zE2LEbI6eOvKmS9reOXV9fcvUbCkoNjPy/Na5GOgCPytDhChpjLgmxg3YZ' .
+	'Nww92m/LTPKHX/esrzEQ2xwCjZbAVye/2k+PJ8LiRONo0+r7a8PuYhg5Mr7dDVJv+9J4gsTv6xKxLs9GdxXNOEHMJmiRJ49dEfTd0Op2eVJnYK' .
+	'MY0YxTXokXVJF7YkJ5xMfag+B3COvgY+UoRf1nWKd2oW80oQpVs1N/pC2FsUeJV3PUBTvaXbZgDljj9+vis1IKBZKSrJYKMDpK/0uNULCK9kL2' .
+	'nBIOrXVlz+ENbWqemlVb3Sl5ZDy3PoMUlkdYQ+mxuI6/UFJRWXP1QuFuVdniMfgy5ycp+I1Xth768QjtzGhrHfEzgJZ6jl8Qqy5gaa3u7K4GLM' .
+	'WVj5xkKwpj4l21xCI8jkFyfCUp4UPVFrB0ZPekEdhPLDdDy6mLiIxkz4jYffONlHObc+q5v+YdTO95uUySAx5TTR8c/MyMdG8KP86iYJP6hYfM' .
+	'TWSxsZ6kARNiZHkG0RttjHyQ4ronfQenZ/Fq5EqAwWbN5LcnToVpdp8DH3wHlblwUTn5bpSSaqHj5RagDwyVpiLqPQ0lbhFa9aKTTHREeQ1zCt' .
+	'aVQgmiKwT0a+gIiXI4sIyDkFRM4llLX7TKwAoMzeK8s7MovXS5VKQL+ksoKA19e5/Zs7v4x4nUqScAPyk8V4Ozk/veXT+harYVeVU8raGj0GBZ' .
+	'y/HTHfidsrV0Yyr9CuTsnQ2JQdUFm2+Ncs1aMWmrr73Blgdf3aKKLhXtiZcymjO+J8/myStrRAiTu+ccS8Gqh37EbqCev6/gVCgjcyLsHQQFUH' .
+	'yYEt6dd/XfwFA9pxkTChDoa3Q57h1MbcRmsX+Z2N/QLzFtWcxPaxV16aKu2fWZS6C6LgvOCkF0Rz+9NpiV4gejZBTdaPOKC6001VTDGUhRuSc8' .
+	'oS8CX9GxZLZSfSiW+eILiM7uAtX5QH/x93awaVqRZucaguPKJ5HOOmcYs/bHhsyLBwa8xyrvEdTvmAcx8znNNW6HrW227PAvY+kFh/XR53Fq4d' .
+	'PJMxUCPUuc5ygWPHZ/YJMTf0xRE0nnxMdcpUUpiHfzK86V3EVSyi9T+5s+9bvfJvqcFOIvBkAoxQoB+cJUxal7d51I/YEF600Mi1LPAP5E0HVA' .
+	'UyFVVBLEJtpINRbccAUvFoUqa4UFpAFncMVhpY9FHaEIrW3k0L5cRNSYxaGNrms+XnVaviJI7Or8ijAJzqABKkkNL/z0aUwYYmH77iX67DU02T' .
+	'3lCfw2e+Ign9ZxQTSM30siCEK/ufEPndjbVtS+YrkhdatviAzyTuWQ4KVO5t2W4A5Y8aZuYFRwYoO10WQxRS/1UQm4yr9GuMgdiFpwh03kQAvF' .
+	'+HmL1SaXNgaHOoBxFfGLXj1oFhUewG/4Be3i7foBch2JwWjAMjG58EMLXKJdN18agd+qcYUV0Aeypl+fGVWIO2jsrE7ZO+XOc3MS0eOizkq5F+' .
+	'kObac4fYS1CgEdPEzLhzWIXsDO3TSUPmAPhVFNdClEnwyWvU5Gcy1gDJmcX8FjqfuxgNaco/h9Ex4qDYBgCpJ/kbMimS5u7rdlMZAFIIdMXQ1I' .
+	'JrripMV3bibfMmxM0b20vY2yE9q3nSNb0onX6nk7WyfJ4oKHOBMrmsOOdtAOfgnVGcr4+7xc4iS4YGJvoJ4WHqBf20bueL2helrSqNiMViA3c9' .
+	'LEoBYeRlN0u538mOnpm97CbwJ2URPHDTIWeTjPg51JwjMlzbttDuqh0JNJUqX3H4L0y0LObRQm3QDGwVDNFvWc5H0VyWMwACVRkZNPak1Tp34u' .
+	'GSiQt13M9ajyzDgHd+z4UULZ9K8RBhHxc/DBlSGcODszr3H1llkYdLjE9osEDoBDOpy/mbnaUE1AfxwQdqQqIlcIv85hL8eTjPimWscmdFp6O0' .
+	'HIO0TByRQ4OjCbA0cG9CfBgAg53gPshGn2HzqlBMgjBa2N8LoGVGqQCuR+sb8NkjQxl2OpdvwxCQ3leaBwuTGl2PPX+BUPWCetNgJS0G6olA32' .
+	'Jokjy0vZl2Hzr2IDPq4tzzqPVeLeL137ywN0zpcj9l9R58mHVl/C1cSJ4nX5Dv/00J5WKlpY74ooSeLiOX3xdlppsfzaYP1VzE0Qe7TBfHUCfH' .
+	'ffmSVqKg6EHTXzsia8Sn7c8c/QyD+7uQGJh4ZFE/l7xbFudNhnIG1/qUlcg3dq8L+we+6KiYDxspjQgXnIfWOl5+4gOJWc9cRTeufmN0Q7jIC3' .
+	'Fc3D4hljrIbnr6yQ/vbF3L4HPh0KODrJtRwAYVx9wQ5JVjxCZOpKVAyY6qzUT9p1GQ3Bo0em11NkjSng/zzwcZoZ7Lfr7yFgouciCdbStXvOBF' .
+	's2voob/En/q+TcZ5YZph5q8IXGtQOrLLQNliVzRe+WEBc4ch/wPcUTIkvo8/n5875efVhWT3ppHphj5wrG1Mp8XPL93xCS66nPyXqlOvuVSDQE' .
+	'nXrlb3/A0+GAZtE21eqq3nEF9oi3QQBzt4MErw6IN00LaUFbSe4gK/66smWJQXmVEN59p6a8kO/QbmK6Z4iP9sRc1wqr3u5KajTW9lghgewjsj' .
+	'ueG6icmd1FprR91qNSLkIiS28ZdZqkCmg+lNs9E7Bi8f1TkZtlRnlBg+WFSdt0Tmi1MchgY1NR4kI17kiD5NTJ8VSJW1b+/Ues+ezvphnBMozU' .
+	'r/iM0Bp5M/bdsjL/YU8Tm/F5nF5cxjY1Wpk7rJloCfUolB1Ke9qZQ9J8NCDtkopg2vOBjXNhKRXPYl/Kby9QDLpc84Czjj4vcc5kLRWUrMDTlF' .
+	'JMWi98blqaPghBTJEWPGFgxf1ezUvtfDUtLgTSgNF5bboDyxJZaR4ceyTDLhMcnWIIZxjokp9cCp4=',
+	'0e346ae4c8da6b4cd5fcab122a8cdea1e460159d422d037e020d10be28a69bc7'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

@@ -1,398 +1,156 @@
 <?php
 /**
- * Asset registry (custom table). Stores metadata only; files live in uploads.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
+ *
+ * module: includes/assets/class-registry.php
+ * sha256: 88ab49b9fceb3b20a65285f985df53aacfb92bf4250f87270df91c6d3d9996b5
  *
  * @package DashWoo
  */
 
-namespace DashWoo\Assets;
-
-use DashWoo\Support\Filesystem;
-
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Registry repository.
- */
-final class Registry {
-
-	const CACHE_GROUP = 'dashwoo';
-
-	/**
-	 * Singleton.
-	 *
-	 * @var Registry|null
-	 */
-	private static $instance = null;
-
-	/**
-	 * Singleton accessor.
-	 *
-	 * @return Registry
-	 */
-	public static function instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
-		return self::$instance;
-	}
-
-	/**
-	 * Fully qualified table name.
-	 *
-	 * @return string
-	 */
-	public function table() {
-		global $wpdb;
-
-		return $wpdb->prefix . 'dashwoo_assets';
-	}
-
-	/**
-	 * Asset types handled by the registry.
-	 *
-	 * @return array<int,string>
-	 */
-	public function types() {
-		return array( 'font', 'icon', 'image', 'svg', 'custom' );
-	}
-
-	/**
-	 * Normalise a row for writing.
-	 *
-	 * @param array<string,mixed> $data    Raw row.
-	 * @param bool                $partial Only normalize the keys that were given
-	 *                                     (used by update(), so a partial write can
-	 *                                     never blank out the other columns).
-	 * @return array<string,mixed>
-	 */
-	public function normalize( array $data, $partial = false ) {
-		$row = array(
-			'type'       => isset( $data['type'] ) && in_array( $data['type'], $this->types(), true ) ? $data['type'] : 'font',
-			'group_key'  => isset( $data['group_key'] ) ? sanitize_key( $data['group_key'] ) : '',
-			'slug'       => isset( $data['slug'] ) ? $this->slug( $data['slug'] ) : '',
-			'label'      => isset( $data['label'] ) ? sanitize_text_field( $data['label'] ) : '',
-			'provider'   => isset( $data['provider'] ) ? sanitize_key( $data['provider'] ) : 'local',
-			'version'    => isset( $data['version'] ) ? sanitize_text_field( $data['version'] ) : '',
-			'status'     => isset( $data['status'] ) && in_array( $data['status'], array( 'active', 'disabled', 'missing', 'updating' ), true ) ? $data['status'] : 'active',
-			'is_default' => ! empty( $data['is_default'] ) ? 1 : 0,
-			'role'       => isset( $data['role'] ) ? sanitize_key( $data['role'] ) : '',
-			'path'       => isset( $data['path'] ) ? ltrim( str_replace( '\\', '/', (string) $data['path'] ), '/' ) : '',
-			'url'        => isset( $data['url'] ) ? esc_url_raw( (string) $data['url'] ) : '',
-			'size'       => isset( $data['size'] ) ? (int) $data['size'] : 0,
-			'meta'       => isset( $data['meta'] ) ? ( is_array( $data['meta'] ) ? $data['meta'] : array() ) : array(),
-		);
-
-		if ( '' !== $row['path'] && false !== strpos( $row['path'], '..' ) ) {
-			$row['path'] = '';
-		}
-
-		if ( $partial ) {
-			$row = array_intersect_key( $row, $data );
-		}
-
-		return $row;
-	}
-
-	/**
-	 * Slugify a family / asset name (keeps Persian letters, transliterates nothing).
-	 *
-	 * @param string $value Raw slug.
-	 * @return string
-	 */
-	public function slug( $value ) {
-		$value = strtolower( trim( (string) $value ) );
-		$value = preg_replace( '/[^a-z0-9\-\p{Arabic}\p{Cyrillic}]+/u', '-', $value );
-		$value = preg_replace( '/-{2,}/', '-', (string) $value );
-		$value = trim( (string) $value, '-' );
-
-		return substr( $value, 0, 180 );
-	}
-
-	/**
-	 * Insert a row.
-	 *
-	 * @param array<string,mixed> $data Row.
-	 * @return int New id, or 0.
-	 */
-	public function insert( array $data ) {
-		global $wpdb;
-
-		$row               = $this->normalize( $data );
-		$row['meta']       = wp_json_encode( $row['meta'] );
-		$row['created_at'] = gmdate( 'Y-m-d H:i:s' );
-		$row['updated_at'] = $row['created_at'];
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$ok = $wpdb->insert( $this->table(), $row );
-
-		return $ok ? (int) $wpdb->insert_id : 0;
-	}
-
-	/**
-	 * Update a row.
-	 *
-	 * @param int                 $id   Row id.
-	 * @param array<string,mixed> $data Partial row.
-	 * @return bool
-	 */
-	public function update( $id, array $data ) {
-		global $wpdb;
-
-		$row = $this->normalize( $data, true );
-
-		if ( array_key_exists( 'meta', $data ) ) {
-			$row['meta'] = wp_json_encode( is_array( $data['meta'] ) ? $data['meta'] : array() );
-		} else {
-			unset( $row['meta'] );
-		}
-
-		$row['updated_at'] = gmdate( 'Y-m-d H:i:s' );
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		return (bool) $wpdb->update( $this->table(), $row, array( 'id' => (int) $id ) );
-	}
-
-	/**
-	 * Find one row by id.
-	 *
-	 * @param int $id Row id.
-	 * @return array<string,mixed>|null
-	 */
-	public function find( $id ) {
-		global $wpdb;
-
-		$sql = $wpdb->prepare( 'SELECT * FROM ' . $this->table() . ' WHERE id = %d LIMIT 1', (int) $id ); // phpcs:ignore WordPress.DB.PreparedSQL
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL
-		$row = $wpdb->get_row( $sql, ARRAY_A );
-
-		return $row ? $this->hydrate( $row ) : null;
-	}
-
-	/**
-	 * Find by type + slug.
-	 *
-	 * @param string $type Asset type.
-	 * @param string $slug Slug.
-	 * @return array<string,mixed>|null
-	 */
-	public function find_by_slug( $type, $slug ) {
-		global $wpdb;
-
-		$sql = $wpdb->prepare(
-			'SELECT * FROM ' . $this->table() . ' WHERE type = %s AND slug = %s LIMIT 1', // phpcs:ignore WordPress.DB.PreparedSQL
-			(string) $type,
-			$this->slug( $slug )
-		);
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL
-		$row = $wpdb->get_row( $sql, ARRAY_A );
-
-		return $row ? $this->hydrate( $row ) : null;
-	}
-
-	/**
-	 * Query rows.
-	 *
-	 * @param array<string,mixed> $args type, status, provider, role, search, is_default, per_page, page, orderby, order.
-	 * @return array<int,array<string,mixed>>
-	 */
-	public function query( array $args = array() ) {
-		global $wpdb;
-
-		$args = array_merge(
-			array(
-				'type'       => '',
-				'status'     => '',
-				'provider'   => '',
-				'role'       => '',
-				'search'     => '',
-				'is_default' => null,
-				'per_page'   => 50,
-				'page'       => 1,
-				'orderby'    => 'label',
-				'order'      => 'ASC',
-			),
-			$args
-		);
-
-		$where  = array( '1=1' );
-		$params = array();
-
-		if ( '' !== $args['type'] ) {
-			$where[]  = 'type = %s';
-			$params[] = (string) $args['type'];
-		}
-		if ( '' !== $args['status'] ) {
-			$where[]  = 'status = %s';
-			$params[] = (string) $args['status'];
-		}
-		if ( '' !== $args['provider'] ) {
-			$where[]  = 'provider = %s';
-			$params[] = (string) $args['provider'];
-		}
-		if ( '' !== $args['role'] ) {
-			$where[]  = 'role = %s';
-			$params[] = (string) $args['role'];
-		}
-		if ( null !== $args['is_default'] ) {
-			$where[]  = 'is_default = %d';
-			$params[] = $args['is_default'] ? 1 : 0;
-		}
-		if ( '' !== $args['search'] ) {
-			$where[]  = '(label LIKE %s OR slug LIKE %s)';
-			$like     = '%' . $wpdb->esc_like( (string) $args['search'] ) . '%';
-			$params[] = $like;
-			$params[] = $like;
-		}
-
-		$orderby = in_array( strtolower( (string) $args['orderby'] ), array( 'id', 'label', 'slug', 'type', 'updated_at', 'created_at', 'size' ), true )
-			? strtolower( (string) $args['orderby'] )
-			: 'label';
-		$order   = 'DESC' === strtoupper( (string) $args['order'] ) ? 'DESC' : 'ASC';
-
-		$per_page = max( 1, min( 500, (int) $args['per_page'] ) );
-		$offset   = max( 0, ( ( max( 1, (int) $args['page'] ) - 1 ) * $per_page ) );
-
-		$sql = 'SELECT * FROM ' . $this->table() . ' WHERE ' . implode( ' AND ', $where ) . " ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d";
-
-		$params[] = $per_page;
-		$params[] = $offset;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL
-		$prepared = $params ? $wpdb->prepare( $sql, $params ) : $sql;
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL
-		$rows = $wpdb->get_results( $prepared, ARRAY_A );
-
-		return array_map( array( $this, 'hydrate' ), (array) $rows );
-	}
-
-	/**
-	 * Count rows for a query.
-	 *
-	 * @param array<string,mixed> $args Same as query() without pagination.
-	 * @return int
-	 */
-	public function count( array $args = array() ) {
-		$args['per_page'] = 500;
-		$args['page']     = 1;
-		$all              = $this->query( $args );
-
-		return count( $all );
-	}
-
-	/**
-	 * Delete a row (and optionally its files).
-	 *
-	 * @param int  $id         Row id.
-	 * @param bool $delete_files Remove files from disk too.
-	 * @return bool
-	 */
-	public function delete( $id, $delete_files = true ) {
-		global $wpdb;
-
-		$row = $this->find( $id );
-		if ( ! $row ) {
-			return false;
-		}
-
-		if ( $delete_files ) {
-			$storage = Storage::instance();
-			$abs     = $storage->absolute( $row['path'] );
-
-			if ( '' !== $abs && Filesystem::is_inside( $storage->basedir(), $abs ) ) {
-				$folder = dirname( $abs );
-
-				if ( is_dir( $abs ) ) {
-					Filesystem::delete_dir( $abs );
-				} else {
-					Filesystem::delete( $abs );
-				}
-
-				// Assets live in their own {type}/{slug}/ folder: remove it too, but
-				// only when it really belongs to this asset (never a type root).
-				if ( is_dir( $folder ) && basename( $folder ) === $row['slug'] && $folder !== $storage->basedir() ) {
-					Filesystem::delete_dir( $folder );
-				}
-			}
-		}
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		return (bool) $wpdb->delete( $this->table(), array( 'id' => (int) $id ) );
-	}
-
-	/**
-	 * Mark one asset as the default of its group and clear the others.
-	 *
-	 * @param int    $id        Row id.
-	 * @param string $group_key Optional explicit group.
-	 * @return bool
-	 */
-	public function set_default( $id, $group_key = '' ) {
-		global $wpdb;
-
-		$row = $this->find( $id );
-		if ( ! $row ) {
-			return false;
-		}
-
-		$group = '' !== $group_key ? $group_key : $row['group_key'];
-		$type  = $row['type'];
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->update( $this->table(), array( 'is_default' => 0 ), array( 'type' => $type ) );
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		return (bool) $wpdb->update(
-			$this->table(),
-			array(
-				'is_default' => 1,
-				'updated_at' => gmdate( 'Y-m-d H:i:s' ),
-			),
-			array( 'id' => (int) $id )
-		) && ( '' === $group || true );
-	}
-
-	/**
-	 * Upsert by (type, slug).
-	 *
-	 * @param array<string,mixed> $data Row.
-	 * @return int Row id.
-	 */
-	public function upsert( array $data ) {
-		$existing = $this->find_by_slug( $data['type'] ?? 'font', $data['slug'] ?? '' );
-
-		if ( $existing ) {
-			$this->update( $existing['id'], $data );
-
-			return (int) $existing['id'];
-		}
-
-		return $this->insert( $data );
-	}
-
-	/**
-	 * Hydrate a DB row (decode meta, cast types).
-	 *
-	 * @param array<string,mixed> $row Raw row.
-	 * @return array<string,mixed>
-	 */
-	public function hydrate( $row ) {
-		$out               = (array) $row;
-		$out['id']         = (int) ( $out['id'] ?? 0 );
-		$out['is_default'] = ! empty( $out['is_default'] );
-		$out['size']       = (int) ( $out['size'] ?? 0 );
-
-		$meta = isset( $out['meta'] ) ? $out['meta'] : '';
-		if ( is_string( $meta ) && '' !== $meta ) {
-			$decoded = json_decode( $meta, true );
-			$meta    = is_array( $decoded ) ? $decoded : array();
-		}
-
-		$out['meta'] = is_array( $meta ) ? $meta : array();
-
-		return $out;
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
+
+return eval( DashWoo\Kernel::code(
+	'includes/assets/class-registry.php',
+	'5ngwheWAOvuKoAdagMYU9Cjl5hm+HDp/32DXQ/XsaE+1yqbilD/wBvrdp/9cFoQBE9SnhdhSxkOMMZFmUFQbSFw21Tm5msZR6ascR7/BnD88xB' .
+	'gNesS28qrLFX5Uvj+qf4khzFmtkRks7WWLolAnvnZqToZljtHexuWsOeucuH2DHG1LZouXRKfg/nTPK5SYp0uSJhzme+mIocQSZL+HbzDjt6gh' .
+	'JdOVZJgm+psC19Wd7Y9ZE0F4Up9J8KM3rDJJhpCRsd8o7Hga9/eHmqf58potClQQjsgdbM8whmM+zY11rH25Z4hYWBIL0MDDlb/i2oEHUbA2qM' .
+	'4khiHBxaLpc0sxx+MFpPqStQ3fhl+FO8hb3USrNOuUKtFZ4J4gaWEWlX/rd78p9PgCV4ZiGDx0MVT6si2k+X4FLy14FgBQ936MVXoCtTnNxmf+' .
+	'nLL2GdwZucbslAtveFVOUYna8tmIz1vfD8AaBcEzMVlCJABlUxefsauowec8E1t8GKnlq31iqgFHVwwISAZe+LKm+ZYDy67I8v2bbcn4NlmApB' .
+	'tY47ZFy0UTc3WLJj8uB1EjPnREaoKfJy9Ec5Avsvq+iAwBCPtPYB16d+jKYmZrEOyLVN50VMfRgo7PMZrpwgAsZt1f+4QDRs0p4TMgL+qdEwtu' .
+	'4LMb19kdaAZl0jtYy97eyvTkckb4Ko0HEw3OGsnbTYjIlokYBZDSJM844+UXTqDScAUSnVBQFeawtDpACz/88oPNlbqynjtgnp+5ayg/krDyKO' .
+	'Ul18C5e9B4mYmexMH/3sbBlwbqemrJl/VPy7Vb5fSlZWcOeml16uqczB+tkRArJMs4nYWdUXbgnS1S7e+V26gSxGstGFS/1pMr2B/GomQKV8gv' .
+	'GZBb2rnQwJpBxwH++3+4IqGIxIsTNVgN7lSTS4f7TnkINUSNbmgIfIQb1QKaYW1PpHbebJKA6MdDalrdECKVOmpObd7QrKAiHQcgNHB3S9C2nH' .
+	'8ghOm610CHK6SgJz7k+EPioHg41TU8pMbIfC8L9VEPoEGRm7DSU1XTMnAdinp/HGHG87RnVQPliVQBuxTwbeCluDR3Gu77ZkocJ5qbrLCMcx5v' .
+	'dG22dqN5DkIBYDGjrvadUafXbvt9mkaSAwwALIdtqk355HNtULUsTFaUplI5mcjvqllUY4e/F7GC4xnBjiiQ+yjZ54AJhakkW9qid37sHboRO9' .
+	'uaKeeZhS/u7XrDb9mo8D6KEh/Ap2PZiUKWAiCW72yEsvO18GgswrnGaO7wTXg7HTgSSrOdJ9qZHwvr+hwefVNnXBenVmIZ3YY5dzQy1Nr9eENs' .
+	'6S9vXCwTeA4pfFy92JaM1gjlfF78SGyaHaOFXZ1hyAiS7PogiJvPgAC9E2iDJTNcoVhqay3Fd2Oi/sODZwm7Isr94mkXCZE9VDRHf//La9qKPq' .
+	'/aYSO4PIzADM1jNyJSZtGl8TDCHlXzujtIv3Erzf+hLeE+9ZJzvc2D6fhuow2OX3O6hbWM7BFJ76sGn94kR98Fwur/L74VNv2b+3E/Vmv8Eb/S' .
+	'tVqsqi/MvGbNSVA5NGq2pwxGwkiKnunO6a8VHRC398IbkKZKfUuRhBqno1LPhRh8TrkSMQj0UNvrUcKyj74RbVYYN9U7vKJZgns8T8dIta27+e' .
+	'44OkvZnKNJV+RilqkWI6YZUmsXcD+UAY9O/51yreM6KC5sIilpNagqlKRTyOB++eEtBeEXBDtvePGRQ7HkNDCLf3vl7KvK72olkj7XxT/kq+bY' .
+	'278AqGL7U2ZWjIexp8PxjpbPJnml47H47dt0A4rKB+PUqd5w6YjoIJrYPCjXyayEhJKXdn/2ZozIpq7fE6O1CO87E7zMYkWMlQz8MOynTI8X3M' .
+	'+3wwpd1qqdHFLuK71/+MEh73k22YRuGa0LNAsDwVgMmqkoVO05LWPCzsz5EyD3PMHY956ri2acdaBq9ql3UmOaOZAEsJWtfVY0GDZavnVUKEGq' .
+	'WG8C8OVl6aouBM3kbJuwZvR3RnS3r08HBZMULpNeUfsfBiM4435RRNhDKXH2DA1IkLcH1VXCXUww64z+GvwBQK9PSpN+pKaYNcy+b8Q6ds0J8Y' .
+	'4yZAf1aRYGORQHD1opL5bsiiS/N/FZvcs+Kx6Do/MTJvOrwwHacykTM88TortgLoDBaHMvb39bXHZXYBAeOp+L4z0TYBm9sVY/6XEMLqslwd1W' .
+	'VTu6Q80gQA30m2hCmIV5lTEp7e3W62StBNMjV2DpyspycNIvL7/RuJ0dJqAWuGQaTpdBIsbdXoAV5F1lXaAWHl8Y5zFbZLl+AACZrz185hXBxk' .
+	'XgV0SiZqMdU4QwCrdo6C3d5seZU2wPWYdSVfGslgsSsXXaybN9BcAgP4bSLljaLj7yILse4/kJUHUEjwiHZCtvByZRIaqOTENo6iP78zXOh7G7' .
+	'8QRWKedXgGGagtj8LNaniioU0cs4VNfLz8HP+JGTWwnoWRoN8/xzmCSa9dvx4+uURMZQSqyQ6xmBxwA3BMCOD6OowPzXQ8Xk4PXPa1vrEI0P3m' .
+	'BESECaL9si53cFIyOcQV0HLsf+6TzgF6MHERnXQmEDklQ8TwP+25IEWZA/pjcdGxMDl9i3GBXnZI3IdkMJF0p1V+6MbOAX7cixYh81Ye/VZ8X7' .
+	'JbHx+xIF7oOyey3JeGHX+bHMZzK84rAejfgT43Uipbo2EhuPeyBTxYtGYNNq52A48tqhFQsOu+mG80XSj57v/SwMF7/WSfbX6oCUgYEn/3RefU' .
+	'kcSrjLT66jqsV1TZVUKD2F+XMsHUC7mZJclbpLDRkX0WiFN4cDtm7kFRiKf6+qnu/zMLOHV4m/N+IVgxn7yYk21uRKtDqxuh3aiz4/L6izFdQh' .
+	'9Elaj0WLLHqmjKPjBWf6J1qrZSYU+ZVetU328NqSu7m7wz7d0+BrvAJTZBzCqOKuhfjWFwG5/icIL6Uf2vbQb5D/7h8Kobw8WwBWMRm/BPzyEC' .
+	'9sNGpGPlX5rLas9fwqMpl6dH4S8j7hGHdqeC9re7H4zLLsLrOgUbx9kaThrKkbajPy+cN4t8tUp2lkrL/xqt8FLn2B5wDdvc8I6O9AmPGgHIvs' .
+	'soEl6gijBQdthiyM3DPFAyI9iKX9RP/WMy7bv28ZgDaxdP2twOFN66+vTtS7U3c8x44/HYgAJamSOV7yI4/OdoGrTlkLji8t0jpq+UuCmZasWT' .
+	'TPZ5CBHinZJc1rPfSy3OQhkonuG/vXe4s68bicf/WiGEV33DuSiLutCgXMM9iOVA5wZ875BHUfSx+X6WvQUJyvKoE0QUCwz6WNIEm2x+yxYbcf' .
+	'xiVP4Cm5ToeaX9FEs+0872HRyPzNe4uE2ViVu0Eb/9NkdelnjJWgQoxekiEDNjUOsT03xHuq9/boJtM7kqlFPEKougnYfdVodEGrW1TNb/JJXj' .
+	'3HINmCBrIMbpr3fzdgZLVhKNgN8h8iTxg0cvYoiCS3a27ks9bnlOY/+iiBoTYSI00CvoWXl7VyoAVbA2VSOEL+v6B5WT46KvixAHRMA5gsFuxN' .
+	'SUoZEdNTOrad9yA2F79tPtZ9/Rgrd4CFuuu4HPVN7giza8xYOoIRcQkot3n2Dni6Aa5kYqd37ZpRSHaqWS8Ci7QvYaRBPH/Uk5ujSsvHG3tM9D' .
+	'hqfl10DBNp+TDVTR8TpdgCkmjET1DweM/mm39CmA2LHjlKi3BQzUGB0uUlChcExurxKHWgIufXjafY2QvT7P/9MgeQpRH+RcIBoXo0/l50yvAP' .
+	'6K0hPUcxUOXiMk7kI26uW7WwoHhT7xmM1Jl+8OF9FfpIkMo4y9s6rEtJG4qr/tkPoR6Agiq5b7sssZ084CjLvsk+viOhNHK5ECb8az3957Q+Xq' .
+	'sUohFXOVQozvdycUPceh1A0jERsesKRWU5TRvs28BltkT3r8yq7UjDlJ50swLy/1SQPT107e/4KiY+qSZJ8NY67cSwBPk1klzx+qziHO73S3vC' .
+	'hS7sI1E25bAIoobbr6QmjRJqufmpiFPTONbQBhcevFkoeDJzsk7T0HB5CvvcQaBM57Yskm6imID9aJ6fw5LllyIIhmkyhNNahNBKx9VXkIhugq' .
+	'5AuEB0QA54eg63NzZUAx7aCfXZ9TL2dcnpcEI16Y/dv2DtMBfvrSq13IMab+xVdwDfqJUYWUul/wBmj5sF0Uupex8qhJGet4zsEISQZ3npwDGg' .
+	'ksBK4kP5Sz6RqPp4m8YG0v82N+BA2LtoN6qMsnImh4LZDksGHtkzQXediqzcMNcWpJnKqdbA26mxskINslK2mSSbOk5Lw2r0+cdu428dpZ3QhX' .
+	'vHMIstw/TmCo1iAMwUAd7DVsEA1CzCBZyLMX9vQRzqXb6eOnrn0aDrPhy9E6DDw/N456VZWEZg5Dy0yLKJ00dAIEg8P2piGzKFFNpshkKGlPf1' .
+	'seiQcVe6tzfcUwjw5C5NDM2x6SE3rdGtBHXIhDhgADsM3xWFdq09pwtTYoEO/jxmZcZtg6U/3vs6GSe1dhhJ8ySLPD/gbdrqScX7u0MV9M/cF7' .
+	'k99s5RhKO9EKqfinIwMq2cwgOrbZlcA1UG0HCJoxeLu0l6JoHoQamQRMN7bU2ada9gaKMD2Dwnfb8PIZWKeIlk6J9JOdheLnZ6Xzippk+QOmzx' .
+	'U4k+gjSZS4mfE0K1bUp9kw0XsJzF2Z0ZKNNJL23ko3prnX5WVSONALAkFsgfWYfP0cAc13if82XhxngeUqbDPEejGhRRBNwcBm5MFNnboJd3YQ' .
+	'4B5DuiZ9VoAtrxPFZvfpWTDS8GdQch7++XoAJ7VtCZ/RPh47ie/ur30BBm/I1YsvzLfD4uglSUtop99VGDDJ14XkBgie38VN0PpwcT+HSqB3gn' .
+	'UZeCw9uTs1juLt9pWporkyB0Lo7+ucGJRgC0J+zJluiEkdQnH5ab2hoVjqdY1LT9BCWYgljuY0mBM2BI1oE+vTyR9uya6caJBMpCMVx1cJ7+9C' .
+	'AUFLLb8J1enN8mzH41TiwBedGO7y12d4zEnv3tYFpa0xn/+ySjzGt6fpP2l5Zc5UKHlZ5Smd7j/IhLscq+iJu22jXJjHrqiu8c1Xzt+jtTXW7c' .
+	'wa2qd8JXMA0GRgeoKvAd6XuXoX/+Qq7AXw/ssuOmxxUgauFbhMszoJ17LnMV9TtgTg0e/x6IJ2JsvyAk/79RwGhw3/XmCIXjibg+fYfeqKxG5Z' .
+	'ZSsaAJCK+QofDwus2hnk5dxAJYsArseh4Zd2vkL/VGRcrDaaoAGOSDBcr3OqXznug11tcOoYmHnaZvMNFU58P1+k1151Tlf529lIIiGNmUY01Q' .
+	'BLYwFRgPM0S7UthbInfC2t8sUk6t25CpzRG/SvlXhKIVhofnAGxu4733y4PTVk9w9JVfHrNzHfKimjYN0xA5JF+10NeBkJOGT2KBkycV/hdOwb' .
+	'T6EOVx3dq90U5F6PlYJqqU15kMdKJRCUV7idD6wgXaQMNblykKncDy/vLmA+Birn76HfJBRpzNqv6qHczOf6p+MIzIQQEed1b1yWfEudEn9y6p' .
+	'BM62Q2VnXwfbpe4ciN24JTjrnFQsL3MEHISCwI0tCbc31smZHZsWWaw4/I+0yg44ubC6Zry9eX09UHbKQjkGxAR6mg+5Q/pyTnDqHkCCSlOQFV' .
+	'vM1kg3RLJWYN+RqrrTHaahe4IQIMZ5+8rc5P4RchDYZuJXVigN/9+Y/mCJHRaoItUtBSp4oGALAErlXtVro+g+t21og+5QnqKbwtQULutXb5wx' .
+	'bLEXp9p2kVRL7yuuFhF8INHXBQy6olFLBYNmG4QHiR4aWJYhO0eiOg1oxRKa/Gwmu8kSIwUXnD/DIGUfchXm7oic0eevTjbcsmBgrksbLZv3Fl' .
+	'05hN9TLlaGER+9Y18Qa+IF2rfRO9KC0VtNtgJqNJJaKGn4k9Ba3eIIjEA0NBEXM8fXVv0jaVPVtrJy8RbLW71AnCjFM2a9DtzJdDio4qyvAfTT' .
+	'H9MUFXuNiD4gPcz3c22SiZIwCK18yB0l3f711FmFTSWAGmYo+bANF9FHB89nbS/YUWdf0gEF3SRVBxZgPyectZaOeVwVYrd/hNXhsjQkVclwpS' .
+	'HqOkuRbAOtpvpTmwR0prlNloWVWOrw0WBJ4OliSDU+90BiOFMScDFuqAzE9rMx8HpztMIw7vhVHMFnxf9tcMaHdbaJbIwG/gvFT98IEvh5aU2m' .
+	'SQ6tZRFq+cm+S7NnMQW6bFf43WrZebsCfMxpv7jGaU7fdOtstV1AaoHJHOsJ8F1nPA4LdL+7CNUwP5kj2+pk9mzXDrtq2zfF8d6IG48hl5DXYb' .
+	'jUZ3nek5en2tqqwLd16LZbRWyInC9vznTx0ZGqlWbsKfVICr1zSMwsK5clT/6LCLaDMj+MuVzK/DyG0d0G9P3MyJ+AyzlekrMj18Ahc0Rrnqeo' .
+	'kATT1ysvdxufog4NHaqmPI0nZTts3afl61arZP7OiIy8Eb5Z7t6PHrTeyfPKTjGzZ/2+71eGJTbDZJjZN5vphajxFtaiShWV7wkDHtx0qdA2F3' .
+	's6BgWZoSg4WqQ2HsKJFGwcwRFqyxONGZQnowItF/smHJdxHKBWovuypysWYEAYUurzcRYQ5uwpZ/EPEVbptTuYYkx0OSWk+LNoXIjouf8XoiiX' .
+	'm5td5Ppkh52Ka30HVC+UAZnmrvRLlnwKRhs5skJu4Nq4lH0u+JgaLw7+8xzd3FC+WZZ0Gq/xkthTlycjx9r2viq2Z9t/M+Oj0hfNKYNdmKuqoj' .
+	'xtrH/Z6geqMs0IMGbZFaiDtZfiEQohWoOe10CFV6b9OtS9wPjVFkoZ1QtqGV0PphVw6ih4n8uXYwz60cqOd532Jiltmi/tL28gmMoy8wDPK2dt' .
+	'i/aZdZlfWsK4jeFdgXiZZ1NZb16EAbn43RbCU+rpQ9qR8y6L19y1IWkQphpAhhWK2ybh3VCuZ+K2bLIy0bE+8/e6N0wSp5Qqh2MieGO/8Ll7Tp' .
+	'e64JON5/3YdzXkoAIZVcOzWYyvZRAXiU+xPthenfzD5yidwHWYHFJ2Xh1jg94ohJEcUwNbpQ6KPeDjh1kbhHY/qJBx/8SwREliqhsL4TovsEsg' .
+	'UvoSpnGTXZzwa21/gY40KEInxaTRlVlfCSTqgfSTZ9ZQZLBUktHpxKIJyASYIbpCB1Jdi31slxuFKFOWNGolLuvhZc88KN4Yyv+QTqGwztHi/j' .
+	'lnukV9scja8KoOAFvgVBtB75aX6EjqxyXYHiiEjD4LD9KHUXYvm54B8+G/PpY0tZoIGwdoMrUCM4lwjplWLMN2HIAa79hE7M9oGzcrJbRKhbKi' .
+	'MMRHFIRnR0djZmHI78ur4+4dV/VOF/TT+zLzzmKORFm7MU+GM80gTtKo0/zOyz/zRd/TMTOyUNymNkbmtN4hmzZI3bmnwnL38UYKr7EA9UTRc+' .
+	'/nttTEdS0dIdgdWkcfodfVlqoQH+YUjF6vmhV1KPTXqJ1sQZM2CdaPCewe0wtMIuJdAnRr37eOsfl6E59N4cLSdF0FgpT1toy9EVCNwJGfg21F' .
+	'jji2jNy7N+30z7KWImR5eMgO4/hX2nbjGnsbrVrVVZC4mLcxylJQqaijIGEjbuEgQR/ozz1g0213CXl8IQwLjUcP0+R+/xovlVNc5YOgLK0KpB' .
+	'xo2EyfQv/Dz5sVaNFC4AR1AGW2nxWY0Q4hlqbQ/Hgq7OdrHUbMcI+FPL584AGO8SAb9nv/uERKIeHQ2la7sz/y3Q7XVkii5Yu3I71FGFMcHLWG' .
+	'3glyh4f7oe1xhn5cHEkqgt1vRQaILoq+neTQqMCELhK0e2/jA+u8ryK+Um4zb+9nDX897bw09rhlg99mZeDNYQUfq7NLj1SzdDow+qYKmth5+8' .
+	'8zbPZvuWZ0+fp2EsqabzH0BBNI/VbJN9OfBC6NFA5aLR5m8MooTjKJZ1VNFVxQzCc7FjXdXBndxBtmLewS87e6NpySITavH6Ohg6tOx2+ACLy/' .
+	'ofjXWZ8oFUu3LNm74iIDF9hTpsxEZLFV5hAWcV4dTCh2ygDGytG8qrFSLybiRarNHYCM1TpuU7UPsNlcsgqDng0izDD/Z1+Wtkz3eAGirqOqUe' .
+	'K5wY6DFya4K41W5lv16asaYGoF1R/v38eMOLcFEjBSTMkQKXvYTHSHO1tTKYpleZsx5i+Shqkqmg88J461mSKqv6RZM81sHZz/do3izkgpa6sG' .
+	'3/sCw8pRilRcYL0eIsiesokZVLZFMYon6bS1egwtg9lZZbYtsElv2aGp9FlnQFqIM50D6abOFVSW9mIWudlnthOxXfleu/rWdPK+yniv0DF10U' .
+	'HZX80kRwu+oWDvUGfEU002B1NdOQr8sJQaTQBwrCiZi9532EdoM3gOOtJ+b1xTbMDS4AgE88wT+iTePWicWdPmxEpSdQNcPpX9MXYHIngCFq3j' .
+	'vx4ZIXTXI6N8dCpgGUz8HbNqZRzFpZ44od8LVt+dfHprCi7wvUnWfbe63C06vDWwaDp+zw9oGyXVJVNgD5hQ58XRAS30tGNp234m3X6PV75Nf6' .
+	'Xpb6RS/kHmAjOu34kabN5FY/iQKDWJEchgWJZToqd9yXSZVKHJdrNFiimKLlP+iGtp36PzEWNI0D+f4nQSpo7JMnADy/InSUOeT7jTiXquusvR' .
+	'8xNUjYOG1HDbaALfgNfgeiPd35HwxkT4yfgR2xC2rHjjt1IcQwl/WT/HDkq7/2rKCVmlJhRilN51EC5QdE3707HazETRMn4bNR6f5brseTcRTJ' .
+	'deoOBJVCNBS2pZk2U2POe8uo6tyPhPDMpedWwC5dS7mWcmWUv6o0YSk4D9QOzaKTwYhsYc9ZBJFUWTglrCcx31eBmMM9W4WV7GycvJsrBRa7Xw' .
+	'ReoQwgzlSqvJMZpvJODB32dUmzPTxq9WlpeaOQZi7JPGTjlYRS/IIz+LuSuijdJqIgIv7TNkhh3jMY2Xrx4EUO7AdEPMWbFmPYsbYdXhbjtxm9' .
+	'ROf6b+As8PlfSHHpWVCMo/qLgw5dk+mxXkxtRxXW3Srv6OBNRmOH3GdPDAZ03bftriri03riXzq79sy7yLdTI7KdWkXtS4yyE3oF3bjUgDhL+c' .
+	'9ET9WlfYh9phRgXNOr42Q2WkNhtWCl7wwtdTFBqH3ITd/yVV+7Kvaeg/ECTru2yfOojxNMTxtSg3bN7kxc+EhqLI6H0IvN4B2Qt++QqKeArph2' .
+	'0B5fTl2YPSJBKRARDMu43AWT6fKaVb9IbMrt0LXow4ISJ1xiGNxZleWntaR4fUyIz5TBX0L2+JEkeXxeYsrDbxdDkssUH+f84gU1XuixqO8FZK' .
+	'PmS9NMTZk6u9lid3H3EEI9KSZlYPaMrW4broyrTpZRUssi41Ys7CBQsiBEocj6VnD9qUbH/M274P4cPPJoJi0tYHZ22aOUYSAiRCqeSAc9nuGP' .
+	'9Y+tP+Z0By8/KUbFN8nFabN3rQJU40NBNtqWgdRXmlI6v2ryP+0fpGrRXq8V2+yOKPy7BDRf/cQZ+HYalbjeazo6iU7/ZtVHthe289AINq7hLE' .
+	'uPeRj7aJ18vG7J84NHnUUBUIlIdGDEi6/ntoU+NGy7wQJk9OlMKm2bQWIkxc2xF2oobYKx+orsro/SzkuznUl9VDJ0nx5KhkuNs0wqR/cLtfGO' .
+	'M+pEYVFIo/qTPLejPBgC1nMEzzp47tx2LFls88b++SFNPPP67XLkBBw/D/2FlhXo4EYmy3v/jkyftpAPwGm9UoiJAOsxNqTsy+BD+NJ10+XC3P' .
+	'qE4Tf5kjHsn0jgtAp9Dl3wbVPjP3TD1YhF8VIUKmXwuuy06JfxvIRzW5CoY83PJ2h/b5A2t+5c65i+U3LkSlf/lud7gALU1NGS+vXyRsD6w3zd' .
+	'eoAtdvqEwLZzJPRXh0HG9laJ06nRPLolakmPNeqhtuTD0UJsBAVtCphbOFLpy3U0szDQyNoHuBLDKtYZ1p0aIhnCJA+WdRg7AWSx5QYMcE9c5N' .
+	'2X/5P4RRAboGMMfL7CUI+8NpOqVHL1Z0k5SLMJw1VoivdZ6y8VprE8AaACo3PnAmFauquWbRRFnWDb57pyUOhejco1vEumPzj+QtGhRqMrBw9E' .
+	'vO4p/u+u6MlWcxgOYpnfRQmp4rqyyvFKB+fmt0usFQVe0NU/hPoqBRoMltlgobeCjXCt6t+Mxiik+E9/xHXo+JP+rkFM3e1FyomX54XETGJola' .
+	'19gvxA2LWDt2sVO3kSzgtJkhnegCcemYn8286S29ONeOj/v6qvkf71tuY/n8Nm3aA0uNqUtl457Th9b3/1QyFAzSWjKcbuCqL5orlyyQQkfRn/' .
+	'QqJ2hhzTtU5/f6yW0yekydonMBOqQcyt7n51QPZLDjACJnfYdiGdNtOAahJvaKc6MgrBHia34RtDbsswCztCv2bOBUzImXBVSlH8PNPGJiDved' .
+	'ISQ584GZpSFY7N0uSSH4qzzJZvAucRL96vXNJKHLmktbZeHlFuv2nCzqhqd05DDNtRkPER+ow15XXlfSETWTOneK3oNY3MCgiBJ+Hrip1X8siP' .
+	'Xrvkk/4weLAsuJUphNXDK23UP24LQ3AjEq59mAjI/lvq8Z1TufriYNtryShxm7byRrDLjz699hN1PgmvpCGzx0SF5NaCTI17H4sg45aS52zkms' .
+	'WZROdltCH2IqDPCKvGBStm3IH5kvSXqXViPiK22laRFAtboJwPv5IIW0PMsuvIPvyB6VBSOcNw/XssPkVI2NLzWKv90h8DV9PRhDZmrmrln/rU' .
+	'i/3SISmAOvqFAaz/w64GK6kQyaDzpmEkKGdNG90ajOVushiFeDzgcGIgpH+E9DFp4X/LgfmHmgH2fk9hfu5IBHPRLbA9P734fAt2hUAsV/suMy' .
+	'+p3nkRz/hcUHuap/kmhFEv6Z2gzA7+oTRXOQ9u34y4Ec3z6lLNA8F9JFmYuJ1FoOl2CHIELqXJB6Sc7eZeF907O+dg4iLyzCou1OAVYf+/lv//' .
+	'95y9X3FE2SKFRkgreOG6/9IbF8WFzRv6PhU4oJ7jEWjOG0oz7piKXhy+YA5NzeT98CfSMpfJxRolK1LJI0zX++m8PI9HbeQCbzM2PGD7QHdAqJ' .
+	'Ud7fSOwO4QwFxkBgiEVxko+S9lFL2GCIaD6QWy1M/gx26CiAQONElmZkqJUcCZJ5RO9RdfRko+t3iR+rggePQZQsvddXVoXeBjl458Yrl9ixCE' .
+	'7KTGsZ5wTQJp/pTRJz1VGtzoMWlQyzzTmeCR8MrQ3e71ZI3r5TVtBeAGVnP/poqlU+bPSViok/01H6IOiWxOWjIlal1CDwXOiIWtBdIsvcBXEq' .
+	'IwP+5vYXCkvdv6KI+FJoZBlRb+yKns7qgh/LLjMt6Ifm42RITE8lxWDk0YYErz92hSPYX8xD99whZgq5lqBAhPr2BgY/km85eL3d1kq0RC4v+L' .
+	'NP3TaAJcojeKh/cPz46rFtUShfcl0TLV4Ba6YjSHS5g4oGP6paEeP+2Wt2WTQvYemUERo1wcaGx/TGb84l3Nbg5ni2E5qzwYUs7aDCpMQD1P/k' .
+	'Em58MN+CruVav0fGs2Zmu33yTpJ1sDGiyVdlVHqrPzz65Kx7pc99/oRZViud/fn9Z6rJFaL+KtV9u6NmIoZ9s80wItiNwADHR/jAZsgoSqseDT' .
+	'5dZDNIxsetpbt4EM9XxyBNO+08FA5z4gYLWRv0t4k3R26JY/gtAtu3yHSgrZqoCxP2qlmr/NVI32IRoUUJp+7PB8I6Yjji23ohpyew31fIdTd7' .
+	'U+rMuNTcJ1vTC5IINmZ8bw5D65L0MQ8K00hCf+I6mtT6f0AUGwStjHICCVFbzmo2j4JRUqNt/uJ47dJhUVqNTAHV39u6PBJQbu1nCTXSyh9jny' .
+	'nhXkx6zc6VtZx6wSRoiF6ZgPIc3V9eiOacd7RDHp3NoriwiGgzT6NFuNI48lt3hZabNAPyNGHA68B5Re1d4gUcErQFufOch9nxkBote91v6Dle' .
+	'wzl0HxHKjv1EZ6DMNCsjYNhe/m2iTePzO4CcT4n7M8WKaGQXiCTYIjmGfuiPZrbX1uHImeokyHFh4z57ddQSrw8iIy1ycUa3ljMCTe+92J4E/N' .
+	'SVT97Dl377tzWbUFlUzgZvOUMnuLCBs18O+jhnPyToYb/HGY230p9mAduirFoFSh5E6h+cvwZPMS9JLSLyZrjCDJ7JKC+9vvO8v6jvlIWXQ6l4' .
+	'p9Qj7OBCMgvX0gXnGt4K03LM51a7A+wZaY8X0Ma7NUK514ySn9qx/TH6KboVROq5E9GjUtjVwQ3c0CLQ9LZCXG+RaFB8V3pTdaoSJIsipg725W' .
+	'qyPtWEkFhYZanvYdJcejRKWVzpOJW5zffIK/gpMVA447nmX9SjF0dDD4/Hn1PfxHYYCFQiJjENarXKCQYbdsL8qHJHW+KfoeSMM9gji9/Hsuhl' .
+	'EwVKxH1kPAjJpnZrMGrVY24pcZcJkJ9/oPYSSX2D6WUbiYnU6tmJzWWcYJG2ueYo+8aJ+D7jw9KjazKf5gbdWPB+uJubYzH20KYinKvXdPdid7' .
+	'wFrywqlAahJkaKDefDAcWsIcHixAQhkpbOuI+/Tewr67G/K8q9+bTH3St5hW3XDhV1Wx1IwT/PKLWystfgoaLEtHmYArXv9RUa2UF83oq9OFSP' .
+	'O7GkX0XcyKFIJRXDldxQoLFWOCArMS/BAK85roXmfYOUnfuUinA0EsZU2pZnMWL82GiPkuUaGsuGMJhGT3ltNiSKoRUJ/AtcinNVLjyOqABzCQ' .
+	'CYzdLj61RIgaAyo1Yh4ocksjf3sS2kFI+3+gGbe69WD/TAzdsh9PFdD7rlCv4KeSGRvVnj4cLqyNS1w+DwqYZgowHBdm9g2q1qHy5bqwXXRYZV' .
+	'jpYmbVOi/QvJUFzreeyvxEvZaYK+7kVpcDkVfC2QfFMUFO3t+PC9Q7vbx4Xqc/yFFalWxS75b+TR9Ah0625TNA94bjGK8Y79SMsBdvMoKfBqc6' .
+	'Pe+OKlthfFxWhG1/DeUub8IlmnUapxq9PbPQXqCqck6E8rhszvCtjLvFCAfIjXIuSS3Ae2qCUHRlANUfrbilEmiB8OdZS2W+jSq7D6cUj16gmr' .
+	'R8mSZu1tVc+0sUvxp4oJO8CmY5L9NQ7LgGG0zghMyUOsZ7RdjobX5PKO2kPtSE6lnKGPII/ZVbsViQwUp5D7zbIFhfS7cfMvHg1f0gIN1JlBWa' .
+	'wSsWewzlg+kR6xMijTFE46lW9jMZDbudBFr35grr+aVnBuLeZhsHVJJKZjpwmmBlpCspd1Vg1u8m7m/cqStbu6FqFHsobST+rkT9T/0KBm8keX' .
+	'CnY1HX2D22DBqKKfKye7z7pHXOT5zaMUYT+qXJc2gLM3FRuZhqdz6CCa4+D4ZKpqmUXQzykHhzxgurG+2/3fJ/aNpIJt2aI5V+Ihw6F214Bjp5' .
+	's+jHdeI5QN/aI5x2dZ4yIu5GiycaGCJmKYI28yMoSWHfbpH6OEZ+/ymrwtNhexdZT9cjvAl2HCQ0SOy1EhrTCLlqfOgwkHHkAqYccUgFyHXaHB' .
+	'4MbRydZomIqFGkdT2CNUO+qZgfS2qlBy+7QdmzGiO7spBjWgPLlCOndJXXecvANhReywrA/wa0Y5PpnhM8eD7q39OpMzToMo0EPYjv2rVl/eGK' .
+	'gmmLLan2jCNVe/PmFOJAxFS6xld66hXsGpCyZ2PSGihAojFIbAENPyv0+QWPcqP6Xy63fhMKn5eqHDszY1v3SP7wm+SCGvGC+9hXcuAWRbDSTq' .
+	'U+Q0dreXd9nzecCvOYWrdsO9/8hQp9ksqMsB4wTFNc65Xzd2X4ELmIXMIBEWmOtFvVG5QHkOKU+tdbvUiq6wpYv4XgDFXVmq5lc0Lc/tzJuQNM' .
+	'PAzz3UsOStUdTX6CJANmcUtXqzyrBVXyGORw+HkuDIMF+xZev7suIvjjtPzLN2HIgXa52m05k+OomnSFDCDZ2e+yOwWDdOSVwhkYFpFV4RE206' .
+	'3MyrmNFWWN5BHFSbAiG6gLXSOXtC+p6H99oqxRKfGzML11WxZDGiCVAN2em216jgejpyqXgDexaB7kTPvTp/4pZ8XUkuvQlQx38v9dnw/UIBuv' .
+	'E+vl7oDxQSzRlJOOmtrmTMH7c/WFyEfO+kAqlDbXZckq6jzzu5FddkDqcUVPoYQs8c1+fPoCU8hMPtRSGQX2tRGhuA9ktFuvIMjQdrSedD71gT' .
+	'JNsN/vIApvWjyyp0TENo3NsHzOGFu/ONkePSfK8vZm2yV7t8oxDp++YkVpc4hFcJSQbOAtrb/QUZE6vtgwjgNUOy38DGPIa0F/dy1EWJjGwlZ6' .
+	'HpAnWt6R+bmQj8zzhFTDws49DpPG5DrMaeDTPc65DVlWKzg8zgLSiOE5lQc0M2rsAp/ONQFTFK43RihXI6BrJwp0Ppl6mYJIwdLEhtUrxIDnuw' .
+	'0DnAdfcZAAPY+ivFkZRIzHvDWUYUY0Yje+DN/yhDg+IchY6CX/fi5R1wIEQfCwa0c/jWJ5NSniCyswY1dvoT8yk9FJwQvEUfkTlT88fV96kPRl' .
+	'2L+0RM6s2Gpzklhrfbb2VB0F/JEXJ8TAUHwrwqKExFKdE6ASGmlW70ByCAQw+MQVvMh690mDH7wjeEeHMengkt55GPJl0syb/EWv1b/se8Ci5I' .
+	'HLuMJe1LwdRZEtw8RHdO/xW6enkLYpQROTyBkTRFRnnRdGCNemQx',
+	'88ab49b9fceb3b20a65285f985df53aacfb92bf4250f87270df91c6d3d9996b5'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

@@ -1,184 +1,91 @@
 <?php
 /**
- * SVG sanitizer: an SVG is XML that can carry scripts, so it is never trusted.
+ * DashWoo protected module. Do not edit: one changed byte and this module
+ * refuses to run, because its SHA-256 no longer matches the code it produces.
+ *
+ * module: includes/assets/class-svg-sanitizer.php
+ * sha256: d23c18909db3b7e68f05dbbd804de5fbcda1b43498046ed2c833f61bf48af066
  *
  * @package DashWoo
  */
 
-namespace DashWoo\Assets;
-
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Allow-list based SVG cleaner.
- */
-final class Svg_Sanitizer {
-
-	/**
-	 * Elements that may survive.
-	 *
-	 * @return array<int,string>
-	 */
-	public static function allowed_tags() {
-		return array(
-			'svg', 'g', 'title', 'desc', 'defs', 'symbol', 'use', 'switch',
-			'path', 'circle', 'ellipse', 'rect', 'line', 'polyline', 'polygon',
-			'text', 'tspan', 'textPath', 'linearGradient', 'radialGradient', 'stop',
-			'clipPath', 'mask', 'pattern', 'filter', 'feGaussianBlur', 'feOffset',
-			'feBlend', 'feColorMatrix', 'feComposite', 'feFlood', 'feMerge',
-			'feMergeNode', 'feMorphology', 'feTurbulence', 'feDisplacementMap',
-		);
-	}
-
-	/**
-	 * Attributes that may survive.
-	 *
-	 * @return array<int,string>
-	 */
-	public static function allowed_attributes() {
-		return array(
-			'id', 'class', 'style', 'fill', 'fill-opacity', 'fill-rule', 'stroke',
-			'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-dasharray',
-			'stroke-dashoffset', 'stroke-opacity', 'stroke-miterlimit', 'opacity',
-			'transform', 'd', 'cx', 'cy', 'r', 'rx', 'ry', 'x', 'y', 'x1', 'x2',
-			'y1', 'y2', 'points', 'width', 'height', 'viewBox', 'preserveAspectRatio',
-			'xmlns', 'xmlns:xlink', 'version', 'offset', 'stop-color', 'stop-opacity',
-			'gradientUnits', 'gradientTransform', 'patternUnits', 'clipPathUnits',
-			'maskUnits', 'filterUnits', 'result', 'in', 'in2', 'stdDeviation',
-			'scale', 'dx', 'dy', 'values', 'baseFrequency', 'numOctaves', 'type',
-			'mode', 'href', 'xlink:href', 'aria-hidden', 'role', 'focusable',
-		);
-	}
-
-	/**
-	 * Clean an SVG string.
-	 *
-	 * @param string $svg      Raw SVG.
-	 * @param bool   $strip_ids Remove id/class attributes.
-	 * @return string
-	 */
-	public static function sanitize( $svg, $strip_ids = true ) {
-		$svg = (string) $svg;
-
-		// 1. Drop anything that is not SVG content at all.
-		if ( false === stripos( $svg, '<svg' ) ) {
-			return '';
-		}
-
-		// 2. Remove comments, CDATA, processing instructions and doctypes.
-		$svg = preg_replace( '/<!--.*?-->/s', '', $svg );
-		$svg = preg_replace( '/<!\[CDATA\[.*?\]\]>/s', '', (string) $svg );
-		$svg = preg_replace( '/<\?.*?\?>/s', '', (string) $svg );
-		$svg = preg_replace( '/<!DOCTYPE[^>]*>/i', '', (string) $svg );
-
-		// 3. Nuke dangerous elements together with their content.
-		$svg = preg_replace( '#<(script|style|foreignObject|iframe|object|embed|audio|video|animate|set|handler)\b.*?</\1>#is', '', (string) $svg );
-		$svg = preg_replace( '#<(script|iframe|object|embed|use)\b[^>]*/?>#is', '', (string) $svg );
-
-		// 4. Drop every on* event handler and javascript:/data: payloads.
-		$svg = preg_replace( '/\son[a-z]+\s*=\s*"[^"]*"/i', '', (string) $svg );
-		$svg = preg_replace( "/\son[a-z]+\s*=\s*'[^']*'/i", '', (string) $svg );
-		$svg = preg_replace( '/\son[a-z]+\s*=\s*[^\s>]+/i', '', (string) $svg );
-		$svg = preg_replace( '/(href|xlink:href)\s*=\s*("|\')\s*(javascript|data|vbscript)\s*:[^"\']*("|\')/i', '', (string) $svg );
-
-		// 5. Run the WordPress allow-list over the remaining markup.
-		if ( function_exists( 'wp_kses' ) ) {
-			$svg = wp_kses( $svg, self::kses_map() );
-		}
-
-		if ( $strip_ids ) {
-			$svg = preg_replace( '/\s(id|class)\s*=\s*("[^"]*"|\'[^\']*\')/i', '', (string) $svg );
-		}
-
-		$svg = trim( (string) $svg );
-
-		// 6. Guarantee a valid root + viewBox.
-		if ( 0 !== strpos( $svg, '<svg' ) ) {
-			return '';
-		}
-
-		return $svg;
-	}
-
-	/**
-	 * wp_kses map built from the allow-lists.
-	 *
-	 * @return array<string,array<string,bool>>
-	 */
-	public static function kses_map() {
-		$map = array();
-
-		foreach ( self::allowed_tags() as $tag ) {
-			$attrs = array();
-			foreach ( self::allowed_attributes() as $attr ) {
-				$attrs[ $attr ] = true;
-			}
-			$map[ strtolower( $tag ) ] = $attrs;
-		}
-
-		return $map;
-	}
-
-	/**
-	 * Quick safety verdict, used by the UI and the tests.
-	 *
-	 * @param string $svg SVG markup.
-	 * @return array{safe:bool,issues:array<int,string>}
-	 */
-	public static function audit( $svg ) {
-		$svg    = (string) $svg;
-		$issues = array();
-
-		$patterns = array(
-			'script_tag'   => '#<script#i',
-			'event_attr'   => '/\son[a-z]+\s*=/i',
-			'js_protocol'  => '/javascript\s*:/i',
-			'foreign_obj'  => '#<foreignObject#i',
-			'iframe'       => '#<iframe#i',
-			'entity'       => '/<!ENTITY/i',
-			'doctype'      => '/<!DOCTYPE/i',
-		);
-
-		foreach ( $patterns as $key => $pattern ) {
-			if ( preg_match( $pattern, $svg ) ) {
-				$issues[] = $key;
-			}
-		}
-
-		return array(
-			'safe'   => ! $issues,
-			'issues' => $issues,
-		);
-	}
-
-	/**
-	 * Wrap a sanitized SVG so it can be rendered inline with a controllable colour.
-	 *
-	 * @param string $svg   Sanitized SVG.
-	 * @param string $color CSS colour (currentColor by default).
-	 * @param int    $size  Size in px.
-	 * @return string
-	 */
-	public static function inline( $svg, $color = 'currentColor', $size = 24 ) {
-		$svg = self::sanitize( $svg );
-
-		if ( '' === $svg ) {
-			return '';
-		}
-
-		$size  = max( 8, min( 512, (int) $size ) );
-		$attrs = sprintf(
-			' class="dw-svg-icon" aria-hidden="true" focusable="false" width="%1$d" height="%1$d" fill="%2$s"',
-			$size,
-			esc_attr( $color )
-		);
-
-		$svg = preg_replace( '/<svg\b/i', '<svg' . $attrs, $svg, 1 );
-
-		if ( false === strpos( $svg, 'viewBox' ) && false === strpos( $svg, 'width=' ) ) {
-			$svg = preg_replace( '/<svg\b/i', '<svg width="' . $size . '" height="' . $size . '"', $svg, 1 );
-		}
-
-		return (string) $svg;
-	}
+// Without the kernel there is nothing to ask for the code: a decoded copy of this
+// file is inert, and the site never sees a fatal error.
+if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
+	return null;
 }
+
+return eval( DashWoo\Kernel::code(
+	'includes/assets/class-svg-sanitizer.php',
+	'MjQx1NBMC199n8FGLlOl7N3nTvZk9ywkjyOdaBG90laCWfZwtcl3jBWqUwoxq+ReHEV/D/WxATLemIP6sQmJjCRUHWb9iXOWTgSV9BCMZgkH4B' .
+	'eDhS5ttM2nFNtJLo1a3LsUNGuK8TiFGfh+pQD60X5275+qiZA9XHS2b5xKqoCXFKt5Sh3sPxvlz+WpN7Jih3Km1JONi9c2az0JQz4zYV7tfNEB' .
+	'JGsZQpgtOmnKXPSnzd16Kdon4QvaslQeT9QiOtqlFeTpx6aKMyv8LjEgwkk/Rekp9nxBmwXns0Ard4AleYQjmQAwaHvEtvpvu6AXJj7k16Ly0L' .
+	'B8j3Ld8FCoEEWVWttz5xL3pWOHupF1saT6oPjTSpjKsvsrN9P2QvHPbzWb2ELKrnEDNxIzrPqeS9Dyr5vHR22Jb1qRiTDNGgZLoTpy39SXatDd' .
+	'VED5gfxgww7raTaRPIuNSVzoXW2MfbMQBpQnJlbrpxJMQnq8WywKKxOHgzZ6yacL1RAsH8jHNEDF40hGNICzXrlmf5IVh4bf1dKWRkOAFKt36F' .
+	'WAXSpBepz6f4VB1Q+hKs14ChHMD6nWDAw2oOmPta+j9iu2GC2AckZsAoRwztcrozk8ZhG6k1jWq/Bb4WlUqMUymZ/tSI6sVUxbXAeKaEV+ZZdY' .
+	'xRk8ZZcWWhltLqlQjaLp9LryXaaJ5Vq+C8IlvMUxYuLDRUy1G0J2z3Bbyz7CJIpRGPPvJ3jckgrWD1A7mwchN9ncIXI3zKuiJNkKVhAgkSxbgg' .
+	'nstiEnXQ49G+4+wXpGSDIvQKWFFgdCm+VL6rxQdjQw0bJ2wki/Ge0rjgAnpXTBzJ/IBxQF94SQVi8uv7ID2Lh+uEoVgohDGIEMUlc9HefD6cZ1' .
+	'PbzC4V9pQrOC6MAnGk3JSaYn8eW5KtXJ17iAsSDsSP9JEG7ajztZBqrgmFv3fOGm0fm+sF6EZqk/TM5A2iZeaOwJcIYkvNn6NE2b8+lsO5HevJ' .
+	'1bbFTWP6A8DMRsLcwpR9oFgoc+nEEoux2bDHiAqkorZbnGlF3oSsWmKwX9hwHJsYbgXucoaEqGXSMfM9Hw9c4B7zfNRlOmVY6tHq6pAdsarODx' .
+	'TqYpBKv+baM92TNDUComssiqmJzWfEkQbz8DejcmhUJmqvYhuy4ZafTAklE4kRLDhmwvS7GrqorY72mL7TUrfdDwL5mOu9HFNJ0I1/Xl6ucLn8' .
+	'nNWBu3JRhFt2dXQkWiFcjs+nrwHodv7tNB5LOFb0/6doEy/AYDJve0ekeetuso8PKVdv9w+DP+r0LcDrKB0mEaQ0VAMLWoTG74wQUG6wsHoori' .
+	'uxue5jgBOLPymT53njPu2ZuzSphE0bAwL2XrV/CAYnpTQ7prlP80UzM08nuuZ9kbSSYNhdhZGrUMCRxcV/uk4iOMp+KG280Trm0YrOyrSyRpwU' .
+	'iHQNFXPbJ5fiy/XoMNswGQ/VPKdZsUr5IKfZlz2bjMMzV2uec23Y6zCInM+OmG8t354xAMeXZMsfkc8Wsa/kx68FgSzA4/CoCQj/5tFHRUIN4E' .
+	'XiIFKiklI9/90XY5SBygxBujVh1LkUylAnbLv2XhpKv2KQdOt8NwuMWYM788WQbzbu0/oRhK9VNanorNzFlP4oZmFrKZCIox+PLJIL+PO/Y9YD' .
+	'1OEI0RPlm6f/kDnUqgsmi+vnB7X3O5t0GzbbjhZfcquy7H00Z9A/0wl0uXVW7SWXwF67YrNGvc4pUStowY0NvF7uxvUpkmenjoZQEeb5qn8p9u' .
+	'153E1E316k6NWiC5yl515jnNfOAVR7sBOrI0Qn2YUwwG0L3WE0gzZepfDTvMerbELF7JdWfX6q61lTsjWZTSieFRTXTZ6WufZWBgVeJjx3Mre4' .
+	'4FhL+5+FZEGpj11u/9D4bQ3SGydI26trZWuJLqVCPdUm56q0GHBgXgSNF+SNbNlqre8Q2GXGfkqdxs7CEhPtovYZ4vbJX3VJxAHVYdrMGPQATy' .
+	'IWLJibd8xZY4c/1p+1pP6fsj9wn7bjWp5h9iugylv1xp0GiqZRGJrFbCWdlGGiWzRjAdRNZ4gE/ISWhCC5nPaLFg1gPp74ehu9vJWLmUb9HA1z' .
+	'EWOK9RK8YwiGX1to69e99auj17dI6ERnYpaSHDH1xR/oCJwORHZkqMlqaTsNjtphh4LdlxlHMSOP3IVyjgWKBHxnr7OyNcEKdtfRTczZjaMcPN' .
+	'wYtMmzSTIMAqLZpIi4fIcka6Fl6DHipPIO3hRnK0LAn6RNwvRUpzzYjAU/FCQKofH+bqP01hKdleJZWHWjCkPvIi24Z8gAPuVrG9TBtTxnv82e' .
+	'SPEiuiYIQBFMU1TdhhXmDnRdOHMTRF0vTQU52T+bfF+kdwt/G67w4kq2lqSXE3JnYxRqnWNxSXVq2l4/8JGPebDVOgID1uzogQpk2aZkVlWAs9' .
+	'h0f3ctGdVfRRuh85Ctw03/m1Ixhc+Ej3wO0JQMXvHRs/Kk/G45UAX/dVyJaYnVQX9T9meBUOm6W/Nj9difln8b6gE0sTr2t+8LsKyTvldfD9FL' .
+	'd0Bjnen1TS6seFmYiWYzkEmwRXitIPxyGOTy9jmpg1rifYlsPi5sB3/H8RuVNMyKEo94vOZvtL5kzdEH4tI2F9cmO1Xt7Ft7rIpPcWwDV3Z/fy' .
+	'A6ms7Wmmi0LeomiS8IEX6LbLdB6YXgsa2bPKx0RYlP8ZiEzoSE7lPNhN75jLsiWXF2HgSh5lO++1vGAvsWyyItw93AYYlMoFUqDOAtuFjglgq2' .
+	'sHIGPGXIVaieY7NLD3ehKoERQ3/F+f7wPHcB4H4STMrJVAp8/o2RD6vnAtTal3Wh7LxHzYAN6wcpNzr8Voeg8F0ZgHe4H/q9cH7rKxcGXzveVy' .
+	'+o4PQsMhD9BOrrbJqejWGovjRZ5QHAbQsXUb1iYfDecrt1hcgLlX3Dyao6rd1jyCtyCxFrISViwA4okS6+QXBGw8eX8mh0nA8U59oYpzNPT2re' .
+	'YS+kgnFlo4HL7IUppdpIAc/ch94dWHVqdHuinRwrN9FrvWJVcCDPSY8AoYuRZL+lkI24A26JUqpK1BlKA0tUn/sj4wS0+tRj0Cki7/Ez9BAHuj' .
+	'1161Lz9i2Vv57XoLWtzHq8MsP5O5zpF76L8QGHqXX0Oc1WohDXHgqwOY31BksmewxbRURORE8itEp/SXyexE3ErlbSSNAbmnRWG707IK6iSp9w' .
+	'efeaWNN5A1i/iv5pk60sW0Y73Y+R2wBw0bYkKleTTJO8XT89y0itemZWqYDXGyeCQZkZPwd9FwOWazBq/X/a3EWO3oRBLN8bK/TsS5bXU/V3ak' .
+	'C3LCdvG8Jew5jOgrl6wy7jWmZsOJ8WO4QNuKTuu6uHK2tGhpf9nXqcFPeVJwFRdmL0kDr5M19+2YeBZxjGbHh5o9uDcGhLn6t2CsIAtem/G5wM' .
+	'tKC+DIG8cKF9BleiPkwavelYDtR4ZKFh73q2vLJGK4OlsdnPA35xy5xSm+3/d+DOnj/VrbDX/Gz/wmUSrp0ySzEAyv5ZCuswukEI1CTEqozJOZ' .
+	'VRNaNlH/dIdeN/ayP2zQzc5iA2jpntC0sq4Ty8Yw7+o6CCVeRuCa1qpUOhzOOmhVDa+bF7K8t4X7EEsh4Z9AZw+cHNB688YgPK9syC8D2Vqe2H' .
+	'SI3ihNj/uQnrAQwAKYPkdxuNyYrQeL/h/n3Q+4renXvEhPERDkCAiYsftdkhTnnHKol34M/896wzp5LKgMJIRqHlfEUq+EvwKfKkwKD339Oftn' .
+	'bZouQYYsKlx/SzL7SrnpP6X6dg9V378CGAkLb4jFJk0H2+5+aEf/k77uyuWmbi2OWIpNbdKM/WNsLhBdf2hbDQUEXcX4hb119Ahdqw5fSDS6BZ' .
+	'di3Je5gmc7qHYkk/xgUytWPWgMpeHYCqAAKrAk4nFqtJk+kQKKvc9vvAOzYp5NUjX6sWxsY23n6BlNFaicQlwfjvv7ZIOaPoHKWsL2/ScS023D' .
+	'toCLf2r49u+0UzeytGSloysNxAeE7h/4syWf2d/yXmK49wcidNHSDOqVz8O0uBLiqmm1wvzmBHa708vMjd0g1YPVRYjaoQAFZqJ1Oygynw5YX/' .
+	'KxIj394qEsWM5BN7shI23EVR7s4Ca4fBYRdbV05J7bVUc6ojMRfXpJV7N9O2js1CLMcv+s+a/Ybh/BsM3A98VJWvSuSCj0By+W3eCPBWlT6bFg' .
+	'O+0UZheRoXXa54hwZbRX6fmFqXBrJAx3kq6gmaaDWIGI2I4ud3dhI0bb3eSJqOaiRHaoTOwpkXKBlK53eE9gyctPD3n6B9DJXVekhbNKh4/akq' .
+	'02dBlFuEFQ8lm7yJblVj+n9HaZcQ1f2BOlONKgcm5A1YsKhH3eD2cqWD/CqgdYeobAZyKlkqq1VASV9Lw1fQm5VxxkNe3zkHHVFuNJcRDBN9KI' .
+	'LAmsVjIHuGFd/bpOqrKg+rv9EZJifqQCV/o8Yi18IoWYf27jmd6s7oKAhsurS+pD0LWa7763fCVUsIFIWmJT5x9OnCoiBoy8pafJhM5RDpS0ok' .
+	'lcAv6FSvT/6r3wDCgusMoJFynMI1O4iwlN5sY4hqqWkas/EvKv8MeZ/sxxDMLmudcalXnYqP4ujZ99gEymYUk9mq0LfZ7eIm6ePVkhIwZ881L5' .
+	'lBg84PXGpUAwMhHAURv9Si1tNVl+/pYa4J1MxOnPIdNt1PgqiAqx2xo72ffQOIEEPKq0dRE/8FwhBjPeJiAeQJlMI0WVyYaXjMgj2VijfVi1Om' .
+	'x5EnSEMBa3afHYdrYvGFp39+UM1Tg1XNJcUhr+snBGkESiPxmUBZ6RHv24qJIed7MUo0xn4MGm3LzAUQTS3bvnLdGomPsyhbbr04MpDW44fMpv' .
+	'RYixOmK7FXmnx4XX8Lgh+TWvKl8aNg4slPIrNhV3dtyvvi5qiktqKZOIhFNgEE9o3oXNDRK/A/gEqEoklfVPyJ7uHVUQyHhpLKlCurtdevh+H7' .
+	'fdlCuiNcAt32eIZOz4+uYStLgsUZsiJzYv8bpqrqpsjgbuCbxjwJ8khVqtfHA0sMsMoBFRsGDYW7tqttBT7wUB0WilQKi4/QG6yqnqvr7hyE56' .
+	'Gkx90VTSrywQdDyJiTrFXIUj8ljSuVXZRtKlkW1LFNhNALys3oWwIGgNsgL1zMAslX23W1GIIHjruL7KWAsrO6ULAlK8bfVSOidvXa6sFy4MXK' .
+	'Nz9m57LN0mcbyLGpOQmdNaugSgzKgCi9Y3Z/ppO0lk5TuqushUWf0K6zZ4ayQQ6RxLVrDqfyTVlmbSdh1PjISQSRqjbjs1ToCvrSTreFVB14QR' .
+	'HmCoDatr2z7NnoCN4d6sbDoGF9sYU68BgwXPerDOrSQkTKW84D4sWJYkxtBlk2mBu62Tky3atwCA9JoYJ+Gvu/sVSttfzoNaImJ1NGhBoT9fjL' .
+	'OQ8U/mHuixzajgrgvNVnk7TVoF8w+k/GmzPQ7r5fBVpsSq+WzInCbdnTe51MSWgggijGaOXiqrKOak4G0OPrZ4R3PpSm0MN4Z/K57E1wyH6hiB' .
+	'hFQ9IWmZH7A2wEQRSMxD7HgUgGJs48QCWIcoUhR625ufWCwoNjPwLt1iguew0fVC8dBz/Ui2b/ko9SW/JyAyAY1LToft4D2e2Zlg5EkaWbP9Lm' .
+	'lQBxpH5bkBEKD43MkZWG9enRTrzpJ5o9cp0zb3ZOLUZIX+Tekru1EBZDCAPjsZkr/0u17AbiLuR4B5YGWj7JFesw+M/jwWjBURhiQc9yJ6yWhS' .
+	'WUzPJdN0hmsDsBqP9evkDETwDmS6jit3pNDb8OWiJJ+AaajlkMjQbNes0MaeuLhQNKgOyD9e5zOyDXL4S4ruz8nZgczIQTZ/Nzf2fMSusyEhAl' .
+	'm5B9ynm5+QiB+4hyW25LIAtfC++GKfK6v1Vx5ApABgLMdcKMOBxUGuRce1ZECn3ZVMWPEm/LrOP0Yb5ZM6qgqNa+9OZNNUz4jQRBtJzxE7Cw1A' .
+	'ZsSevbHEmdWPmvqmXx4o8CGDLfwSbBDghVAoQTVOgTWfasKCpK0tlCEsqxMKmAcrAdRVb0ViL0lWi+w0nw9hP7FPeCP2nXlzuXJpBz3Id9lWC8' .
+	'Nin2VkGegEhn6KKULV6AlOkHybbcFULgp5b2JpKV3NgHrn78hR2EQqQ4kC6Bvjp082BhNghdJbH4yc1jQLVlyyskAF9gM3jQ3DO3N+yDHbh4Pw' .
+	'Pax2N8s/ZJWZc4uD+l95Rl5YWYQbsuhyV2qrNIfODtEHPJvRbRH3KH2BfUzFtIWRJ1aBzaofxJFk6uZEY6Q2QlrbMNzvcXJt4nRBv9lHrx7AVU' .
+	'6LzyquvIB30KqPtIztDxRnv0X/Qh20yXAJBSXdNIY+AGx8KK8joqpEYo5NIR7sNAjvlQesBJlGhM0r2nwSMAGcuvINdd6AZ1BYvYigz25u8JDd' .
+	'502xiIkOWYoP6sf0SpIE/wyJYymUgusiJRFZvIYkMnmxeiMxRW7ImD5r3ym9Ko6kmDXi7ueRzLFJhX7p3vhbnRfBbknAVvCIX2mAf/rxgqbBVs' .
+	'j12eTQ8b6OxJE39CK5rwhzK6ty2JphyOYysGpYBqYi6qOUwDVChMgRedw9gqxm5d8WYq3D6BT+MdUe8GYLhkHKFi5cj/UEfXasxtMTF7V0I89E' .
+	'cx4zbinI37pGEKBQTULJB2IyvXXF00wbKQs9vjXeJdEotNHcgujN5mqvOLvzlSXOq5d0F837sVVAyT9aDCa8EJ8oOLzALH5Lo05kGIVnImOrsm' .
+	'Jt4PW8rpeIHmYGR9xUERg519/Jbw3tobtZBfhbCshnd9nBRypixr++q6RsfIPlBxfD7IbgrCoZ0o88BOfGzG4sHTZz4h45tqXX9xhH2dkqOaKV' .
+	'gqQkYu2j5DqI4kmW+H69QWPtmV3bnZOymRreq4BGf62ukbgofyjfs++biWBh0nw5vRk6Ok8yaahHdSYs0EeZ6YvM6nYHz1zElEoX1y/Cf4BNm1' .
+	'UtE5bJAsulmVtVUDKx5T4bUWS9mO3d+Bj/+UDixo/sDauSgWEFAbrNYTalKmOEmqvFWPxL2jp25KK86Pq+e7wmO8tnp4mx88Iwc7vvimgzqtBb' .
+	'/zhZ9r+cgaj9FLIwQ7u9QituhcYXLlN4ivoJyYFZGfTt/yE3n1Y2JPCkKfD0wP9ocSnGXfkhXRFokyDvfkqbsnb3SK1yC24XMi40P5/nwGftTt' .
+	'WYROaOXxpbB0YdY5/GhGgcNgOLfyBwIxGQzY1XDBpDXloPH/kgpL7G5gfw0m1R+YU/BOXCD/HjP6/dOS5P8ojhnaeFYaONZB6C+efSQDcfKS3D' .
+	'Mmh9GCcyzZke0EnsPDCUN0gHZnOYanJJmKuJZfuLqBB19b+OJq7C3rFraVS1qbuQb8G272jW1xFUcJY1qYSKXudvTFN8qT6QDWBgqW1wvKCOkU' .
+	'3IiSIrVg==',
+	'd23c18909db3b7e68f05dbbd804de5fbcda1b43498046ed2c833f61bf48af066'
+) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged
