@@ -63,7 +63,7 @@ msgstr ""
 msgid "%d WooCommerce features declared compatible%s"
 msgstr ""
 
-#: includes/admin/class-admin.php:633
+#: includes/admin/class-admin.php:641
 msgid "%d cache files were removed."
 msgstr ""
 
@@ -187,12 +187,16 @@ msgstr ""
 msgid "Accent colour, corner radius and the size of the account cards. The colours are injected as CSS variables, so they match the DashWoo tokens."
 msgstr ""
 
-#: includes/admin/class-admin.php:308 includes/admin/class-admin.php:363 includes/admin/class-admin.php:459
+#: includes/admin/class-admin.php:316 includes/admin/class-admin.php:371 includes/admin/class-admin.php:467
 msgid "Access denied."
 msgstr ""
 
 #: includes/widgets/class-account-widget-base.php:70
 msgid "Account"
+msgstr ""
+
+#: includes/admin/class-wizard.php:145
+msgid "Account area"
 msgstr ""
 
 #: includes/settings/class-sections.php:889
@@ -688,15 +692,15 @@ msgstr ""
 msgid "Check details"
 msgstr ""
 
-#: includes/admin/class-admin.php:603
+#: includes/admin/class-admin.php:611
 msgid "Check finished: %d features are switched off automatically because the host capability is missing."
 msgstr ""
 
-#: includes/admin/class-admin.php:613
+#: includes/admin/class-admin.php:621
 msgid "Check finished: %d passed, %d warnings, %d errors."
 msgstr ""
 
-#: includes/admin/class-admin.php:604
+#: includes/admin/class-admin.php:612
 msgid "Check finished: every DashWoo feature is active."
 msgstr ""
 
@@ -740,6 +744,10 @@ msgstr ""
 msgid "Colors"
 msgstr ""
 
+#: includes/admin/class-wizard.php:124
+msgid "Colour"
+msgstr ""
+
 #: includes/account/class-templates.php:142
 msgid "Compact"
 msgstr ""
@@ -752,7 +760,7 @@ msgstr ""
 msgid "Compact list"
 msgstr ""
 
-#: includes/admin/class-admin.php:702
+#: includes/admin/class-admin.php:710
 msgid "Compatibility check: %1$d passed, %2$d warnings, %3$d errors."
 msgstr ""
 
@@ -800,6 +808,10 @@ msgstr ""
 msgid "Context"
 msgstr ""
 
+#: includes/admin/class-wizard.php:319
+msgid "Continue the setup"
+msgstr ""
+
 #: includes/settings/class-sections.php:1803
 msgid "Convert to WebP"
 msgstr ""
@@ -812,7 +824,7 @@ msgstr ""
 msgid "Copy it whenever you need it and hand it to your host."
 msgstr ""
 
-#: includes/settings/class-sections.php:1372 includes/widgets/class-style-controls.php:77
+#: includes/admin/class-wizard.php:135 includes/settings/class-sections.php:1372 includes/widgets/class-style-controls.php:77
 msgid "Corner radius"
 msgstr ""
 
@@ -888,6 +900,10 @@ msgstr ""
 msgid "Dark"
 msgstr ""
 
+#: includes/admin/class-wizard.php:306
+msgid "DashWoo %1$s is installed. The setup wizard was added in %2$s — run it once, or dismiss this."
+msgstr ""
+
 #: includes/support/class-http.php:108
 msgid "DashWoo blocked a request to a non allow-listed host: %s"
 msgstr ""
@@ -908,6 +924,14 @@ msgstr ""
 msgid "DashWoo is disabled."
 msgstr ""
 
+#: includes/admin/class-wizard.php:310
+msgid "DashWoo is ready. Run the setup wizard? (four short steps)"
+msgstr ""
+
+#: includes/admin/class-wizard.php:106
+msgid "DashWoo is written in English and ships a complete Persian translation. Pick what this shop should show — you can change it later under System → General."
+msgstr ""
+
 #: includes/settings/class-sections.php:227
 msgid "DashWoo is written in English and ships a complete Persian translation. “Follow the site language” uses whatever the WordPress install is set to, so a Persian site shows Persian; pick a language here to force one for DashWoo alone."
 msgstr ""
@@ -922,6 +946,10 @@ msgstr ""
 
 #: includes/widgets/class-account-endpoint-widget-base.php:201
 msgid "DashWoo settings default"
+msgstr ""
+
+#: includes/admin/views/wizard.php:29
+msgid "DashWoo setup"
 msgstr ""
 
 #: includes/account/class-account.php:330
@@ -992,7 +1020,7 @@ msgstr ""
 msgid "DashWoo — Two-column account panel"
 msgstr ""
 
-#: includes/account/class-templates.php:72 includes/admin/class-admin.php:87 includes/settings/class-sections.php:30 includes/settings/class-sections.php:161 includes/settings/class-sections.php:734 includes/widgets/class-account-panel-widget.php:58
+#: includes/account/class-templates.php:72 includes/admin/class-admin.php:95 includes/settings/class-sections.php:30 includes/settings/class-sections.php:161 includes/settings/class-sections.php:734 includes/widgets/class-account-panel-widget.php:58
 #: … 1 more places
 msgid "Dashboard"
 msgstr ""
@@ -1037,7 +1065,7 @@ msgstr ""
 msgid "Default colour"
 msgstr ""
 
-#: includes/admin/class-admin.php:565
+#: includes/admin/class-admin.php:573
 msgid "Default font set."
 msgstr ""
 
@@ -1281,6 +1309,10 @@ msgstr ""
 msgid "Event logging"
 msgstr ""
 
+#: includes/admin/views/wizard.php:145
+msgid "Every answer here is a normal setting: it can be changed later on the DashWoo screens, and the wizard can be run again any time from the DashWoo menu."
+msgstr ""
+
 #: includes/admin/views/dashboard.php:61
 msgid "Every font and icon is loaded from"
 msgstr ""
@@ -1369,6 +1401,14 @@ msgstr ""
 msgid "Fill (0-1)"
 msgstr ""
 
+#: includes/admin/views/wizard.php:134
+msgid "Finish"
+msgstr ""
+
+#: includes/admin/views/wizard.php:48
+msgid "Finished"
+msgstr ""
+
 #: includes/account/class-sections.php:1188 includes/settings/class-sections.php:956 includes/widgets/class-account-forms-widget.php:97 includes/widgets/class-account-profile-widget.php:112
 msgid "First name"
 msgstr ""
@@ -1405,7 +1445,7 @@ msgstr ""
 msgid "Font \"%s\" is not installed."
 msgstr ""
 
-#: includes/admin/class-admin.php:543
+#: includes/admin/class-admin.php:551
 msgid "Font deleted."
 msgstr ""
 
@@ -1425,7 +1465,7 @@ msgstr ""
 msgid "Font management"
 msgstr ""
 
-#: includes/admin/class-admin.php:543
+#: includes/admin/class-admin.php:551
 msgid "Font not found."
 msgstr ""
 
@@ -1437,7 +1477,7 @@ msgstr ""
 msgid "Font size"
 msgstr ""
 
-#: includes/admin/class-admin.php:535
+#: includes/admin/class-admin.php:543
 msgid "Font updated."
 msgstr ""
 
@@ -1681,7 +1721,7 @@ msgstr ""
 msgid "Horizontal tabs for the menu"
 msgstr ""
 
-#: includes/admin/class-admin.php:239 includes/admin/views/capabilities.php:111
+#: includes/admin/class-admin.php:247 includes/admin/views/capabilities.php:111
 msgid "Host capabilities"
 msgstr ""
 
@@ -1737,7 +1777,7 @@ msgstr ""
 msgid "Icon size"
 msgstr ""
 
-#: includes/admin/class-admin.php:586
+#: includes/admin/class-admin.php:594
 msgid "Icon style removed."
 msgstr ""
 
@@ -1937,6 +1977,10 @@ msgstr ""
 msgid "Label position"
 msgstr ""
 
+#: includes/admin/class-wizard.php:105
+msgid "Language"
+msgstr ""
+
 #: includes/settings/class-sections.php:1397 includes/settings/class-sections.php:1436 includes/widgets/class-account-nav-widget.php:158
 msgid "Large"
 msgstr ""
@@ -2065,8 +2109,12 @@ msgstr ""
 msgid "Load more (AJAX)"
 msgstr ""
 
-#: includes/settings/class-sections.php:231
+#: includes/admin/class-wizard.php:162 includes/settings/class-sections.php:231
 msgid "Load the DashWoo platform stylesheet"
+msgstr ""
+
+#: includes/admin/class-wizard.php:156
+msgid "Load the neutral design pack"
 msgstr ""
 
 #: includes/settings/class-sections.php:790
@@ -2169,7 +2217,7 @@ msgstr ""
 msgid "Maximum size per file (MB)"
 msgstr ""
 
-#: includes/admin/class-admin.php:218
+#: includes/admin/class-admin.php:226
 msgid "Media Library"
 msgstr ""
 
@@ -2357,7 +2405,7 @@ msgstr ""
 msgid "No content was found for “%s” (neither from WooCommerce nor from a DashWoo shortcut)."
 msgstr ""
 
-#: includes/admin/class-admin.php:726
+#: includes/admin/class-admin.php:734
 msgid "No file was selected."
 msgstr ""
 
@@ -2383,6 +2431,10 @@ msgstr ""
 
 #: includes/account/class-custom-pages.php:596
 msgid "No template file found. Put a PHP file in %s (for example support.php) and name it in the row."
+msgstr ""
+
+#: includes/admin/class-wizard.php:325
+msgid "No thanks, keep my current setup"
 msgstr ""
 
 #: includes/assets/icons/class-material-provider.php:174
@@ -2441,12 +2493,16 @@ msgstr ""
 msgid "Off is the zero-design default: DashWoo loads no stylesheet of its own on the front end and the widgets come out as plain markup with class hooks, so your theme, your CSS or Elementor styles all of it. Turn it on to get DashWoo’s small starting stylesheet for buttons, icons and badges."
 msgstr ""
 
-#: includes/admin/views/capabilities.php:20 includes/admin/views/settings.php:65 includes/admin/views/settings.php:127 includes/widgets/class-style-controls.php:151
+#: includes/admin/views/capabilities.php:20 includes/admin/views/settings.php:65 includes/admin/views/settings.php:127 includes/admin/views/wizard.php:98 includes/widgets/class-style-controls.php:151
 msgid "On"
 msgstr ""
 
 #: includes/account/class-sections.php:1214
 msgid "On hold"
+msgstr ""
+
+#: includes/admin/class-wizard.php:125
+msgid "One colour is enough to start: it becomes the accent of the account area and the primary design token, which Elementor and your theme read as a CSS variable."
 msgstr ""
 
 #: includes/widgets/class-account-dashboard-widget.php:108 includes/widgets/class-account-nav-widget.php:202
@@ -2685,7 +2741,7 @@ msgstr ""
 msgid "Platform image management."
 msgstr ""
 
-#: includes/settings/class-sections.php:223
+#: includes/admin/class-wizard.php:110 includes/settings/class-sections.php:223
 msgid "Platform language"
 msgstr ""
 
@@ -2719,6 +2775,10 @@ msgstr ""
 
 #: includes/settings/class-sections.php:1278
 msgid "Primary Hover"
+msgstr ""
+
+#: includes/admin/class-wizard.php:129
+msgid "Primary colour"
 msgstr ""
 
 #: includes/settings/class-sections.php:391
@@ -2777,7 +2837,7 @@ msgstr ""
 msgid "REST API unavailable"
 msgstr ""
 
-#: includes/settings/class-sections.php:238
+#: includes/admin/class-wizard.php:117 includes/settings/class-sections.php:238
 msgid "RTL support"
 msgstr ""
 
@@ -2889,6 +2949,10 @@ msgstr ""
 msgid "Run the environment check again"
 msgstr ""
 
+#: includes/admin/class-wizard.php:319
+msgid "Run the setup wizard"
+msgstr ""
+
 #: includes/compatibility/adapters/class-asset-adapter.php:194
 msgid "SVG sanitizer ready (wp_kses allow-list)"
 msgstr ""
@@ -2929,6 +2993,10 @@ msgstr ""
 msgid "Sanitising falls back to WordPress' allow-list (kses)"
 msgstr ""
 
+#: includes/admin/views/wizard.php:134
+msgid "Save and continue"
+msgstr ""
+
 #: includes/compatibility/class-woocommerce-features.php:191
 msgid "Save cart for later"
 msgstr ""
@@ -2939,6 +3007,10 @@ msgstr ""
 
 #: includes/admin/views/settings.php:184
 msgid "Save settings"
+msgstr ""
+
+#: includes/admin/class-wizard.php:457
+msgid "Saved. Next step."
 msgstr ""
 
 #: includes/account/class-form-adapter.php:139
@@ -2973,7 +3045,7 @@ msgstr ""
 msgid "Section icons"
 msgstr ""
 
-#: includes/admin/class-admin.php:507
+#: includes/admin/class-admin.php:515
 msgid "Section reset."
 msgstr ""
 
@@ -3005,8 +3077,20 @@ msgstr ""
 msgid "Settings apply to this site only"
 msgstr ""
 
-#: includes/admin/class-admin.php:499
+#: includes/admin/class-admin.php:507
 msgid "Settings saved."
+msgstr ""
+
+#: includes/admin/class-wizard.php:425 includes/admin/class-wizard.php:450
+msgid "Setup finished. You can change every choice under DashWoo."
+msgstr ""
+
+#: includes/admin/class-wizard.php:340 includes/admin/class-wizard.php:341
+msgid "Setup wizard"
+msgstr ""
+
+#: includes/admin/class-wizard.php:417
+msgid "Setup wizard closed. Everything stays as it is."
 msgstr ""
 
 #: includes/design-system/class-tokens.php:64
@@ -3165,6 +3249,14 @@ msgstr ""
 msgid "Sizes"
 msgstr ""
 
+#: includes/admin/class-wizard.php:325
+msgid "Skip for now"
+msgstr ""
+
+#: includes/admin/views/wizard.php:138
+msgid "Skip the wizard"
+msgstr ""
+
 #: includes/compatibility/adapters/class-woocommerce-adapter.php:208
 msgid "Skipped (WooCommerce inactive)"
 msgstr ""
@@ -3257,7 +3349,7 @@ msgstr ""
 msgid "Style"
 msgstr ""
 
-#: includes/admin/class-admin.php:586
+#: includes/admin/class-admin.php:594
 msgid "Style not found."
 msgstr ""
 
@@ -3325,7 +3417,7 @@ msgstr ""
 msgid "System messages and WooCommerce notices."
 msgstr ""
 
-#: includes/admin/class-admin.php:228
+#: includes/admin/class-admin.php:236
 msgid "System status"
 msgstr ""
 
@@ -3377,16 +3469,20 @@ msgstr ""
 msgid "The <strong>ℹ</strong> mark means “this capability is missing on the host, but DashWoo does not need it” —"
 msgstr ""
 
-#: includes/admin/class-admin.php:659
+#: includes/admin/class-admin.php:667
 msgid "The Elementor kit was restored from the backup."
 msgstr ""
 
-#: includes/admin/class-admin.php:646
+#: includes/admin/class-admin.php:654
 msgid "The Elementor kit was synced (%d colours)."
 msgstr ""
 
 #: includes/compatibility/adapters/class-asset-adapter.php:123
 msgid "The GD extension is installed on this server, but its image functions (such as imagecreatetruecolor) are blocked by disable_functions. Ask your host to open those functions. DashWoo does not need them."
+msgstr ""
+
+#: includes/admin/class-wizard.php:146
+msgid "The My Account area is DashWoo’s own: a menu card next to a content card, with orders, downloads, addresses, payment methods and account details. Everything below can be changed later under My Account."
 msgstr ""
 
 #: includes/settings/class-sections.php:976
@@ -3461,19 +3557,19 @@ msgstr ""
 msgid "The file signature does not match its type."
 msgstr ""
 
-#: includes/admin/class-admin.php:778
+#: includes/admin/class-admin.php:786
 msgid "The file “%s” was saved."
 msgstr ""
 
-#: includes/admin/class-admin.php:522
+#: includes/admin/class-admin.php:530
 msgid "The font %s was downloaded and stored locally."
 msgstr ""
 
-#: includes/admin/class-admin.php:535
+#: includes/admin/class-admin.php:543
 msgid "The font is already up to date."
 msgstr ""
 
-#: includes/admin/class-admin.php:578
+#: includes/admin/class-admin.php:586
 msgid "The icon font was downloaded (a single variable file)."
 msgstr ""
 
@@ -3493,7 +3589,7 @@ msgstr ""
 msgid "The levels of token integration with Elementor."
 msgstr ""
 
-#: includes/admin/class-admin.php:667
+#: includes/admin/class-admin.php:675
 msgid "The logs were cleared."
 msgstr ""
 
@@ -3545,7 +3641,7 @@ msgstr ""
 msgid "The structure of the My Account page: which sections show, in what order and in what layout."
 msgstr ""
 
-#: includes/admin/class-admin.php:625
+#: includes/admin/class-admin.php:633
 msgid "The token CSS was compiled (%d variables, %s)."
 msgstr ""
 
@@ -3573,8 +3669,12 @@ msgstr ""
 msgid "There is nothing to download."
 msgstr ""
 
-#: includes/admin/class-admin.php:739
+#: includes/admin/class-admin.php:747
 msgid "This file extension is not allowed."
+msgstr ""
+
+#: includes/admin/views/wizard.php:150
+msgid "This install already went through the wizard."
 msgstr ""
 
 #: includes/account/class-endpoints.php:572
@@ -3637,7 +3737,7 @@ msgstr ""
 msgid "This section's content"
 msgstr ""
 
-#: includes/admin/class-admin.php:578
+#: includes/admin/class-admin.php:586
 msgid "This style is already installed."
 msgstr ""
 
@@ -3741,7 +3841,7 @@ msgstr ""
 msgid "Unknown DashWoo service: %s"
 msgstr ""
 
-#: includes/admin/class-admin.php:673
+#: includes/admin/class-admin.php:681
 msgid "Unknown action."
 msgstr ""
 
@@ -3749,8 +3849,12 @@ msgstr ""
 msgid "Unknown icon style \"%s\"."
 msgstr ""
 
-#: includes/admin/class-admin.php:499 includes/rest/class-router.php:403 includes/rest/class-router.php:424
+#: includes/admin/class-admin.php:507 includes/rest/class-router.php:403 includes/rest/class-router.php:424
 msgid "Unknown section."
+msgstr ""
+
+#: includes/admin/class-wizard.php:435
+msgid "Unknown setup step."
 msgstr ""
 
 #: includes/admin/views/capabilities.php:179
@@ -3800,6 +3904,10 @@ msgstr ""
 
 #: includes/account/class-elementor-bridge.php:711
 msgid "Use the button above to build the ready-made DashWoo layout inside the page."
+msgstr ""
+
+#: includes/admin/class-wizard.php:150
+msgid "Use the two-card panel"
 msgstr ""
 
 #: includes/capabilities/class-capabilities.php:124
@@ -3862,7 +3970,7 @@ msgstr ""
 msgid "View the full compatibility report"
 msgstr ""
 
-#: includes/admin/class-admin.php:710
+#: includes/admin/class-admin.php:718
 msgid "View the full report"
 msgstr ""
 
@@ -4064,6 +4172,10 @@ msgstr ""
 
 #: includes/account/class-account.php:332
 msgid "Works without any special host capability."
+msgstr ""
+
+#: includes/admin/class-wizard.php:374 includes/admin/class-wizard.php:407
+msgid "You are not allowed to run the setup wizard."
 msgstr ""
 
 #: includes/account/class-sections.php:1165

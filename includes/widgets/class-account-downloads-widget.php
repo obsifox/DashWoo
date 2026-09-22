@@ -19,17 +19,17 @@ if ( ! class_exists( 'DashWoo\Kernel', false ) ) {
 
 return eval( DashWoo\Kernel::code(
 	'includes/widgets/class-account-downloads-widget.php',
-	'9C7P6pPa8nWfcNEUwi1exuHOSzHKaEGIoShjVd9x81l0Fkes4CPmBU+9aNgZA5JeARPPHYkEg805pnFRLrWocuaSbtU1gz9G4bLo9CpUkEbc2J' .
-	'cp45QtMmhE53zTKekIqGuyZ/bogWAqw7U2IW4/nHJPDVFgGV1TgMuC6RFtu5OsjSxJO5ej1TipTSz5lfn8cccBwy4QjYRN6jImDPhrZULI+zvp' .
-	'07gb6A/XyqcoPfZ70H6PT5oQZvHJRZ0sPJXm+1U3xil91r97bdS6VX3Ptwy/ghrrpULU6za+XPDEz2wGq0Op9jrYCbhdyntwHH1KHenNpXXV0o' .
-	'iyux8PLJBeC/beMxKmKjoWy34wDHdgLgN7tRQ+mC/Sne5MaFwcQ4KFKo5H5K6vs7usIst7drDRMuBYfPj1DlRzkZSG/81G5ra02YeJcDxbrwrz' .
-	'zOOsNkfzmpW7kXEeDqcBcChRWDypqSVMoiTHrowccEGgvcZMkQ4vx3gBdpddLrkcvt+zDo8E15+tBf0egw7ze42cpqa5A/5X+KD0WJURcwM99j' .
-	'JC6xG8F6IUXYocxm/bhTpTbP5szVWVx9hyBj7VLW2PRrwxkMGB0fSZ8GXVEFLNhJokcdUWz+WxbIp/vATopt/sFiYR4xio4k3oZKt9MYiN1fjE' .
-	'PnDDB33sVy0GEuk0idvcvzvu+fRljt/T1M8rfxlQD9mvEr5HreJBH3+o95zyEqo2gYZBpmdP9DcYU9He83UoMCKczYhbwN5DAJtyrP0rcTEA3H' .
-	'7MwVZiuUyC8j7VvosK6khkmXzpLDgto+FWbUTLiB/o24wOqu1gYQIg5Fe6pOKALE9UneQnn04RcbLE75F1oem3ntILVhNjRR9t8dwVlUm1jPgs' .
-	'GsLWgO8uvKq5YdxcZrDXl98ls5n71ZHpd1GgIpdZEazoAkB+jp3m9t/WPEJVx0niUiE/f/qAi40iIKNsjOW+e3rw8kRtCaDv4hSRrx1BkW1KK3' .
-	'2OtJQFJovm2FGIwJuSf3IUlW6lUsjjPPAMCaSoIF5PcDlRBhMseVtZYb3zBtZ3F6ATCEL80GSwlHGr0lMkNa4xzgi1LNUBnm//JD9x+RGQ8c5V' .
-	'ib8UNMHea7sFpe2tlKlmnIykFyVoMXU/fSzpBxvCzvsocSrBIGzrqMVevtGztSJdCKmbhI9wb0Z1WnTP3JjHhAfPWbBlmHZPfMwUZltiuLduQ+' .
-	'/iZrLGoRSH+pdM5BewpIBxZDngtNIgGEJyKlAx0ed005/xiZdmNPpOsr8pu5o8DHNOSx4RS01dkHt/kg==',
+	'3YngZVHcW3giCeRSz0zr1OB4Nk3luwu4iiTjAzvXUXDN06fPvRC4Dw7z/EufQElWMB1uKNcGe7HbKb5EfYwOtxT/oSVCCyFArwY1+l0/QaSsbT' .
+	'x8Vfp0CpSoMh3RPWHzokXREXfeZZD9pzKmGT1qCkG6B11+vKBps4MtAHsTxqCqM8ZdB4tAIWLXrd8qcoEk/cOvG/R22GO2B8DRRI84BteFaiiu' .
+	'CGDh2J73eUDcHR/pvMtj8sqgPziAhzqliunVw1lwJM/zZfPxG5XPlNk5pGjgRLIIthiqkbOY9HhTIcc5otO0eBkW68jV/UdnTscmbD1rlyMkqy' .
+	'BSNH1/T+bElT3GdosmZ9224+AqkURLO25QPs8QWo6X04EHvn6cYYXyN1qmTsVNvkdGX5Uk9vz1jLH68tClx27eJO+aZQKla8aY5XRQV/3Vpece' .
+	'S/uUD/vyBY+BLnRkkZrTAqQRNSXkYbZxl4QHZp4O9e/uDwXJiFGT5t0WZWS+uth1ICeUSIhM8/rXSjzuW5q0iVcRXHq4m/+nfSFubyRQhMlAbN' .
+	'PjTJ8dHpB0Xg8aXftKXgmoWeAaEhs6pcsh8ddgpXFu/OiEjZJE8tS03UTgWYhb//GgUk09viXU7bfNYQS1Ht0JSynnpVFAjc7Deb+vVMmlbICc' .
+	't7XJ1jnPZTO3IlgmTEjqn+Qvx8pkULLhQEVH1w5vB9wH1twhBdSK4BGsjfQVq7gElgVn9XuFK6u1QRLzmGCoiHK+8AJAfyCOQL8/YLxpC8r2um' .
+	'IJc4dKLZsdkIBhaGi7s31g9tUc7dl6G3x2LgmdVW6b/hg7T9rjbABbzI3UtG6W7YLFGXl9tdo751ipwvUfZmZj1Id4Wn/MOULBMY+qTKVVc9l2' .
+	'BeCutVvSTUgrQ1Ztp8nbxbbquJOTemx0K/UI+kxKkdmRjast1jb0UMWnhMNPeSmyKakiCgTzeRdsF/yR1e99GgFc9jrbfK8f1mwwD0Onth5TT2' .
+	'Uo770qPTOQ0XaKsdNwmpJTsk5A+b0OQ4yc7yW5N+Fq8BSCq+R8jQeQJTaLsp37DPw1V3ShC5kBzeV9QdJiD6l0uqxij9ICM/7jVMuVyqfQ98Mv' .
+	'qALoryOmP2wFD2oRU41OnzaOwNvQWWE/0AnuFRKpOEwkJCQZ3AqREi9nMzh17RWQh6ZguBYI2Dqha7PI9Ugt1YAyJYXrMzAhKns395BdqW3bmz' .
+	'CM5f6cLQsUNTE61bpT8mDQkTs+VPu2Lb/adYKQcFP1O3uC/JApObDkutbQ09rQ8hrwVl37kSHXV52XCg==',
 	'116b14723a692cb5543a7cbb6aa2943c590d22c3112333169a7c0e1ddd10a7b3'
 ) ); // phpcs:ignore Squiz.PHP.Eval.Discouraged

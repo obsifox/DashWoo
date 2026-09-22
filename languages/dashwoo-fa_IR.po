@@ -69,7 +69,7 @@ msgstr "۸۵۰٬۰۰۰ تومان"
 msgid "%d WooCommerce features declared compatible%s"
 msgstr "%d امکان ووکامرس سازگار اعلام شد%s"
 
-#: includes/admin/class-admin.php:633
+#: includes/admin/class-admin.php:641
 msgid "%d cache files were removed."
 msgstr "%d فایل کش حذف شد."
 
@@ -193,13 +193,17 @@ msgstr "رنگ تأکید (هاور)"
 msgid "Accent colour, corner radius and the size of the account cards. The colours are injected as CSS variables, so they match the DashWoo tokens."
 msgstr "رنگ تأکید، گردی گوشه‌ها و ابعاد کارت‌های حساب کاربری. رنگ‌ها به‌صورت متغیر CSS تزریق می‌شوند، پس با توکن‌های DashWoo هم‌خوان‌اند."
 
-#: includes/admin/class-admin.php:308 includes/admin/class-admin.php:363 includes/admin/class-admin.php:459
+#: includes/admin/class-admin.php:316 includes/admin/class-admin.php:371 includes/admin/class-admin.php:467
 msgid "Access denied."
 msgstr "دسترسی مجاز نیست."
 
 #: includes/widgets/class-account-widget-base.php:70
 msgid "Account"
 msgstr "حساب"
+
+#: includes/admin/class-wizard.php:145
+msgid "Account area"
+msgstr "بخش حساب"
 
 #: includes/settings/class-sections.php:889
 msgid "Account area background"
@@ -694,15 +698,15 @@ msgstr "بررسی"
 msgid "Check details"
 msgstr "جزئیات بررسی"
 
-#: includes/admin/class-admin.php:603
+#: includes/admin/class-admin.php:611
 msgid "Check finished: %d features are switched off automatically because the host capability is missing."
 msgstr "بررسی انجام شد: %d ویژگی به‌خاطر نبود قابلیت هاست خودکار خاموش است."
 
-#: includes/admin/class-admin.php:613
+#: includes/admin/class-admin.php:621
 msgid "Check finished: %d passed, %d warnings, %d errors."
 msgstr "بررسی انجام شد: %d موفق، %d هشدار، %d خطا."
 
-#: includes/admin/class-admin.php:604
+#: includes/admin/class-admin.php:612
 msgid "Check finished: every DashWoo feature is active."
 msgstr "بررسی انجام شد: همهٔ ویژگی‌های DashWoo فعال‌اند."
 
@@ -746,6 +750,10 @@ msgstr "حالت رنگی"
 msgid "Colors"
 msgstr "رنگ‌ها"
 
+#: includes/admin/class-wizard.php:124
+msgid "Colour"
+msgstr "رنگ"
+
 #: includes/account/class-templates.php:142
 msgid "Compact"
 msgstr "جمع‌وجور"
@@ -758,7 +766,7 @@ msgstr "فشرده (یک خط)"
 msgid "Compact list"
 msgstr "فهرست جمع‌وجور"
 
-#: includes/admin/class-admin.php:702
+#: includes/admin/class-admin.php:710
 msgid "Compatibility check: %1$d passed, %2$d warnings, %3$d errors."
 msgstr "بررسی سازگاری: %1$d موفق، %2$d هشدار، %3$d خطا."
 
@@ -806,6 +814,10 @@ msgstr "قالب محتوا"
 msgid "Context"
 msgstr "زمینه"
 
+#: includes/admin/class-wizard.php:319
+msgid "Continue the setup"
+msgstr "ادامهٔ راه‌اندازی"
+
 #: includes/settings/class-sections.php:1803
 msgid "Convert to WebP"
 msgstr "تبدیل به WebP"
@@ -818,7 +830,7 @@ msgstr "تبدیل خودکار تصاویر بارگذاری‌شده به WebP
 msgid "Copy it whenever you need it and hand it to your host."
 msgstr "در صورت نیاز آن را کپی کنید و به پشتیبانی هاست بدهید."
 
-#: includes/settings/class-sections.php:1372 includes/widgets/class-style-controls.php:77
+#: includes/admin/class-wizard.php:135 includes/settings/class-sections.php:1372 includes/widgets/class-style-controls.php:77
 msgid "Corner radius"
 msgstr "شعاع گوشه‌ها"
 
@@ -894,6 +906,10 @@ msgstr "DOM (php-xml)"
 msgid "Dark"
 msgstr "تیره"
 
+#: includes/admin/class-wizard.php:306
+msgid "DashWoo %1$s is installed. The setup wizard was added in %2$s — run it once, or dismiss this."
+msgstr "DashWoo %1$s نصب شد. راه‌انداز راه‌اندازی از نسخهٔ %2$s اضافه شده است — یک بار اجرایش کنید یا این پیام را ببندید."
+
 #: includes/support/class-http.php:108
 msgid "DashWoo blocked a request to a non allow-listed host: %s"
 msgstr "DashWoo درخواست به میزبان مجازنشده را مسدود کرد: %s"
@@ -914,6 +930,14 @@ msgstr "آیکون DashWoo"
 msgid "DashWoo is disabled."
 msgstr "DashWoo خاموش است."
 
+#: includes/admin/class-wizard.php:310
+msgid "DashWoo is ready. Run the setup wizard? (four short steps)"
+msgstr "DashWoo آماده است. راه‌اندازی را اجرا می‌کنید؟ (چهار گام کوتاه)"
+
+#: includes/admin/class-wizard.php:106
+msgid "DashWoo is written in English and ships a complete Persian translation. Pick what this shop should show — you can change it later under System → General."
+msgstr "DashWoo به زبان انگلیسی نوشته شده و ترجمهٔ کامل فارسی هم دارد. انتخاب کنید این فروشگاه چه زبانی نشان دهد — بعداً از «سیستم → عمومی» قابل تغییر است."
+
 #: includes/settings/class-sections.php:227
 msgid "DashWoo is written in English and ships a complete Persian translation. “Follow the site language” uses whatever the WordPress install is set to, so a Persian site shows Persian; pick a language here to force one for DashWoo alone."
 msgstr "DashWoo به زبان انگلیسی نوشته شده و ترجمهٔ کامل فارسی را همراه دارد. گزینهٔ «از زبان سایت پیروی کند» همان زبانی را می‌آورد که وردپرس روی آن تنظیم است؛ پس سایت فارسی، فارسی دیده می‌شود. اگر می‌خواهید فقط DashWoo زبان دیگری داشته باشد، همین‌جا انتخاب کنید."
@@ -929,6 +953,10 @@ msgstr "DashWoo فقط «نام نمایشی» را ذخیره می‌کند؛ �
 #: includes/widgets/class-account-endpoint-widget-base.php:201
 msgid "DashWoo settings default"
 msgstr "پیش‌فرض تنظیمات DashWoo"
+
+#: includes/admin/views/wizard.php:29
+msgid "DashWoo setup"
+msgstr "راه‌اندازی DashWoo"
 
 #: includes/account/class-account.php:330
 msgid "DashWoo shortcuts and My Account widgets: account menu, cards, forms and a drop-in replacement for WooCommerce's default navigation"
@@ -998,7 +1026,7 @@ msgstr "DashWoo — جزئیات یک سفارش"
 msgid "DashWoo — Two-column account panel"
 msgstr "DashWoo — پنل دوستونهٔ حساب کاربری"
 
-#: includes/account/class-templates.php:72 includes/admin/class-admin.php:87 includes/settings/class-sections.php:30 includes/settings/class-sections.php:161 includes/settings/class-sections.php:734 includes/widgets/class-account-panel-widget.php:58
+#: includes/account/class-templates.php:72 includes/admin/class-admin.php:95 includes/settings/class-sections.php:30 includes/settings/class-sections.php:161 includes/settings/class-sections.php:734 includes/widgets/class-account-panel-widget.php:58
 #: … 1 more places
 msgid "Dashboard"
 msgstr "پیشخوان"
@@ -1043,7 +1071,7 @@ msgstr "فاصلهٔ پیش‌فرض بلوک‌ها (px)"
 msgid "Default colour"
 msgstr "رنگ پیش‌فرض"
 
-#: includes/admin/class-admin.php:565
+#: includes/admin/class-admin.php:573
 msgid "Default font set."
 msgstr "فونت پیش‌فرض تنظیم شد."
 
@@ -1287,6 +1315,10 @@ msgstr "خطا"
 msgid "Event logging"
 msgstr "ثبت رویداد"
 
+#: includes/admin/views/wizard.php:145
+msgid "Every answer here is a normal setting: it can be changed later on the DashWoo screens, and the wizard can be run again any time from the DashWoo menu."
+msgstr "هر پاسخ اینجا یک تنظیم معمولی است: بعداً می‌توانید از صفحه‌های DashWoo تغییرش دهید و هر زمان خواستید راه‌اندازی را از منوی DashWoo دوباره اجرا کنید."
+
 #: includes/admin/views/dashboard.php:61
 msgid "Every font and icon is loaded from"
 msgstr "همه فونت‌ها و آیکون‌ها از"
@@ -1375,6 +1407,14 @@ msgstr "پرشدگی"
 msgid "Fill (0-1)"
 msgstr "پرشدگی (0 تا 1)"
 
+#: includes/admin/views/wizard.php:134
+msgid "Finish"
+msgstr "تمام"
+
+#: includes/admin/views/wizard.php:48
+msgid "Finished"
+msgstr "پایان"
+
 #: includes/account/class-sections.php:1188 includes/settings/class-sections.php:956 includes/widgets/class-account-forms-widget.php:97 includes/widgets/class-account-profile-widget.php:112
 msgid "First name"
 msgstr "نام"
@@ -1411,7 +1451,7 @@ msgstr "قلم «%s» در فهرست DashWoo نیست."
 msgid "Font \"%s\" is not installed."
 msgstr "قلم «%s» نصب نشده است."
 
-#: includes/admin/class-admin.php:543
+#: includes/admin/class-admin.php:551
 msgid "Font deleted."
 msgstr "فونت حذف شد."
 
@@ -1431,7 +1471,7 @@ msgstr "نام خانوادگی فونت"
 msgid "Font management"
 msgstr "مدیریت فونت‌ها"
 
-#: includes/admin/class-admin.php:543
+#: includes/admin/class-admin.php:551
 msgid "Font not found."
 msgstr "فونت یافت نشد."
 
@@ -1443,7 +1483,7 @@ msgstr "قلم نصب نشده است."
 msgid "Font size"
 msgstr "اندازه فونت"
 
-#: includes/admin/class-admin.php:535
+#: includes/admin/class-admin.php:543
 msgid "Font updated."
 msgstr "فونت به‌روزرسانی شد."
 
@@ -1687,7 +1727,7 @@ msgstr "نوار تب افقی"
 msgid "Horizontal tabs for the menu"
 msgstr "تب‌های افقی برای منو"
 
-#: includes/admin/class-admin.php:239 includes/admin/views/capabilities.php:111
+#: includes/admin/class-admin.php:247 includes/admin/views/capabilities.php:111
 msgid "Host capabilities"
 msgstr "قابلیت‌های هاست"
 
@@ -1743,7 +1783,7 @@ msgstr "ارائه‌دهنده آیکون"
 msgid "Icon size"
 msgstr "اندازهٔ آیکون"
 
-#: includes/admin/class-admin.php:586
+#: includes/admin/class-admin.php:594
 msgid "Icon style removed."
 msgstr "سبک آیکون حذف شد."
 
@@ -1943,6 +1983,10 @@ msgstr "عنوان «%s»"
 msgid "Label position"
 msgstr "موقعیت برچسب"
 
+#: includes/admin/class-wizard.php:105
+msgid "Language"
+msgstr "زبان"
+
 #: includes/settings/class-sections.php:1397 includes/settings/class-sections.php:1436 includes/widgets/class-account-nav-widget.php:158
 msgid "Large"
 msgstr "بزرگ"
@@ -2071,9 +2115,13 @@ msgstr "فهرست"
 msgid "Load more (AJAX)"
 msgstr "بارگذاری بیشتر (AJAX)"
 
-#: includes/settings/class-sections.php:231
+#: includes/admin/class-wizard.php:162 includes/settings/class-sections.php:231
 msgid "Load the DashWoo platform stylesheet"
 msgstr "بارگذاری شیوه‌نامۀ پلتفرم DashWoo"
+
+#: includes/admin/class-wizard.php:156
+msgid "Load the neutral design pack"
+msgstr "بارگذاری بستهٔ طراحی خنثی"
 
 #: includes/settings/class-sections.php:790
 msgid "Loading text"
@@ -2175,7 +2223,7 @@ msgstr "حداکثر حجم (MB)"
 msgid "Maximum size per file (MB)"
 msgstr "حداکثر حجم هر فایل (MB)"
 
-#: includes/admin/class-admin.php:218
+#: includes/admin/class-admin.php:226
 msgid "Media Library"
 msgstr "کتابخانهٔ رسانه"
 
@@ -2363,7 +2411,7 @@ msgstr "هنوز دارایی‌ای ثبت نشده است."
 msgid "No content was found for “%s” (neither from WooCommerce nor from a DashWoo shortcut)."
 msgstr "برای بخش «%s» محتوایی پیدا نشد (نه از ووکامرس و نه میان‌بر DashWoo)."
 
-#: includes/admin/class-admin.php:726
+#: includes/admin/class-admin.php:734
 msgid "No file was selected."
 msgstr "فایلی انتخاب نشده است."
 
@@ -2390,6 +2438,10 @@ msgstr "بدون قالب (نشانه‌گذاری خام، خودتان است�
 #: includes/account/class-custom-pages.php:596
 msgid "No template file found. Put a PHP file in %s (for example support.php) and name it in the row."
 msgstr "فایل قالبی پیدا نشد. یک فایل PHP در %s بگذارید (برای نمونه support.php) و نامش را در ردیف بنویسید."
+
+#: includes/admin/class-wizard.php:325
+msgid "No thanks, keep my current setup"
+msgstr "نه ممنون، تنظیمات فعلی‌ام بماند"
 
 #: includes/assets/icons/class-material-provider.php:174
 msgid "No woff2 source found in the icon CSS."
@@ -2447,13 +2499,17 @@ msgstr "خاموش با انتخاب شما"
 msgid "Off is the zero-design default: DashWoo loads no stylesheet of its own on the front end and the widgets come out as plain markup with class hooks, so your theme, your CSS or Elementor styles all of it. Turn it on to get DashWoo’s small starting stylesheet for buttons, icons and badges."
 msgstr "خاموش بودن، حالت پیش‌فرضِ بدون طراحی است: DashWoo هیچ شیوه‌نامه‌ای از خودش را در بخش کاربری سایت بارگذاری نمی‌کند و ویجت‌ها فقط به‌صورت نشانه‌گذاری ساده با کلاس‌های آماده بیرون می‌آیند؛ بنابراین پوستهٔ سایت، CSS خودتان یا Elementor همه‌چیز را قالب‌بندی می‌کند. با روشن‌کردن این گزینه، شیوه‌نامهٔ کوچک شروع DashWoo برای دکمه‌ها، آیکون‌ها و نشان‌ها بارگذاری می‌شود."
 
-#: includes/admin/views/capabilities.php:20 includes/admin/views/settings.php:65 includes/admin/views/settings.php:127 includes/widgets/class-style-controls.php:151
+#: includes/admin/views/capabilities.php:20 includes/admin/views/settings.php:65 includes/admin/views/settings.php:127 includes/admin/views/wizard.php:98 includes/widgets/class-style-controls.php:151
 msgid "On"
 msgstr "فعال"
 
 #: includes/account/class-sections.php:1214
 msgid "On hold"
 msgstr "در انتظار بررسی"
+
+#: includes/admin/class-wizard.php:125
+msgid "One colour is enough to start: it becomes the accent of the account area and the primary design token, which Elementor and your theme read as a CSS variable."
+msgstr "برای شروع یک رنگ کافی است: همان رنگ، رنگ تأکیدی بخش حساب و توکن اصلی طراحی می‌شود که المنتور و پوستهٔ سایت آن را به‌صورت متغیر CSS می‌خوانند."
 
 #: includes/widgets/class-account-dashboard-widget.php:108 includes/widgets/class-account-nav-widget.php:202
 msgid "One column"
@@ -2691,7 +2747,7 @@ msgstr "فهرست ساده"
 msgid "Platform image management."
 msgstr "مدیریت تصاویر پلتفرم."
 
-#: includes/settings/class-sections.php:223
+#: includes/admin/class-wizard.php:110 includes/settings/class-sections.php:223
 msgid "Platform language"
 msgstr "زبان پلتفرم"
 
@@ -2726,6 +2782,10 @@ msgstr "اصلی"
 #: includes/settings/class-sections.php:1278
 msgid "Primary Hover"
 msgstr "اصلی در حالت اشاره"
+
+#: includes/admin/class-wizard.php:129
+msgid "Primary colour"
+msgstr "رنگ اصلی"
 
 #: includes/settings/class-sections.php:391
 msgid "Primary font"
@@ -2783,7 +2843,7 @@ msgstr "کش REST API"
 msgid "REST API unavailable"
 msgstr "REST API در دسترس نیست"
 
-#: includes/settings/class-sections.php:238
+#: includes/admin/class-wizard.php:117 includes/settings/class-sections.php:238
 msgid "RTL support"
 msgstr "پشتیبانی RTL"
 
@@ -2895,6 +2955,10 @@ msgstr "بررسی مجدد قابلیت‌ها"
 msgid "Run the environment check again"
 msgstr "بررسی مجدد محیط"
 
+#: includes/admin/class-wizard.php:319
+msgid "Run the setup wizard"
+msgstr "اجرای راه‌اندازی"
+
 #: includes/compatibility/adapters/class-asset-adapter.php:194
 msgid "SVG sanitizer ready (wp_kses allow-list)"
 msgstr "پاک‌ساز SVG آماده است (فهرست مجاز wp_kses)"
@@ -2935,6 +2999,10 @@ msgstr "قالب فروشگاهی نمونه"
 msgid "Sanitising falls back to WordPress' allow-list (kses)"
 msgstr "پاکسازی با فهرست سفید WordPress (kses) انجام می‌شود"
 
+#: includes/admin/views/wizard.php:134
+msgid "Save and continue"
+msgstr "ذخیره و ادامه"
+
 #: includes/compatibility/class-woocommerce-features.php:191
 msgid "Save cart for later"
 msgstr "ذخیرهٔ سبد برای بعد"
@@ -2946,6 +3014,10 @@ msgstr "ذخیره تغییرات"
 #: includes/admin/views/settings.php:184
 msgid "Save settings"
 msgstr "ذخیره تنظیمات"
+
+#: includes/admin/class-wizard.php:457
+msgid "Saved. Next step."
+msgstr "ذخیره شد. گام بعدی."
 
 #: includes/account/class-form-adapter.php:139
 msgid "Saving is not possible in this environment."
@@ -2979,7 +3051,7 @@ msgstr "منبع محتوای بخش‌ها"
 msgid "Section icons"
 msgstr "آیکون بخش‌ها"
 
-#: includes/admin/class-admin.php:507
+#: includes/admin/class-admin.php:515
 msgid "Section reset."
 msgstr "بخش بازنشانی شد."
 
@@ -3011,9 +3083,21 @@ msgstr "تنظیم دستی ویژگی‌ها"
 msgid "Settings apply to this site only"
 msgstr "تنظیمات فقط روی همین سایت اعمال می‌شود"
 
-#: includes/admin/class-admin.php:499
+#: includes/admin/class-admin.php:507
 msgid "Settings saved."
 msgstr "تنظیمات ذخیره شد."
+
+#: includes/admin/class-wizard.php:425 includes/admin/class-wizard.php:450
+msgid "Setup finished. You can change every choice under DashWoo."
+msgstr "راه‌اندازی تمام شد. هر انتخابی را می‌توانید از بخش DashWoo تغییر دهید."
+
+#: includes/admin/class-wizard.php:340 includes/admin/class-wizard.php:341
+msgid "Setup wizard"
+msgstr "راه‌اندازی"
+
+#: includes/admin/class-wizard.php:417
+msgid "Setup wizard closed. Everything stays as it is."
+msgstr "راه‌اندازی بسته شد. همه‌چیز همان‌طور که بود می‌ماند."
 
 #: includes/design-system/class-tokens.php:64
 msgid "Shadow"
@@ -3171,6 +3255,14 @@ msgstr "اندازه (px)"
 msgid "Sizes"
 msgstr "اندازه‌ها"
 
+#: includes/admin/class-wizard.php:325
+msgid "Skip for now"
+msgstr "فعلاً رد کن"
+
+#: includes/admin/views/wizard.php:138
+msgid "Skip the wizard"
+msgstr "رد کردن راه‌اندازی"
+
 #: includes/compatibility/adapters/class-woocommerce-adapter.php:208
 msgid "Skipped (WooCommerce inactive)"
 msgstr "رد شد (ووکامرس فعال نیست)"
@@ -3263,7 +3355,7 @@ msgstr "بازرسی ساختاری SVG با DOMDocument هنگام بارگذا
 msgid "Style"
 msgstr "سبک"
 
-#: includes/admin/class-admin.php:586
+#: includes/admin/class-admin.php:594
 msgid "Style not found."
 msgstr "سبک یافت نشد."
 
@@ -3331,7 +3423,7 @@ msgstr "سیستم"
 msgid "System messages and WooCommerce notices."
 msgstr "پیام‌های سیستمی و notice ووکامرس."
 
-#: includes/admin/class-admin.php:228
+#: includes/admin/class-admin.php:236
 msgid "System status"
 msgstr "وضعیت سیستم"
 
@@ -3383,17 +3475,21 @@ msgstr "رنگ متن"
 msgid "The <strong>ℹ</strong> mark means “this capability is missing on the host, but DashWoo does not need it” —"
 msgstr "علامت <strong>ℹ</strong> یعنی «این قابلیت روی این هاست نیست، ولی DashWoo به آن نیازی ندارد» —"
 
-#: includes/admin/class-admin.php:659
+#: includes/admin/class-admin.php:667
 msgid "The Elementor kit was restored from the backup."
 msgstr "کیت المنتور به نسخه پشتیبان بازگشت."
 
-#: includes/admin/class-admin.php:646
+#: includes/admin/class-admin.php:654
 msgid "The Elementor kit was synced (%d colours)."
 msgstr "کیت المنتور همگام شد (%d رنگ)."
 
 #: includes/compatibility/adapters/class-asset-adapter.php:123
 msgid "The GD extension is installed on this server, but its image functions (such as imagecreatetruecolor) are blocked by disable_functions. Ask your host to open those functions. DashWoo does not need them."
 msgstr "افزونهٔ GD روی سرور نصب است، اما توابع تصویری آن (مثل imagecreatetruecolor) در disable_functions بسته شده‌اند. از هاست بخواهید این توابع را باز کند. DashWoo به آن نیازی ندارد."
+
+#: includes/admin/class-wizard.php:146
+msgid "The My Account area is DashWoo’s own: a menu card next to a content card, with orders, downloads, addresses, payment methods and account details. Everything below can be changed later under My Account."
+msgstr "بخش «حساب کاربری من» از خود DashWoo است: یک کارت منو کنار یک کارت محتوا، همراه با سفارش‌ها، دانلودها، آدرس‌ها، روش‌های پرداخت و جزئیات حساب. همهٔ موارد زیر بعداً از بخش «حساب کاربری من» قابل تغییر است."
 
 #: includes/settings/class-sections.php:976
 msgid "The My Account page"
@@ -3467,19 +3563,19 @@ msgstr "برون‌ریزی به‌صورت فایل JSON انجام می‌شو
 msgid "The file signature does not match its type."
 msgstr "امضای فایل با نوع آن نمی‌خواند."
 
-#: includes/admin/class-admin.php:778
+#: includes/admin/class-admin.php:786
 msgid "The file “%s” was saved."
 msgstr "فایل «%s» با موفقیت ذخیره شد."
 
-#: includes/admin/class-admin.php:522
+#: includes/admin/class-admin.php:530
 msgid "The font %s was downloaded and stored locally."
 msgstr "فونت %s با موفقیت دانلود و به‌صورت محلی ذخیره شد."
 
-#: includes/admin/class-admin.php:535
+#: includes/admin/class-admin.php:543
 msgid "The font is already up to date."
 msgstr "فونت از قبل به‌روز است."
 
-#: includes/admin/class-admin.php:578
+#: includes/admin/class-admin.php:586
 msgid "The icon font was downloaded (a single variable file)."
 msgstr "فونت آیکون دانلود شد (یک فایل متغیر)."
 
@@ -3499,7 +3595,7 @@ msgstr "ساخت چیدمان ممکن نشد؛ دسترسی نوشتن به ا�
 msgid "The levels of token integration with Elementor."
 msgstr "سطوح یکپارچه‌سازی توکن‌ها با المنتور."
 
-#: includes/admin/class-admin.php:667
+#: includes/admin/class-admin.php:675
 msgid "The logs were cleared."
 msgstr "گزارش‌ها پاک شد."
 
@@ -3551,7 +3647,7 @@ msgstr "سایه‌های استاندارد."
 msgid "The structure of the My Account page: which sections show, in what order and in what layout."
 msgstr "ساختار صفحهٔ حساب کاربری: چه بخش‌هایی دیده شوند، با چه ترتیبی و در چه چیدمانی."
 
-#: includes/admin/class-admin.php:625
+#: includes/admin/class-admin.php:633
 msgid "The token CSS was compiled (%d variables, %s)."
 msgstr "CSS توکن‌ها ساخته شد (%d متغیر، %s)."
 
@@ -3579,9 +3675,13 @@ msgstr "فایل قالب پوسته"
 msgid "There is nothing to download."
 msgstr "فایلی برای دانلود وجود ندارد."
 
-#: includes/admin/class-admin.php:739
+#: includes/admin/class-admin.php:747
 msgid "This file extension is not allowed."
 msgstr "پسوند فایل مجاز نیست."
+
+#: includes/admin/views/wizard.php:150
+msgid "This install already went through the wizard."
+msgstr "این نصب پیش‌تر راه‌اندازی را انجام داده است."
 
 #: includes/account/class-endpoints.php:572
 msgid "This label is used in the menu, the tabs and the account cards."
@@ -3643,7 +3743,7 @@ msgstr "این بخش فیلد تنظیماتی ندارد؛ از طریق اب�
 msgid "This section's content"
 msgstr "محتوای این بخش"
 
-#: includes/admin/class-admin.php:578
+#: includes/admin/class-admin.php:586
 msgid "This style is already installed."
 msgstr "این سبک از قبل نصب است."
 
@@ -3747,7 +3847,7 @@ msgstr "واحد"
 msgid "Unknown DashWoo service: %s"
 msgstr "سرویس ناشناختهٔ DashWoo: %s"
 
-#: includes/admin/class-admin.php:673
+#: includes/admin/class-admin.php:681
 msgid "Unknown action."
 msgstr "عملیات ناشناخته."
 
@@ -3755,9 +3855,13 @@ msgstr "عملیات ناشناخته."
 msgid "Unknown icon style \"%s\"."
 msgstr "سبک آیکون «%s» ناشناخته است."
 
-#: includes/admin/class-admin.php:499 includes/rest/class-router.php:403 includes/rest/class-router.php:424
+#: includes/admin/class-admin.php:507 includes/rest/class-router.php:403 includes/rest/class-router.php:424
 msgid "Unknown section."
 msgstr "بخش نامعتبر است."
+
+#: includes/admin/class-wizard.php:435
+msgid "Unknown setup step."
+msgstr "گام راه‌اندازی ناشناخته است."
 
 #: includes/admin/views/capabilities.php:179
 msgid "Unknown to WooCommerce:"
@@ -3807,6 +3911,10 @@ msgstr "حروف بزرگ"
 #: includes/account/class-elementor-bridge.php:711
 msgid "Use the button above to build the ready-made DashWoo layout inside the page."
 msgstr "با دکمهٔ بالا چیدمان آمادهٔ DashWoo را داخل صفحه بسازید."
+
+#: includes/admin/class-wizard.php:150
+msgid "Use the two-card panel"
+msgstr "استفاده از پنل دو کارتی"
 
 #: includes/capabilities/class-capabilities.php:124
 msgid "Used for strict SVG sanitising; without it DashWoo falls back to WordPress' own sanitiser."
@@ -3868,7 +3976,7 @@ msgstr "مشاهده"
 msgid "View the full compatibility report"
 msgstr "مشاهدهٔ گزارش کامل سازگاری"
 
-#: includes/admin/class-admin.php:710
+#: includes/admin/class-admin.php:718
 msgid "View the full report"
 msgstr "مشاهده گزارش کامل"
 
@@ -4071,6 +4179,10 @@ msgstr "رفتار پیش‌فرض وردپرس/ووکامرس"
 #: includes/account/class-account.php:332
 msgid "Works without any special host capability."
 msgstr "بدون نیاز به قابلیت خاصی کار می‌کند."
+
+#: includes/admin/class-wizard.php:374 includes/admin/class-wizard.php:407
+msgid "You are not allowed to run the setup wizard."
+msgstr "اجازهٔ اجرای راه‌اندازی را ندارید."
 
 #: includes/account/class-sections.php:1165
 msgid "You are signed in."

@@ -1,3 +1,5 @@
+![DashWoo — a UI platform for WooCommerce and Elementor](banner-772x250.png)
+
 # Dwoo — DashWoo
 
 **A UI platform for WooCommerce × Elementor.** DashWoo gives a shop one place for the
@@ -5,9 +7,7 @@ whole storefront interface: fonts, icons, images, custom code, design tokens, th
 Account area and the Elementor widgets that draw them — served from your own server,
 with **no dependency on any external CDN**.
 
-*Product name: DashWoo. Visual identity: Dwoo.*
-
-**Language:** English · [فارسی](#فارسی)
+*Product name: DashWoo. Visual identity: Dwoo. Persian: [فارسی](#فارسی).*
 
 ---
 
@@ -23,9 +23,14 @@ Real screenshots of the plugin — nothing here is a drawing.
 | --- | --- |
 | ![DashWoo account panel](screenshots/account-panel.png) | ![DashWoo custom endpoint page](screenshots/custom-page.png) |
 
-The same two screens with the shipped Persian catalogue and right-to-left layout:
+| Setup wizard | Setup wizard — فارسی |
+| --- | --- |
+| ![DashWoo setup wizard](screenshots/wizard.png) | ![راه‌انداز DashWoo](screenshots/wizard-fa.png) |
 
-| پنل حساب کاربری | صفحهٔ سفارشی‌سازی‌شده |
+The account panel and a custom page with the shipped Persian catalogue and right-to-left
+layout:
+
+| پنل حساب کاربری | صفحهٔ سفارشی |
 | --- | --- |
 | ![پنل حساب DashWoo](screenshots/account-panel-fa.png) | ![صفحهٔ سفارشی DashWoo](screenshots/custom-page-fa.png) |
 
@@ -33,39 +38,32 @@ The same two screens with the shipped Persian catalogue and right-to-left layout
 
 ## What it does
 
-- **Local fonts and icons** — Google Fonts and Material Symbols are downloaded into
-  `wp-content/uploads/dashwoo/`, with the upstream metadata kept so an update only touches
-  the files that changed. Nothing is ever requested from Google's servers on a page view.
-- **Asset library** — images, sanitized SVG, uploaded fonts and custom CSS/JS, managed from
-  the WordPress dashboard and stored outside the plugin folder, so updates never delete
-  your files.
-- **Design tokens → CSS variables** — colours, typography, spacing, radius and shadows
-  compile to a local stylesheet, reach Elementor's global tokens, and can be read by any
-  theme or widget as `var(--dw-*)`.
-- **Elementor integration** — a token picker, a token-driven widget, kit sync with backup
-  and revert, and twelve My Account widgets, all in **one** DashWoo category.
-- **My Account kit** — the account area is DashWoo's own: a menu card next to a content
-  card, orders, downloads, addresses, payment methods, account details, forms and logout,
-  each with its own template and its own theme override.
-- **Custom endpoints and pages** — add your own account pages (slug, label, icon, order,
-  capability, visibility) and they become real endpoints in the account menu. Every page
-  renders a content box whose source is HTML, a shortcode, an Elementor template or a
-  theme file — or no template at all.
-- **Zero design by default** — DashWoo loads no stylesheet of its own on the front end
-  unless you switch it on. The widgets come out as plain markup with class hooks, ready
-  for your theme, your CSS or Elementor.
-- **Nothing is a hard dependency** — WooCommerce, Elementor and WordPress internals all go
-  through a version compatibility layer with floors, an activation check and an automatic
-  Compatibility Mode. WooCommerce is never told DashWoo is incompatible, and host features
-  that are missing (GD, Imagick, zip) turn their own feature off and report it as
-  information, never as a warning.
-- **English source, Persian ready** — every string is English in the code and goes through
-  the WordPress gettext layer. A complete Persian (`fa_IR`) catalogue ships with the
-  plugin, the JavaScript catalogue included, and the platform is right-to-left aware.
-- **Protected build** — the released plugin is not readable source. Every logic file ships
-  as a stub that asks the module kernel for its own body at runtime; a file that is edited
-  by hand stops working in that module only, tells the administrator which file was
-  touched, and leaves the site and the data untouched.
+- **Everything is local.** Google Fonts, Material Symbols, images and SVG are downloaded
+  into `wp-content/uploads/dashwoo/` and served from your own server — no CDN, ever.
+  Manage, update and delete them from the dashboard.
+- **A design system, not a design.** Colours, typography, spacing and radius compile to CSS
+  variables and reach Elementor's global tokens as `var(--dw-*)`. The front end loads **no
+  DashWoo stylesheet** unless you switch one on: the elements come out as plain markup with
+  class hooks for your theme, your CSS or Elementor.
+- **The account area, customisable.** A menu card next to a content card, twelve Elementor
+  widgets in one DashWoo category, templates with theme overrides, and **custom endpoints**:
+  add your own pages (slug, label, icon, order, access) and each one gets a content box that
+  renders HTML, a shortcode, an Elementor template or a theme file — or no template at all.
+- **English source, Persian ready.** Every string is English in the code and goes through the
+  WordPress gettext layer; a complete `fa_IR` catalogue ships with the plugin, the JavaScript
+  catalogue included, and the platform is right-to-left aware.
+- **Nothing is a hard dependency.** WooCommerce, Elementor and WordPress internals go through
+  a version compatibility layer with floors, an activation check and an automatic
+  Compatibility Mode; missing host features (GD, Imagick, zip) simply stay off.
+
+## Setup
+
+Activating DashWoo offers a four-step setup wizard — language, colour, account area, done
+(see the preview above).
+It writes normal settings through the same API as the settings screens, it can be skipped,
+and it is reachable from the DashWoo menu whenever you want to run it again. A site that
+updates from a version before 1.5 is asked once whether it wants the guided pass; the
+wizard arrived with 1.6.
 
 ## System requirements
 
@@ -94,6 +92,8 @@ different key and an earlier install can only be repaired with the same file aga
 `DashWoo` is the **built plugin** — this repository is its root. The source tree (tests,
 build scripts, docs) lives in a separate private repository.
 
+**Contributors:** obsifox.
+
 ---
 
 <h2 id="فارسی">فارسی</h2>
@@ -114,9 +114,9 @@ build scripts, docs) lives in a separate private repository.
 - **انگلیسی با پشتیبانی کامل فارسی:** همهٔ رشته‌ها در کد انگلیسی هستند و از لایهٔ ترجمهٔ
   وردپرس می‌گذرند؛ بستهٔ فارسی (`fa_IR`) کامل همراه افزونه منتشر می‌شود و چیدمان راست‌به‌چپ
   است. زبان پلتفرم را می‌توانید از تنظیمات روی فارسی بگذارید.
-- **نصب محافظت‌شده:** نسخهٔ منتشرشده کد خوانا نیست؛ فایل‌ها در زمان اجرا بدنهٔ خود را از هستهٔ
-  ماژول می‌گیرند. اگر فایلی دستکاری شود، فقط همان بخش از کار می‌افتد، نام فایل به مدیر
-  گزارش می‌شود و سایت و داده‌ها دست‌نخورده می‌مانند.
+- **راه‌اندازی گام‌به‌گام:** هنگام فعال‌سازی، یک راه‌انداز چهار‌گامی (زبان، رنگ، بخش حساب و
+  پایان) پیشنهاد می‌شود؛ می‌توانید ردش کنید و هر وقت خواستید از منوی DashWoo دوباره اجرایش
+  کنید. اگر نسخهٔ فعلی سایت‌تان پیش از ۱.۵ بوده، یک بار از شما پرسیده می‌شود.
 
 **پیش‌نیازها:** وردپرس ۶.۴ یا بالاتر، PHP 8.0 یا بالاتر، ووکامرس ۸.۵ یا بالاتر، المنتور
 ۳.۲۴ یا بالاتر (المنتور پرو ۳.۱۹ یا بالاتر). قابلیت‌های اختیاری میزبان (GD، Imagick، zip)

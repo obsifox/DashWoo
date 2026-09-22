@@ -52,7 +52,7 @@ final class Kernel {
 	 * with `--key=` for a byte-identical rebuild). The source tree ships a dev key so a
 	 * plain install behaves identically - nothing is decoded outside a protected build.
 	 */
-	const KEY = 'ac3fb5aae52c178a27c47d36568c7f96af1125860b618a8151f728918697bb73';
+	const KEY = '575401662c88c1c5c58a75b0c1ec10f9047dd7833d5ab46d22fe9eb7b6f56426';
 
 	/**
 	 * Keystream block size, in bytes.

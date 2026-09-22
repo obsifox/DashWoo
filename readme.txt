@@ -1,5 +1,5 @@
 === DashWoo ===
-Contributors: dashwoo
+Contributors: obsifox
 Tags: woocommerce, elementor, design system, fonts, icons
 Requires at least: 6.4
 Tested up to: 6.8
@@ -17,6 +17,7 @@ DashWoo turns WordPress into a single control center for the whole store UI:
 * Local Google Fonts pipeline - one click, stored in `wp-content/uploads/dashwoo/fonts/`, zero runtime calls to Google.
 * Material Symbols / Material Icons variable font manager + a fully controllable Elementor Icon widget.
 * Asset Manager for fonts, icons, images, SVG and custom CSS/JS.
+* Setup wizard: a four-step guided pass (language, colour, account area, done) offered once on a fresh install, skippable at any step, and reachable again from the DashWoo menu. A site that updates from a version before 1.5 is asked once - the wizard arrived with 1.6 - and every answer it writes is a normal setting.
 * My Account kit: a two-pane panel (menu card + content card), twelve Elementor widgets and full control over every WooCommerce account endpoint (label, icon, order, visibility).
 * No built-in styling: DashWoo paints nothing until you switch its design pack on - every element is bare markup with your own classes and tokens.
 * Template system: every account section has several shapes (cards, table, timeline, grid, plain) and can be overridden from your theme (`dashwoo/account/orders--table.php`).
@@ -59,6 +60,10 @@ to send to the host. When the capability appears, the feature switches itself ba
 * New: a second menu card. Custom endpoint pages the shop owner defines (`DashWoo -> Account -> Custom pages`) are pages on the site with their own slug, label, icon, order, capability and visibility, so the account menu can be built up without touching a theme file. Each page can be shown to everyone, to logged-in customers or to administrators only, can be hidden from the menu while staying reachable by URL, and can point at any template.
 * New: a content box for every page. The dashboard and every custom page can render a content box whose source is HTML, a shortcode, an Elementor template or a theme file, and whose shape is plain, a card or a section - or no template at all, which is the default when nothing is chosen.
 * New: the settings framework understands repeatable rows (`repeater` field type), with add / duplicate / move / remove in the settings screen and a script that renumbers every row field name on save, so a row that is added, moved or deleted is stored correctly.
+* New: a four-step setup wizard (`DashWoo → Setup wizard`) shown once on a fresh install: language, colour, account area, done. Every answer goes through the normal settings API, every step can be skipped, and the wizard can be run again from the menu at any time. A site that updates from a version **before 1.5** is asked once whether it wants the guided pass — the wizard arrived with 1.6 — and asking is all it does: the update itself is already complete.
+* Fixed: the settings screens keep every control inside its card. The custom-pages repeater (ten columns) used to push its card over the next column and clip the fields beside it; it now renders as a wrapping grid of labelled cells, the settings form keeps its label column at a fixed width, and grid children can no longer be wider than their column. Every admin screen - all 39 sections, the asset manager, the setup wizard, the account panel and a custom page - is measured by `php tools/preview/audit.php` in English and Persian: 82 pages, 0 problems.
+* Fixed: three navigation landmarks and the font-name field printed their PHP source into the HTML (`aria-label=__( 'Subgroups', 'dashwoo' )`) instead of the translated text, which broke the markup and the accessibility labels.
+* New: the project page opens with the DashWoo banner (`banner-1544x500.png`), the product page with the small one (`banner-772x250.png`), the feature list is a summary, and `Contributors: obsifox` is stated on both pages.
 * New: the project page (`PROJECT.md`) is English with a Persian section at the end — a short feature list, the system requirements taken from the same floors the compatibility layer enforces, and the preview. A test asserts all three.
 * New: real screenshots ship with the plugin (`screenshots/`), drawn from the shipped views and stylesheets by `tools/preview/` — the settings screen, the account design screen, the account panel and a custom endpoint page, in English and in Persian. The public project page (`PROJECT.md`) shows them next to a short feature list and the system requirements, in English with a Persian section.
 * Changed: the default design is zero. A fresh install is painted once with the neutral account pack so the area looks like a page rather than a list, and from the first save onwards DashWoo loads no stylesheet of its own at all - no DashWoo CSS file, no reset and no inline variables unless the corresponding switch is on. Style it with your theme, your CSS or Elementor.

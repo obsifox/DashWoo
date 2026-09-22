@@ -34,6 +34,37 @@
 .dw-grid--main { grid-template-columns: minmax(0, 1fr) 280px; }
 @media (max-width: 1100px) { .dw-grid--4, .dw-grid--2, .dw-grid--main { grid-template-columns: 1fr; } }
 .dw-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; }
+/* A grid child may never be wider than its column: without this its min-content width
+   (a wide table, a long code line) pushes the card over the next column. */
+.dw-grid > * { min-width: 0; }
+.dw-card > p.description, .dw-card > p.dw-hint { overflow-wrap: anywhere; }
+/* Repeaters hold a variable number of variable-width columns: the table always fits the
+   card, and when the screen is genuinely too narrow the rows scroll inside their own box
+   instead of pushing the page sideways. */
+/* The settings form itself is a fixed two-column table: the label column keeps its
+   width and the field column takes what is left, so a field can never stretch the
+   form past the card. Anything genuinely wider scrolls inside its own box. */
+.dw-form { width: 100%; table-layout: fixed; }
+.dw-form > tbody > tr > th { width: 200px; }
+.dw-form td { overflow-wrap: anywhere; }
+/* A control never grows past the cell that holds it: the longest <option> of a select
+   must not decide how wide the screen is. */
+.dw-form select, .dw-form textarea, .dw-form input[type="text"], .dw-form input[type="number"], .dw-form input[type="url"], .dw-form input[type="search"] { max-width: 100%; box-sizing: border-box; }
+/* The rows stay rows in the DOM - scripts and screen readers keep their table - but on
+   screen they wrap: ten columns of settings never fit inside a card, and squeezing them
+   turns every control into a 30px stub. Each cell carries its own label instead. */
+.dw-repeater__scroll { width: 100%; max-width: 100%; overflow-x: auto; }
+.dw-repeater__table { display: block; width: 100%; border: 0; background: none; box-shadow: none; }
+.dw-repeater__table thead { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); border: 0; }
+.dw-repeater__table tbody { display: block; }
+.dw-repeater__table tr { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 8px 10px; align-items: end; padding: 10px; border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; }
+.dw-repeater__table tr + tr { margin-top: 8px; }
+.dw-repeater__table td { display: block; min-width: 0; padding: 0; border: 0; overflow-wrap: anywhere; }
+.dw-repeater__table td[data-label]:before { content: attr(data-label); display: block; margin-bottom: 2px; font-size: 11px; line-height: 1.5; color: #6b7280; }
+.dw-repeater__table input, .dw-repeater__table select, .dw-repeater__table textarea { width: 100%; max-width: 100%; box-sizing: border-box; }
+.dw-repeater__table [data-column="value"] { grid-column: span 2; }
+.dw-repeater__table .dw-repeater__actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 4px; }
+.dw-repeater__actions { white-space: nowrap; }
 .dw-kpi { font-size: 26px; font-weight: 700; margin: 6px 0; }
 .dw-pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: #f3f4f6; }
 .dw-pill--ok { background: #dcfce7; color: #166534; }
@@ -52,3 +83,15 @@
 .dw-aside-cluster h4 { margin: 10px 0 4px; font-size: 12px; color: #6b7280; text-transform: none; }
 .dw-aside-cluster li.is-active a { font-weight: 700; color: #1d4ed8; }
 .dw-count { background: #e5e7eb; border-radius: 999px; padding: 0 6px; margin-inline-start: 4px; font-size: 11px; }
+
+/* Setup wizard -------------------------------------------------------- */
+.dw-steps { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 18px; padding: 0; list-style: none; counter-reset: dw-step; }
+.dw-step { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px 7px 10px; border: 1px solid #dcdcde; border-radius: 999px; background: #fff; color: #50575e; }
+.dw-step__index { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #f0f0f1; color: #50575e; font-size: 12px; font-weight: 600; }
+.dw-step.is-current { border-color: var(--dw-color-primary, #2563eb); color: #1d2327; box-shadow: 0 0 0 1px var(--dw-color-primary, #2563eb) inset; }
+.dw-step.is-current .dw-step__index { background: var(--dw-color-primary, #2563eb); color: #fff; }
+.dw-step.is-done .dw-step__index { background: #d1e7dd; color: #0f5132; }
+.dashwoo-wizard__card { margin-top: 0; }
+.dashwoo-wizard__footnote { margin-top: 10px; }
+.dashwoo-wizard .form-table th { width: 220px; }
+.dashwoo-wizard .dw-switch { display: inline-flex; align-items: center; gap: 8px; }
